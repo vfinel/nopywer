@@ -135,7 +135,11 @@ for loadLayerName in loadLayersList:
 # We'll start with "generator" node, get its children, then check its children's children, etc
 
 children = getChildren("generator", nodesDict, cablesDict)
-#print(json.dumps(nodesDict, sort_keys=True, indent=4))
+# todo: diff entre cablesDict et children... ? 
+
+print(json.dumps(cablesDict, sort_keys=True, indent=4))
+print(json.dumps(nodesDict, sort_keys=True, indent=4))
+print(json.dumps(children, sort_keys=True, indent=4))
 
 
 # objectif: un dictionnaire(struct matlab) "grid" du type:
