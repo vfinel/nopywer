@@ -69,24 +69,26 @@ loadLayersList = ["power usage"]
 cablesLayersList = ["3phases_norg", "1phase_norg"]
 thres = 5 # [meters] threshold to detect cable and load connections
 
-# ======= 1. First step : find connections between loads and cables
-for loadLayerName in loadLayersList:
-    # get loads layer
-    load_layer = getLayer(loadLayerName)
-    print(f"loads layer = {load_layer}")
 
-    # "loads" are qgis features. and a python iterator --> needs to be reset after each loop
+printThat = 0
+# ======= 1. First step : find connections between loads and cables (find what load is plugged into what cable, and vice-versa)
+for loadLayerName in loadLayersList:
+    load_layer = getLayer(loadLayerName)
+    if printThat: print(f"loads layer = {load_layer}")
+    # "loads" are qgis features (and a python iterator --> needs to be reset after each loop)
     loads = load_layer.getFeatures() 
+
     for load in loads:
-        print("\nload's ID: ", load.id())
         attrs = load.attributes() # attrs is a list. It contains all the attribute values of this feature
-        print("load's attributes: ", attrs)
         loadName = attrs[1]
+        if printThat: 
+            print("\n\t load's ID: ", load.id())
+            print("\t load's attributes: ", attrs)
         
         # get load position
         loadPos = getCoordinates(load)
         
-        # --- find which cable(s) are connected to load
+        # --- find which cable(s) are connected to that load
         for cableLayerName in cablesLayersList:
             cableLayer = getLayer(cableLayerName)
             cables = cableLayer.getFeatures() # is an interator, so needs to be reset after each load
@@ -101,7 +103,7 @@ for loadLayerName in loadLayersList:
                 dmin = min(elist)
                 if dmin<= thres: # we found a connection 
                     # todo: better to do the test outside cable loop (see below)
-                    print(f'\t cable layer  {cableLayerName}, cable {cable.id()} is connected to {attrs[1]}')
+                    if printThat: print(f'\t\t cable layer  {cableLayerName}, cable {cable.id()} is connected to {attrs[1]}')
                     
                     # we found the cable, let's do some fill dictionnaries
                     if cableLayerName not in cablesDict: # if this cable LAYER hasn't been seen yet
@@ -129,17 +131,49 @@ for loadLayerName in loadLayersList:
 #print(json.dumps(cablesDict, sort_keys=True, indent=4))
 #print(json.dumps(nodesDict, sort_keys=True, indent=4))
 
-# =======  Second step: find connections between nodes 
+
+
+
+# =======  Second step: find connections between nodes to get the "flow direction":
 # Now, all cables that are connected to something are (supposed to be) stored in cablesDict. 
 # Let's loop over the nodes again, but this time, we will find to what node is connected each node
 # We'll start with "generator" node, get its children, then check its children's children, etc
 
-children = getChildren("generator", nodesDict, cablesDict)
+grid = getChildren("generator", nodesDict, cablesDict)
+grid = grid[0]
 # todo: diff entre cablesDict et children... ? 
 
-print(json.dumps(cablesDict, sort_keys=True, indent=4))
-print(json.dumps(nodesDict, sort_keys=True, indent=4))
-print(json.dumps(children, sort_keys=True, indent=4))
+# --- for each load, add "cable to daddy" information
+for load in grid.keys():
+    if load!='generator':
+        if 'parent' in grid[load].keys():
+            parent = grid[load]['parent']
+            cable2parent = grid[parent]['children'][load]["cable"]
+            grid[load]['cable'] = cable2parent 
+
+
+# --- sort loads by deepness
+dmax = 0
+for load in grid.keys(): # find max deepness
+    if 'deepness' in grid[load].keys():
+        dmax = max(dmax, grid[load]['deepness'])
+
+dlist = [None]*(dmax+1)
+for load in grid.keys():
+    if 'deepness' in grid[load].keys():
+        deepness = grid[load]["deepness"]
+        print(f"load {load} has deepness {deepness} together with {dlist[deepness]}")
+        if dlist[deepness]==None:
+            dlist[deepness] = []
+        
+        dlist[deepness].append(load)
+    
+if 0:
+    print('\n')
+    print(json.dumps(cablesDict, sort_keys=True, indent=4))
+    print(json.dumps(nodesDict, sort_keys=True, indent=4))
+    print(json.dumps(grid, sort_keys=True, indent=4))
+    
 
 
 # objectif: un dictionnaire(struct matlab) "grid" du type:
@@ -165,6 +199,6 @@ print(json.dumps(children, sort_keys=True, indent=4))
 # first it is necessary to know which load is connected to which load 
 # But to know that, it is necessary to know which cable is connected to which loads !
 
-print("\n end of script for now :)")
+
 
 
