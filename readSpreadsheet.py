@@ -1,6 +1,6 @@
 import pandas as pd
 
-sh = pd.read_excel("Power 2023 map balance.ods",sheet_name="balance", skiprows=3,
+sh = pd.read_excel("Power 2023 map balance.ods",sheet_name="Sheet1", skiprows=3,
                     engine="odf")
                     
 
@@ -16,9 +16,9 @@ missingOnMap = [] # list of loads on the spreadsheet but not on the map
 
 # loop through loads on the map and find corresponding info on the spreadsheet
 for load in loadsOnMap:
-    idx = [i for i,x in enumerate(loadsOnSheet) if x.lower()==load.lower()]
-    if len(idx)==1:
-        grid[load]['power'] = sh['Worst case [W]'][idx[0]]
+    idx = [i for i,x in enumerate(loadsOnSheet) if x.lower()==load] # find idx of the row in the spreadsheet
+    if len(idx)==1: # the load appears exactly one time in the spreadsheet
+        grid[load]['power'] = sh['worstcase power [W]'][idx[0]]
         grid[load]['phase'] = sh['which phase(1, 2, 3, T, U or Y)'][idx[0]] 
         grid[load]['date'] = dict()
         grid[load]['date']['from'] = sh['Arrive'][idx[0]]
@@ -26,7 +26,7 @@ for load in loadsOnMap:
 
         cable = grid[load]['cable']
         grid[load]['cable'].update(cablesDict[cable['layer']][cable['idx']]) # add info from cableDict
-        print(f'cable : {cable}')
+        #print(f'cable : {cable}')
 
         print(f"\t {load} draws {grid[load]['power']/1e3}kW on phase {grid[load]['phase']} \
               from {grid[load]['date']['from']} to {grid[load]['date']['to']}")

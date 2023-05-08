@@ -1,5 +1,7 @@
+# help 
+# from pathlib import Path
 
-# find grid geometru
+# find grid geometry
 exec(Path('H:/Mon Drive/vico/map/sandbox/getGridGeometry.py').read_text())
 
 # spreadsheet: asign phases
@@ -8,5 +10,20 @@ exec(Path('H:/Mon Drive/vico/map/sandbox/getGridGeometry.py').read_text())
 exec(Path('H:/Mon Drive/vico/map/sandbox/readSpreadsheet.py').read_text())
 
 #print(json.dumps(grid, sort_keys=True, indent=4))
+
+# compute cumulated current
+exec(Path('H:/Mon Drive/vico/map/sandbox/cumulateCurrent.py').read_text())
+
+phaseBalance = 100*np.std(grid['generator']['cumPower']/np.mean(grid['generator']['cumPower']))
+
+# print grid
+print("\n === info about the grid === \n") 
+print(f"total power: {1e-3*np.sum(grid['generator']['cumPower']):.0f}kW \t {1e-3*grid['generator']['cumPower'].round()} ")
+print(f"phase balance: {phaseBalance.round(1)} %")
+for deep in range(len(dlist)):
+    print(f"\t deepness {deep}")
+    for load in dlist[deep]:
+        print(f"\t\t {load}'s cumPower={np.round(1e-3*grid[load]['cumPower'],1)}kW")
+
 
 print("\n end of script for now :)")

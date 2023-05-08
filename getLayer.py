@@ -1,3 +1,5 @@
+from qgis.core import QgsProject
+
 def getLayer(layer_name):
 
     # from https://gis.stackexchange.com/questions/136861/getting-layer-by-name-in-pyqgis/136879#136879

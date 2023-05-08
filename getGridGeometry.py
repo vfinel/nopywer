@@ -36,13 +36,18 @@
 
 # notes on structures:
 #
-# - nodesDict: dict(). each node is a key. each node is itself a dictonnary.
+# - nodesDict=grid: dict(). each node is a key. each node is itself a dictonnary.
 #   nodesDict['someLoad'] has the following keys:
-#       - cable: a list of cables. Each cable in the list is described as a dictionnary with keys 'layer' and 'id'
+#       - _cable: a list of cables. Each cable in the list is described as a dictionnary with keys 'layer' and 'id'
 #           exemple: nodesDict['generator']['cable'][0]
 #
-#       - child: list ?
-#       - , parent, cable, etc.
+#       - children: dictionary. One kid = one key. 
+#           each kid is itself a dict. eg: grid['generator']['children']['Werkhaus'].keys() ---> dict_keys(['cable']) 
+#       - parent: a str 
+#       - cable = cable to parent 
+#       - load = [watts] on all 3 phases ?
+#       - cumulated load = [ on the 3 phases ---> a list ?] 
+#       - etc.
 #
 # - cablesDict['cableLayerName'][cableIdx]  = dict() with the following keys:
 #        - nodes: list(c). Each item of the list contains node(s) names connected to this cable
@@ -54,9 +59,11 @@ print('=================================================')
 
 # imports
 import json # to do: print(json.dumps(cablesDict, sort_keys=True, indent=4))
+from qgis.core import QgsDistanceArea
 exec(open('H:/Mon Drive/vico/map/sandbox/getLayer.py'.encode('utf-8')).read())
 exec(open('H:/Mon Drive/vico/map/sandbox/getCoordinates.py'.encode('utf-8')).read())
 exec(open('H:/Mon Drive/vico/map/sandbox/getChildren.py'.encode('utf-8')).read())
+
 dClass = QgsDistanceArea() # https://qgis.org/pyqgis/3.22/core/QgsDistanceArea.html
 dClass.setEllipsoid('WGS84')
 
@@ -69,6 +76,7 @@ loadLayersList = ["power usage"]
 cablesLayersList = ["3phases_norg", "1phase_norg"]
 thres = 5 # [meters] threshold to detect cable and load connections
 
+nodesDictModel = ['_cable','parent','children','deepness','cable','power','phase','date', 'cumPower']
 
 printThat = 0
 # ======= 1. First step : find connections between loads and cables (find what load is plugged into what cable, and vice-versa)
@@ -80,7 +88,7 @@ for loadLayerName in loadLayersList:
 
     for load in loads:
         attrs = load.attributes() # attrs is a list. It contains all the attribute values of this feature
-        loadName = attrs[1]
+        loadName = attrs[1].lower()
         if printThat: 
             print("\n\t load's ID: ", load.id())
             print("\t load's attributes: ", attrs)
@@ -118,7 +126,8 @@ for loadLayerName in loadLayersList:
                     cablesDict[cableLayerName][cableIdx]['nodes'].append(loadName)
                 
                     if loadName not in nodesDict:
-                        nodesDict[loadName] = dict()
+                        #nodesDict[loadName] = dict() # init a dict for loads 
+                        nodesDict[loadName] = dict.fromkeys(nodesDictModel) # init a dict for loads 
                         nodesDict[loadName]['_cable'] = []
                     
                     nodesDict[loadName]['_cable'].append({"layer":cableLayerName,"idx":cableIdx})
@@ -146,8 +155,8 @@ grid = grid[0]
 # --- for each load, add "cable to daddy" information
 for load in grid.keys():
     if load!='generator':
-        if 'parent' in grid[load].keys():
-            parent = grid[load]['parent']
+        parent = grid[load]['parent']
+        if parent != None:
             cable2parent = grid[parent]['children'][load]["cable"]
             grid[load]['cable'] = cable2parent 
 
@@ -155,14 +164,15 @@ for load in grid.keys():
 # --- sort loads by deepness
 dmax = 0
 for load in grid.keys(): # find max deepness
-    if 'deepness' in grid[load].keys():
+    deepness = grid[load]['deepness']
+    if deepness!=None:
         dmax = max(dmax, grid[load]['deepness'])
 
 dlist = [None]*(dmax+1)
 for load in grid.keys():
-    if 'deepness' in grid[load].keys():
-        deepness = grid[load]["deepness"]
-        print(f"load {load} has deepness {deepness} together with {dlist[deepness]}")
+    deepness = grid[load]["deepness"]
+    if deepness!=None:
+        #print(f"load {load} has deepness {deepness} together with {dlist[deepness]}")
         if dlist[deepness]==None:
             dlist[deepness] = []
         
