@@ -8,14 +8,14 @@ import numpy as np
 # - il faut sommer cumPower et pas power ! --> créer un "cumPower" pour chaque load, et si grid[load][child] = empty, then cumPower = power 
 # 
 
-print('\n cumulateCurrent.py:')
-for deepness in range(dmax, 0, -1):
-    print(f"deepness: {deepness}")
+print('\ncumulateCurrent.py:')
+for deepness in range(len(dlist)-1, 0, -1):
+    print(f"\tdeepness: {deepness}")
     loads = dlist[deepness]
     for load in loads:
         parent = grid[load]['parent']
         ph = grid[load]["phase"]
-        print(f'\t load: {load} is connected to {parent} on phase {ph}')
+        print(f'\t\t load: {load} is connected to {parent} on phase {ph}')
         
         if type(grid[load]['cumPower']).__module__ != 'numpy':
             grid[load]['cumPower'] = np.array([0.0]*3)
@@ -43,6 +43,6 @@ for deepness in range(dmax, 0, -1):
             grid[parent]['cumPower'] = grid[parent]['cumPower'] + grid[load]["cumPower"]
             
         else:
-            print(f'\t load: {load} has no phase assigned')
+            print(f'\t\t load: {load} has no phase assigned')
 
     

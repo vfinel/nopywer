@@ -44,10 +44,10 @@ def computeVDrop(grid,load=None):
         # /!\ bug for isolation: why grid['isolation']['cable'] has not length, even if cabesDict['1phase_norg'][2] en a une ?
         # ---> pourquoi grid['isolation']['cable]l['length'] n'a pas été updatée ?
         print(f'\npropagating vdrop to {load}')
-        print(f"cable: length {grid[load]['cable']['length']:.0f}m, area: {cableArea:.1f}mm²")
-        print(f"grid[parent]['voltage']: {grid[parent]['voltage']:.0f}V")
-        print(f"grid[load]['voltage']: {grid[load]['voltage']:.0f}V")
-        print(f"grid[load]['vdrop_percent']: {grid[load]['vdrop_percent']:.1f}%")
+        print(f"\tcable: length {grid[load]['cable']['length']:.0f}m, area: {cableArea:.1f}mm²")
+        print(f"\tgrid[parent]['voltage']: {grid[parent]['voltage']:.0f}V")
+        print(f"\tgrid[load]['voltage']: {grid[load]['voltage']:.0f}V")
+        print(f"\tgrid[load]['vdrop_percent']: {grid[load]['vdrop_percent']:.1f}%")
         
         
         if grid[load]['vdrop_percent']>th_percent:

@@ -1,12 +1,10 @@
 # imports
 # from pathlib import Path
+from pyqgis.getGridGeometry import getGridGeometry
 from pyqgis.computeVDrop import computeVDrop
 
-
-grid = None
-
 # find grid geometry
-exec(Path('./pyqgis/getGridGeometry.py').read_text())
+cablesDict, grid, dlist = getGridGeometry()
 
 # spreadsheet: asign phases
 # .....

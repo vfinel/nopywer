@@ -1,5 +1,6 @@
 import pandas as pd
 
+print('\nReading spreadsheet')
 sh = pd.read_excel("Power 2023 map balance.ods",sheet_name="Sheet1", skiprows=3,
                     engine="odf")
                     
@@ -29,7 +30,7 @@ for load in loadsOnMap:
         grid[load]['cable'].update(cablesDict[cable['layer']][cable['idx']]) # add info from cableDict
 
 
-        print(f"\t {load} draws {grid[load]['power']/1e3}kW on phase {grid[load]['phase']} \
+        print(f"\t {load} draws {grid[load]['power']/1e3:.1f}kW on phase {grid[load]['phase']} \
               from {grid[load]['date']['from']} to {grid[load]['date']['to']}")
         
 
@@ -49,9 +50,9 @@ for load in loadsOnSheet:
     elif len(idx)>1:
         raise ValueError(f'load "{load}" appears {len(idx)} times on the map" ')
 
-print('\n\n !!! you should go any futher if the following are not empty ()')
-print(f"on map but missing on spreadsheet: {missingOnSheet}") # will make computeVDrop to crash because those don't have cable lengthes
-print(f"\non spreadsheet but missing on map: {missingOnMap}")
+print('\n!!! you should go any futher some loads on the map but not on spreadsheet:')
+print(f"\ton map but missing on spreadsheet: {missingOnSheet}") # will make computeVDrop to crash because those don't have cable lengthes
+print(f"\n\ton spreadsheet but missing on map: {missingOnMap}")
 
 
 
