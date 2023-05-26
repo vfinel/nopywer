@@ -107,8 +107,9 @@ def getGridGeometry():
             parent = grid[load]['parent']
             if parent != None:
                 cable2parent = grid[parent]['children'][load]["cable"]
-                grid[load]['cable'] = cable2parent 
-
+                grid[load]['cable'] = cable2parent
+                grid[load]['cable'].update(cablesDict[cable2parent['layer']][cable2parent['idx']]) # add info from cableDict
+     
     dlist = computeDeepnessList(grid)
 
     if 0:

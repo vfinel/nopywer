@@ -1,7 +1,9 @@
 # imports
 # from pathlib import Path
-from pyqgis.getGridGeometry import getGridGeometry
-from pyqgis.computeVDrop import computeVDrop
+# from pyqgis.getGridGeometry import getGridGeometry
+# from pyqgis.computeVDrop import computeVDrop
+exec(Path('./pyqgis/getGridGeometry.py').read_text())
+exec(Path('./pyqgis/computeVDrop.py').read_text())
 
 # find grid geometry
 cablesDict, grid, dlist = getGridGeometry()
@@ -28,7 +30,7 @@ print(f"phase balance: {phaseBalance.round(1)} %")
 for deep in range(len(dlist)):
     print(f"\t deepness {deep}")
     for load in dlist[deep]:
-        print(f"\t\t {load}'s cumPower={np.round(1e-3*grid[load]['cumPower'],1)}kW, vdrop {grid[load]['vdrop_percent']:.1f}%")
+        print(f"\t\t {load} cumPower={np.round(1e-3*grid[load]['cumPower'],1)}kW, vdrop {grid[load]['vdrop_percent']:.1f}% ")
 
 
 print("\n end of script for now :)")

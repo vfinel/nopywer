@@ -14,35 +14,17 @@ for deepness in range(len(dlist)-1, 0, -1):
     loads = dlist[deepness]
     for load in loads:
         parent = grid[load]['parent']
-        ph = grid[load]["phase"]
-        print(f'\t\t load: {load} is connected to {parent} on phase {ph}')
         
         if type(grid[load]['cumPower']).__module__ != 'numpy':
             grid[load]['cumPower'] = np.array([0.0]*3)
-            
         if type(grid[parent]['cumPower']).__module__ != 'numpy':
             grid[parent]['cumPower'] = np.array([0.0]*3)
 
-        if grid[load]['power']==None:
-            grid[load]['power'] = 0
-            
-        # compute cumulated power 
-        if ph!=None:
+        # compute cumulated power for the load and its parent...        
+        grid[load]['cumPower'] += grid[load]["power"] # ... at load 
+        grid[parent]['cumPower'] += grid[load]["cumPower"] # ... and at parent
 
-            # ... at load 
-            if type(ph)==int:
-                grid[load]['cumPower'][ph-1] += grid[load]["power"]
-                
-            elif ph=='T':
-                grid[load]['cumPower'] = grid[load]['cumPower'] + grid[load]["power"]/3
-                
-            else: # U, Y
-                pass # do nothing
+        print(f"\t\t{load} cumulated power: {np.array2string(1e-3*grid[load]['cumPower'], precision=1, floatmode='fixed')}kW")
             
-            # and at parent
-            grid[parent]['cumPower'] = grid[parent]['cumPower'] + grid[load]["cumPower"]
-            
-        else:
-            print(f'\t\t load: {load} has no phase assigned')
 
     
