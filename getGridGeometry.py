@@ -53,16 +53,12 @@
 #        - nodes: list(c). Each item of the list contains node(s) names connected to this cable
 #
 
-print('\n\n=================================================')
-print('get grid geometry')
-print('=================================================')
-
 # imports
 import json # to do: print(json.dumps(cablesDict, sort_keys=True, indent=4))
 from qgis.core import QgsDistanceArea
-exec(open('H:/Mon Drive/vico/map/sandbox/getLayer.py'.encode('utf-8')).read())
-exec(open('H:/Mon Drive/vico/map/sandbox/getCoordinates.py'.encode('utf-8')).read())
-exec(open('H:/Mon Drive/vico/map/sandbox/getChildren.py'.encode('utf-8')).read())
+from pyqgis.getLayer import getLayer
+from pyqgis.getCoordinates import getCoordinates
+from pyqgis.getChildren import getChildren
 
 dClass = QgsDistanceArea() # https://qgis.org/pyqgis/3.22/core/QgsDistanceArea.html
 dClass.setEllipsoid('WGS84')
@@ -78,18 +74,33 @@ thres = 5 # [meters] threshold to detect cable and load connections
 
 nodesDictModel = ['_cable','parent','children','deepness','cable','power','phase','date', 'cumPower']
 
-printThat = 0
+verbose = 1
+
+def inspectCableLayers(cablesLayersList):
+    for cableLayerName in cablesLayersList:
+        cableLayer = getLayer(cableLayerName)
+        cables = cableLayer.getFeatures() # is an interator, so needs to be reset after each load
+        for cableIdx, cable in enumerate(cables):
+            geom = cable.geometry()
+            length = dClass.measureLength(geom)
+            print(f"cable layer {cableLayerName} idx {cableIdx} has length {length:.1f}m")
+
+    return None 
+
+
+if verbose: print('\n\nget grid geometry')
+
 # ======= 1. First step : find connections between loads and cables (find what load is plugged into what cable, and vice-versa)
 for loadLayerName in loadLayersList:
     load_layer = getLayer(loadLayerName)
-    if printThat: print(f"loads layer = {load_layer}")
+    if verbose: print(f"loads layer = {load_layer}")
     # "loads" are qgis features (and a python iterator --> needs to be reset after each loop)
     loads = load_layer.getFeatures() 
 
     for load in loads:
         attrs = load.attributes() # attrs is a list. It contains all the attribute values of this feature
         loadName = attrs[1].lower()
-        if printThat: 
+        if verbose: 
             print("\n\t load's ID: ", load.id())
             print("\t load's attributes: ", attrs)
         
@@ -111,7 +122,7 @@ for loadLayerName in loadLayersList:
                 dmin = min(elist)
                 if dmin<= thres: # we found a connection 
                     # todo: better to do the test outside cable loop (see below)
-                    if printThat: print(f'\t\t cable layer  {cableLayerName}, cable {cable.id()} is connected to {attrs[1]}')
+                    if verbose: print(f'\t\t cable layer  {cableLayerName}, cable {cable.id()} is connected to {attrs[1]}')
                     
                     # we found the cable, let's do some fill dictionnaries
                     if cableLayerName not in cablesDict: # if this cable LAYER hasn't been seen yet
@@ -126,7 +137,6 @@ for loadLayerName in loadLayersList:
                     cablesDict[cableLayerName][cableIdx]['nodes'].append(loadName)
                 
                     if loadName not in nodesDict:
-                        #nodesDict[loadName] = dict() # init a dict for loads 
                         nodesDict[loadName] = dict.fromkeys(nodesDictModel) # init a dict for loads 
                         nodesDict[loadName]['_cable'] = []
                     
@@ -150,7 +160,6 @@ for loadLayerName in loadLayersList:
 
 grid = getChildren("generator", nodesDict, cablesDict)
 grid = grid[0]
-# todo: diff entre cablesDict et children... ? 
 
 # --- for each load, add "cable to daddy" information
 for load in grid.keys():
@@ -184,31 +193,3 @@ if 0:
     print(json.dumps(nodesDict, sort_keys=True, indent=4))
     print(json.dumps(grid, sort_keys=True, indent=4))
     
-
-
-# objectif: un dictionnaire(struct matlab) "grid" du type:
-# - grid has a field for each node (grid.gen, grid.mon, ...)
-# - grid.nodename has the following fields:
-#   - parent (eg, grid.noinfo.parent = gen)
-#   - child (eg, grid.noinfo.child = [mon, noinfo_itself, someArtPiece]),
-#       child[n].length
-#       child[n].wireSection 
-#       ...
-#   - current going through node 
-#   - voltage
-#   - vdrop 
-#   - ("self")load (if the node also has a load, for example noinfo)
-
-# comment construire une telle structure ? 
-# while node doesn't have any more connections (start with gen)
-#   look at its connections
-#   compute gen's fields
-#   do the same for its childs
-
-# so it means to build the actual grid (knowing who's child and parent, 
-# first it is necessary to know which load is connected to which load 
-# But to know that, it is necessary to know which cable is connected to which loads !
-
-
-
-

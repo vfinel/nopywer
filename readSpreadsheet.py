@@ -17,6 +17,7 @@ missingOnMap = [] # list of loads on the spreadsheet but not on the map
 # loop through loads on the map and find corresponding info on the spreadsheet
 for load in loadsOnMap:
     idx = [i for i,x in enumerate(loadsOnSheet) if x.lower()==load] # find idx of the row in the spreadsheet
+
     if len(idx)==1: # the load appears exactly one time in the spreadsheet
         grid[load]['power'] = sh['worstcase power [W]'][idx[0]]
         grid[load]['phase'] = sh['which phase(1, 2, 3, T, U or Y)'][idx[0]] 
@@ -26,7 +27,7 @@ for load in loadsOnMap:
 
         cable = grid[load]['cable']
         grid[load]['cable'].update(cablesDict[cable['layer']][cable['idx']]) # add info from cableDict
-        #print(f'cable : {cable}')
+
 
         print(f"\t {load} draws {grid[load]['power']/1e3}kW on phase {grid[load]['phase']} \
               from {grid[load]['date']['from']} to {grid[load]['date']['to']}")
@@ -48,9 +49,9 @@ for load in loadsOnSheet:
     elif len(idx)>1:
         raise ValueError(f'load "{load}" appears {len(idx)} times on the map" ')
 
-
-print(f"on map but missing on spreadsheet: {missingOnSheet}")
-print(f"on spreadsheet but missing on map: {missingOnMap}")
+print('\n\n !!! you should go any futher if the following are not empty ()')
+print(f"on map but missing on spreadsheet: {missingOnSheet}") # will make computeVDrop to crash because those don't have cable lengthes
+print(f"\non spreadsheet but missing on map: {missingOnMap}")
 
 
 

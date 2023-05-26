@@ -1,7 +1,6 @@
 import os
 debugPrint = 1
 
-if debugPrint: print("\n getChildren: \n")
 
 def getChildren(nodeName, grid, cables):
     childrenDict = dict() # for parent to store info about its children
