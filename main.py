@@ -1,5 +1,6 @@
 # imports
 # from pathlib import Path
+import numpy as np
 # from pyqgis.getGridGeometry import getGridGeometry
 # from pyqgis.computeVDrop import computeVDrop
 exec(Path('./pyqgis/getGridGeometry.py').read_text())
@@ -25,12 +26,29 @@ grid = computeVDrop(grid)
 
 # print grid
 print("\n === info about the grid === \n") 
-print(f"total power: {1e-3*np.sum(grid['generator']['cumPower']):.0f}kW \t {1e-3*grid['generator']['cumPower'].round()} ")
-print(f"phase balance: {phaseBalance.round(1)} %")
+print(f"total power: {1e-3*np.sum(grid['generator']['cumPower']):.0f}kW \t {np.round(1e-3*grid['generator']['cumPower'],1)} ")
+
+if phaseBalance>5:
+    flag = ' <<<<<<<<<<'
+else:
+    flag = ''
+print(f"phase balance: {phaseBalance.round(1)} % {flag}")
 for deep in range(len(dlist)):
     print(f"\t deepness {deep}")
     for load in dlist[deep]:
-        print(f"\t\t {load} cumPower={np.round(1e-3*grid[load]['cumPower'],1)}kW, vdrop {grid[load]['vdrop_percent']:.1f}% ")
+        pwrPerPhase = np.round(1e-3*grid[load]['cumPower'],1)
+        pwrTotal = 1e-3*np.sum(grid[load]['cumPower'])
+        vdrop = grid[load]['vdrop_percent']
+        if vdrop>5:
+            flag = ' <<<<<<<<<<'
+        else:
+            flag = ''
+        
+        print(f"\t\t {load} cumPower={pwrPerPhase}kW, total {pwrTotal:.0f}kW, vdrop {vdrop:.1f}% {flag} ")
 
+print('\norphelin load:')
+for load in grid.keys():
+    if (grid[load]['parent'] == None) and not (grid[load]=='generator'):
+        print(f'\t{load}')
 
 print("\n end of script for now :)")

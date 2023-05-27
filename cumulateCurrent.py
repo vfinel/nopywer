@@ -25,6 +25,8 @@ for deepness in range(len(dlist)-1, 0, -1):
         grid[parent]['cumPower'] += grid[load]["cumPower"] # ... and at parent
 
         print(f"\t\t{load} cumulated power: {np.array2string(1e-3*grid[load]['cumPower'], precision=1, floatmode='fixed')}kW")
-            
+
+load = 'generator'
+print(f"\t{load} cumulated power: {np.array2string(1e-3*grid[load]['cumPower'], precision=1, floatmode='fixed')}kW")
 
     
