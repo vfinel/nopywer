@@ -12,14 +12,14 @@ def getWireArea(cable):
     if ('nodes' in cable.keys()) and (('generator' in cable['nodes']) and (('werkhaus' in cable['nodes']) or goingToMalfare or ('kunsthaus' in cable['nodes']))):
         wireArea = 16
     
-    elif cable['layer'] == '3phases_norg':
+    elif '3phases' in cable['layer']:
         wireArea = 6
     
-    elif cable['layer'] == '1phase_norg':
+    elif '1phase' in cable['layer']:
         wireArea = 2.5
     
     else:
-        raise ValueError("unable to determine wireArea of this cable")
+        raise ValueError(f"unable to determine wireArea of cable: {cable}")
 
     return wireArea
 

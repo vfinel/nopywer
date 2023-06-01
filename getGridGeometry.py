@@ -72,8 +72,8 @@ nodesDict = {}
 cablesDict = {} 
 
 # user settings
-loadLayersList = ["power usage"]
-cablesLayersList = ["3phases_norg", "1phase_norg"]
+loadLayersList = ["norg2023_nodes"]
+cablesLayersList = ["norg2023_3phases", "norg2023_1phase"]
 thres = 5 # [meters] threshold to detect cable and load connections
 
 nodesDictModel = ['_cable','parent','children','deepness','cable','power','phase','date', 'cumPower']
