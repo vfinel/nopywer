@@ -51,4 +51,7 @@ for load in grid.keys():
     if (grid[load]['parent'] == None) and not (grid[load]=='generator'):
         print(f'\t{load}')
 
+print('\nchecking inventory:')
+exec(Path('../nopywer/checkInventory.py').read_text())
+
 print("\n end of script for now :)")
