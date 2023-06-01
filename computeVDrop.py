@@ -37,9 +37,9 @@ def computeVDrop(grid,load=None):
         
         r = rho*grid[load]['cable']['length']/cableArea
         i = np.max(grid[load]['cumPower'])/V0/PF # todo: think about maths !!!!!
-        grid[load]['cable']['vdrop_volts'] = r*i
+        grid[load]['cable']['vdrop_volts'] = np.sqrt(3)*r*i # todo: change coef for 1-phase vs 3-phase https://drive.google.com/file/d/14_rlY05iPmopzXP5nSGixhvf_KH9mJ0p/view
         grid[load]['voltage'] = grid[parent]['voltage'] - grid[load]['cable']['vdrop_volts']
-        grid[load]['vdrop_percent'] = 100*(V0-grid[load]['voltage'])/(V0*np.sqrt(3)) # todo: l2l voltage or not ??
+        grid[load]['vdrop_percent'] = 100*(V0-grid[load]['voltage'])/V0
 
         # /!\ bug for isolation: why grid['isolation']['cable'] has not length, even if cabesDict['1phase_norg'][2] en a une ?
         # ---> pourquoi grid['isolation']['cable]l['length'] n'a pas été updatée ?
