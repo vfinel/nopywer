@@ -77,13 +77,22 @@ nodesDictModel = ['_cable','parent','children','deepness','cable','power','phase
 verbose = 1
 
 def inspectCableLayers(cablesLayersList):
+    print('\n inspect cable layer:')
     for cableLayerName in cablesLayersList:
         cableLayer = getLayer(cableLayerName)
         cables = cableLayer.getFeatures() # is an interator, so needs to be reset after each load
+        totalLength = 0
         for cableIdx, cable in enumerate(cables):
             geom = cable.geometry()
             length = dClass.measureLength(geom)
-            print(f"cable layer {cableLayerName} idx {cableIdx} has length {length:.1f}m")
+            totalLength += length 
+            msg = f"\tcable layer {cableLayerName} idx {cableIdx} has length {length:.1f}m"
+            if length < 5:
+                raise ValueError(msg)
+            else:
+                print(msg)
+
+        print(f'\t ---> total length of {cableLayerName}: {totalLength:.0f} meters\n')
 
     return None 
 
@@ -112,6 +121,8 @@ def getGridGeometry():
      
     dlist = computeDeepnessList(grid)
 
+    inspectCableLayers(cablesLayersList)
+    
     if 0:
         print('\n')
         print(json.dumps(cablesDict, sort_keys=True, indent=4))
