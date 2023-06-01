@@ -7,5 +7,5 @@ print(a)
 helloworld()
 print(a)
 
-exec(open('./pyqgis/getFeatures.py'.encode('utf-8')).read())
+exec(open('../nopywer/getFeatures.py'.encode('utf-8')).read())
 

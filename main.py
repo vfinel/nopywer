@@ -3,8 +3,8 @@
 import numpy as np
 # from pyqgis.getGridGeometry import getGridGeometry
 # from pyqgis.computeVDrop import computeVDrop
-exec(Path('./pyqgis/getGridGeometry.py').read_text())
-exec(Path('./pyqgis/computeVDrop.py').read_text())
+exec(Path('../nopywer/getGridGeometry.py').read_text())
+exec(Path('../nopywer/computeVDrop.py').read_text())
 
 # find grid geometry
 cablesDict, grid, dlist = getGridGeometry()
@@ -13,12 +13,12 @@ cablesDict, grid, dlist = getGridGeometry()
 # .....
 
 # load spreadsheet (power usage + phase) and add it to "grid" dictionnary
-exec(Path('./pyqgis/readSpreadsheet.py').read_text())
+exec(Path('../nopywer/readSpreadsheet.py').read_text())
 
 #print(json.dumps(grid, sort_keys=True, indent=4))
 
 # compute cumulated current
-exec(Path('./pyqgis/cumulateCurrent.py').read_text())
+exec(Path('../nopywer/cumulateCurrent.py').read_text())
 
 phaseBalance = 100*np.std(grid['generator']['cumPower']/np.mean(grid['generator']['cumPower']))
 

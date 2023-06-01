@@ -56,9 +56,13 @@
 # imports
 import json # to do: print(json.dumps(cablesDict, sort_keys=True, indent=4))
 from qgis.core import QgsDistanceArea
-from pyqgis.getLayer import getLayer
-from pyqgis.getCoordinates import getCoordinates
-from pyqgis.getChildren import getChildren
+# from nopywer.getLayer import getLayer
+# from pyqgis.getCoordinates import getCoordinates
+# from pyqgis.getChildren import getChildren
+exec(Path('../nopywer/getLayer.py').read_text())
+exec(Path('../nopywer/getCoordinates.py').read_text())
+exec(Path('../nopywer/getChildren.py').read_text())
+
 
 dClass = QgsDistanceArea() # https://qgis.org/pyqgis/3.22/core/QgsDistanceArea.html
 dClass.setEllipsoid('WGS84')
