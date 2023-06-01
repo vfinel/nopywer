@@ -7,8 +7,9 @@ rho = 1/26 # resistivity of copper cables in [ohm/m*mm²] R = rho*L/area
 def getWireArea(cable): 
     # cable must be a grid[load]['cable'] dictionnary 
     # return area in mm²
-
-    if ('nodes' in cable.keys()) and (('generator' in cable['nodes']) and (('werkhaus' in cable['nodes']) or ('malfaretotal' in cable['nodes']))):
+    
+    goingToMalfare = any('malfare' in nodes for nodes in cable['nodes']) # to take into account 'malfareNode'
+    if ('nodes' in cable.keys()) and (('generator' in cable['nodes']) and (('werkhaus' in cable['nodes']) or goingToMalfare or ('kunsthaus' in cable['nodes']))):
         wireArea = 16
     
     elif cable['layer'] == '3phases_norg':
