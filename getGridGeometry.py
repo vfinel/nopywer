@@ -67,10 +67,6 @@ exec(Path('../nopywer/getChildren.py').read_text())
 dClass = QgsDistanceArea() # https://qgis.org/pyqgis/3.22/core/QgsDistanceArea.html
 dClass.setEllipsoid('WGS84')
 
-# tests
-nodesDict = {} 
-cablesDict = {} 
-
 # user settings
 loadLayersList = ["norg2023_nodes"]
 cablesLayersList = ["norg2023_3phases", "norg2023_1phase"]
@@ -78,7 +74,7 @@ thres = 5 # [meters] threshold to detect cable and load connections
 
 nodesDictModel = ['_cable','parent','children','deepness','cable','power','phase','date', 'cumPower']
 
-verbose = 1
+verbose = 0
 
 def inspectCableLayers(cablesLayersList):
     print('\n inspect cable layer:')
@@ -99,6 +95,7 @@ def inspectCableLayers(cablesLayersList):
         print(f'\t ---> total length of {cableLayerName}: {totalLength:.0f} meters\n')
 
     return None 
+
 
 def getGridGeometry():
     if verbose: print('get grid geometry: \nfindConnections')
@@ -137,28 +134,42 @@ def getGridGeometry():
 
 
 def findConnections(loadLayersList, cablesLayersList, thres):
+
+    # --- a few init 
+    nodesDict = {} 
+    cablesDict = {} 
+    for cableLayerName in cablesLayersList:
+        cableLayer = getLayer(cableLayerName)
+        cablesDict[cableLayerName] = [None]*len(cableLayer) # init "empty" (cable) list for this layer 
+        for cableIdx, cable in enumerate(cableLayer.getFeatures()):
+            cablesDict[cableLayerName][cableIdx] = dict() # init a dict to describe cable
+            cablesDict[cableLayerName][cableIdx]['nodes'] = [] # init list of nodes connected to this cable
+            cablesDict[cableLayerName][cableIdx]["length"] = dClass.measureLength(cable.geometry())
+
+
+    # --- find connections 
     for loadLayerName in loadLayersList:
         load_layer = getLayer(loadLayerName)
-        if verbose: print(f"loads layer = {load_layer}")
-        # "loads" are qgis features (and a python iterator --> needs to be reset after each loop)
-        loads = load_layer.getFeatures() 
 
-        for load in loads:
+        if verbose: print(f"loads layer = {load_layer}")
+
+        for load in load_layer.getFeatures():
             attrs = load.attributes() # attrs is a list. It contains all the attribute values of this feature
             loadName = attrs[1].lower()
             if verbose: 
                 print("\n\t load's ID: ", load.id())
                 print("\t load's attributes: ", attrs)
             
-            # get load position
+            # init a dict for that node
+            nodesDict[loadName] = dict.fromkeys(nodesDictModel) 
+            nodesDict[loadName]['_cable'] = []
+                
             loadPos = getCoordinates(load)
             
             # --- find which cable(s) are connected to that load
             for cableLayerName in cablesLayersList:
                 cableLayer = getLayer(cableLayerName)
-                cables = cableLayer.getFeatures() # is an interator, so needs to be reset after each load
-                
-                for cableIdx, cable in enumerate(cables):
+                for cableIdx, cable in enumerate(cableLayer.getFeatures()):
                     cablePos = getCoordinates(cable)
                     
                     elist = list() # elist = extremities list. one list for each cable. todo: use numpy array ?
@@ -167,28 +178,14 @@ def findConnections(loadLayersList, cablesLayersList, thres):
                         
                     dmin = min(elist)
                     if dmin<= thres: # we found a connection 
-                        # todo: better to do the test outside cable loop (see below)
+                        # TODO: woule be better to do the test outside cable loop (see below)
                         if verbose: print(f'\t\t cable layer  {cableLayerName}, cable {cable.id()} is connected to {attrs[1]}')
                         
-                        # we found the cable, let's fill dictionnaries
-                        if cableLayerName not in cablesDict: # if this cable LAYER hasn't been seen yet
-                            cablesDict[cableLayerName] = [None]*len(cableLayer) # init "empty" (cable) list for this layer
-                            
-                        if cablesDict[cableLayerName][cableIdx] == None: # if this cable has't been seen in this layer
-                            cablesDict[cableLayerName][cableIdx] = dict() # init a dict to describe cable
-                            cablesDict[cableLayerName][cableIdx]['nodes'] = [] # init list of nodes connected to this cable
-                            geom = cable.geometry()
-                            cablesDict[cableLayerName][cableIdx]["length"] = dClass.measureLength(geom)
-                        
+                        # update dicts
                         cablesDict[cableLayerName][cableIdx]['nodes'].append(loadName)
-                    
-                        if loadName not in nodesDict:
-                            nodesDict[loadName] = dict.fromkeys(nodesDictModel) # init a dict for loads 
-                            nodesDict[loadName]['_cable'] = []
-                        
                         nodesDict[loadName]['_cable'].append({"layer":cableLayerName,"idx":cableIdx})
                         
-                # todo here: 
+                # TODO here: 
                 # in the list of cables, test if one (or more) is closer than threshold 
                 # if not, throw an error 
             

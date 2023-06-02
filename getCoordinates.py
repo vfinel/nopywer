@@ -43,15 +43,16 @@ def getCoordinates(feature):
             
     else:
         raise ValueError("Unknown or invalid geometry. Have a look on the map to see if object is properly defined? ")
-        
     
-    if len(x)==1:
-        # i don't fully understand why i need to do that. Because the layer i work with 
-        # are multiline /multipoint layers ?
-        x = x[0]
-        
-    else:
-        raise ValueError("why len(x)~=1 ?")
+    if not geomSingleType:
+        if len(x)==1:
+            # extract first point (the only one)
+            x = x[0]
+            
+        else:
+            print(f'geom {geom.type()}')
+            print(f'x: {x}, x[0]={x[0]}, x[1]={x[1]}')
+            raise ValueError("geometry 'x' has multiple objects in it ? it is unexpected.")
             
             
     return x
