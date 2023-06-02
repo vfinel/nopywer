@@ -97,42 +97,6 @@ def inspectCableLayers(cablesLayersList):
     return None 
 
 
-def getGridGeometry():
-    if verbose: print('get grid geometry: \nfindConnections')
-
-    # 1. find connections between loads and cables (find what load is plugged into what cable, and vice-versa)
-    nodesDict, cablesDict = findConnections(loadLayersList, cablesLayersList, thres)
-
-    # 2. find connections between nodes to get the "flow direction":
-    # Now, all cables that are connected to something are (supposed to be) stored in cablesDict. 
-    # Let's loop over the nodes again, but this time, we will find to what node is connected each node
-    # We'll start with "generator" node, get its children, then check its children's children, etc
-    if verbose: print('\ngetChildren')
-    grid = getChildren("generator", nodesDict, cablesDict)
-    grid = grid[0]
-
-    # --- for each load, add "cable to daddy" information
-    for load in grid.keys():
-        if load!='generator':
-            parent = grid[load]['parent']
-            if parent != None:
-                cable2parent = grid[parent]['children'][load]["cable"]
-                grid[load]['cable'] = cable2parent
-                grid[load]['cable'].update(cablesDict[cable2parent['layer']][cable2parent['idx']]) # add info from cableDict
-     
-    dlist = computeDeepnessList(grid)
-
-    inspectCableLayers(cablesLayersList)
-    
-    if 0:
-        print('\n')
-        print(json.dumps(cablesDict, sort_keys=True, indent=4))
-        print(json.dumps(nodesDict, sort_keys=True, indent=4))
-        print(json.dumps(grid, sort_keys=True, indent=4))
-
-    return cablesDict, grid, dlist 
-
-
 def findConnections(loadLayersList, cablesLayersList, thres):
 
     # --- a few init 
@@ -213,3 +177,38 @@ def computeDeepnessList(grid):
     return dlist
     
     
+def getGridGeometry():
+    if verbose: print('get grid geometry: \nfindConnections')
+
+    # 1. find connections between loads and cables (find what load is plugged into what cable, and vice-versa)
+    nodesDict, cablesDict = findConnections(loadLayersList, cablesLayersList, thres)
+
+    # 2. find connections between nodes to get the "flow direction":
+    # Now, all cables that are connected to something are (supposed to be) stored in cablesDict. 
+    # Let's loop over the nodes again, but this time, we will find to what node is connected each node
+    # We'll start with "generator" node, get its children, then check its children's children, etc
+    if verbose: print('\ngetChildren')
+    grid = getChildren("generator", nodesDict, cablesDict)
+    grid = grid[0]
+
+    # --- for each load, add "cable to daddy" information
+    for load in grid.keys():
+        if load!='generator':
+            parent = grid[load]['parent']
+            if parent != None:
+                cable2parent = grid[parent]['children'][load]["cable"]
+                grid[load]['cable'] = cable2parent
+                grid[load]['cable'].update(cablesDict[cable2parent['layer']][cable2parent['idx']]) # add info from cableDict
+     
+    dlist = computeDeepnessList(grid)
+
+    inspectCableLayers(cablesLayersList)
+    
+    if 0:
+        print('\n')
+        print(json.dumps(cablesDict, sort_keys=True, indent=4))
+        print(json.dumps(nodesDict, sort_keys=True, indent=4))
+        print(json.dumps(grid, sort_keys=True, indent=4))
+
+    return cablesDict, grid, dlist 
+
