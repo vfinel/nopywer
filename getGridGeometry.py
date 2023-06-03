@@ -68,8 +68,8 @@ dClass = QgsDistanceArea() # https://qgis.org/pyqgis/3.22/core/QgsDistanceArea.h
 dClass.setEllipsoid('WGS84')
 
 # user settings
-loadLayersList = ["norg2023_nodes"]
-cablesLayersList = ["norg2023_3phases", "norg2023_1phase"]
+loadLayersList = ["norg2023_nodes", "art2023"]
+cablesLayersList = ["norg2023_3phases", "norg2023_1phase","art2023_3phases", "art2023_1phase"]
 thres = 5 # [meters] threshold to detect cable and load connections
 
 nodesDictModel = ['_cable','parent','children','deepness','cable','power','phase','date', 'cumPower']
@@ -78,21 +78,31 @@ verbose = 0
 
 def inspectCableLayers(cablesLayersList):
     print('\n inspect cable layer:')
+    tot1P = 0
+    tot3P = 0
     for cableLayerName in cablesLayersList:
         cableLayer = getLayer(cableLayerName)
         cables = cableLayer.getFeatures() # is an interator, so needs to be reset after each load
-        totalLength = 0
+        totLayer = 0
         for cableIdx, cable in enumerate(cables):
             geom = cable.geometry()
             length = dClass.measureLength(geom)
-            totalLength += length 
-            msg = f"\tcable layer {cableLayerName} idx {cableIdx} has length {length:.1f}m"
+            totLayer += length 
+            msg = f"\t\tcable layer {cableLayerName} idx {cableIdx} has length {length:.1f}m"
             if length < 5:
                 raise ValueError(msg)
-            else:
+            elif verbose:
                 print(msg)
 
-        print(f'\t ---> total length of {cableLayerName}: {totalLength:.0f} meters\n')
+        if "1phase" in cableLayerName:
+            tot1P += totLayer
+        elif "3phases" in cableLayerName:
+            tot3P += totLayer
+        
+        print(f'\t total length of {cableLayerName}: {totLayer:.0f} meters')
+
+    print(f'\t total length of 1P cables: {tot1P:.0f} meters')
+    print(f'\t total length of 3P cables: {tot3P:.0f} meters')
 
     return None 
 
