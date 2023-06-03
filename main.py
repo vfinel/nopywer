@@ -46,7 +46,7 @@ for deep in range(len(dlist)):
         
         print(f"\t\t {load} cumPower={pwrPerPhase}kW, total {pwrTotal:.0f}kW, vdrop {vdrop:.1f}% {flag} ")
 
-print('\norphelin load:')
+print('\nLoads not connected to anything:')
 for load in grid.keys():
     if (grid[load]['parent'] == None) and not (grid[load]=='generator'):
         print(f'\t{load}')
