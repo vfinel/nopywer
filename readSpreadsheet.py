@@ -1,9 +1,10 @@
 import pandas as pd
 import numpy as np 
 
-verbose = 1
+verbose = 0
 
 print('\nReading spreadsheet')
+#TODO: one sheet per "norg / power swap / art", loop on sheets, build dict of all loadsOnSheet ---> avoid manual editing of .ods
 sh = pd.read_excel("Power 2023 map balance.ods",sheet_name="Sheet1", skiprows=3, engine="odf")
 
 loadsOnMap = list(grid.keys())
@@ -23,7 +24,7 @@ for load in loadsOnMap:
 
     for i,x in enumerate(loadsOnSheet):
         nameOnSheet = x.lower().strip()
-        if ((nameOnMap==nameOnSheet) or (f"({nameOnMap})" in nameOnSheet)) and not (nameOnMap=='generator'):
+        if (nameOnMap in nameOnSheet) and not (nameOnMap=='generator'):
             idx.append(i)
 
             phase = sh['which phase(1, 2, 3, T, U or Y)'][i] 
@@ -45,7 +46,7 @@ for load in loadsOnMap:
                 #   grid[load]['date']['from'] = sh['Arrive'][idx[0]]
                 #   grid[load]['date']['to'] = sh['Depart'][idx[0]]
             
-            elif float('nan'):
+            elif (phase==float('nan')) or (phase=='N') or (phase=='X'):
                 hasNoPhase.append(nameOnSheet)
             
             else:
@@ -69,9 +70,9 @@ for load in loadsOnSheet:
         missingOnMap.append(load)
 
 print('\n!!! you should not go any futher if some loads on the map are not on spreadsheet:')
-print(f"\ton map but missing on spreadsheet: {missingOnSheet}") # will make computeVDrop to crash because those don't have cable lengthes
-print(f"\n\ton spreadsheet but missing on map: {missingOnMap}")
-print(f"\nlist of loads on the spreadsheet that don't have a phase assigned: {hasNoPhase}")
+print(f"\ton map but missing on spreadsheet: \n\t{missingOnSheet}") # will make computeVDrop to crash because those don't have cable lengthes
+print(f"\n\ton spreadsheet but missing on map: \n\t{missingOnMap}")
+print(f"\nlist of loads on the spreadsheet that don't have a phase assigned: \n\t{hasNoPhase} \n ")
 
 
 
