@@ -1,8 +1,16 @@
 import numpy as np 
+
+# --- constant data 
 V0 = 230
 th_percent = 5
 PF = 0.9 # todo: USE !!!
 rho = 1/26 # resistivity of copper cables in [ohm/m*mm²] R = rho*L/area
+
+# --- parameters
+vdrop_ref = np.sqrt(3)*V0
+vdrop_coef = np.sqrt(3) # todo: change coef for 1-phase vs 3-phase https://drive.google.com/file/d/14_rlY05iPmopzXP5nSGixhvf_KH9mJ0p/view
+
+verbose = 0
 
 def getWireArea(cable): 
     # cable must be a grid[load]['cable'] dictionnary 
@@ -25,7 +33,8 @@ def getWireArea(cable):
 
 
 def computeVDrop(grid,load=None):
-    # load is supposed to be a string 
+    # load is supposed to be a string
+    verbose = 0
 
     if load==None: # first call of the function. no vdrop at generator
         load = 'generator'
@@ -37,22 +46,21 @@ def computeVDrop(grid,load=None):
         cableArea = getWireArea(grid[load]['cable'])
         
         r = rho*grid[load]['cable']['length']/cableArea
-        i = np.max(grid[load]['cumPower'])/V0/PF # todo: think about maths !!!!!
-        grid[load]['cable']['vdrop_volts'] = np.sqrt(3)*r*i # todo: change coef for 1-phase vs 3-phase https://drive.google.com/file/d/14_rlY05iPmopzXP5nSGixhvf_KH9mJ0p/view
+        i = np.max(grid[load]['cumPower'])/V0/PF # todo: constant power or constant voltage ?
+        grid[load]['cable']['vdrop_volts'] = vdrop_coef*r*i 
         grid[load]['voltage'] = grid[parent]['voltage'] - grid[load]['cable']['vdrop_volts']
-        grid[load]['vdrop_percent'] = 100*(V0-grid[load]['voltage'])/V0
+        grid[load]['vdrop_percent'] = 100*(V0-grid[load]['voltage'])/vdrop_ref
 
-        # /!\ bug for isolation: why grid['isolation']['cable'] has not length, even if cabesDict['1phase_norg'][2] en a une ?
-        # ---> pourquoi grid['isolation']['cable]l['length'] n'a pas été updatée ?
-        print(f'\npropagating vdrop to {load}')
-        print(f"\tcable: length {grid[load]['cable']['length']:.0f}m, area: {cableArea:.1f}mm²")
-        print(f"\tgrid[parent]['voltage']: {grid[parent]['voltage']:.0f}V")
-        print(f"\tgrid[load]['voltage']: {grid[load]['voltage']:.0f}V")
-        print(f"\tgrid[load]['vdrop_percent']: {grid[load]['vdrop_percent']:.1f}%")
+        if verbose:
+            print(f'\n\t propagating vdrop to {load}')
+            print(f"\t\t cable: length {grid[load]['cable']['length']:.0f}m, area: {cableArea:.1f}mm²")
+            print(f"\t\t grid[parent]['voltage']: {grid[parent]['voltage']:.0f}V")
+            print(f"\t\t grid[load]['voltage']: {grid[load]['voltage']:.0f}V")
+            print(f"\t\t grid[load]['vdrop_percent']: {grid[load]['vdrop_percent']:.1f}%")
         
         
         if grid[load]['vdrop_percent']>th_percent:
-            print(f"/!\ {load} has a vdrop of {grid[load]['vdrop_percent']:.1f} percent!")
+            print(f"\t /!\ vdrop of {grid[load]['vdrop_percent']:.1f} percent at {load}")
 
     # recursive call
     children = grid[load]['children'].keys()
