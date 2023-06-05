@@ -10,6 +10,7 @@ import numpy as np
 exec(Path('../nopywer/getGridGeometry.py').read_text())
 exec(Path('../nopywer/computeVDrop.py').read_text())
 exec(Path('../nopywer/printGridInfo.py').read_text())
+exec(Path('../nopywer/updateLayers.py').read_text())
 
 # find grid geometry
 cablesDict, grid, dlist = getGridGeometry()
@@ -32,6 +33,8 @@ grid, cablesDict = computeVDrop(grid, cablesDict)
 # print('\nchecking inventory:')
 # exec(Path('../nopywer/checkInventory.py').read_text())
 
-printGridInfo()
+printGridInfo(grid, cablesDict, phaseBalance, hasNoPhase, dlist)
+
+updateLayers(grid, cablesDict)
 
 print("\n end of script for now :)")

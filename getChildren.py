@@ -6,9 +6,9 @@ def getChildren(nodeName, grid, cables):
     childrenDict = dict() # for parent to store info about its children
 
     if grid[nodeName]['children'] != None: 
-        raise ValueError(f"\n\nThere is an infinite loop around {nodeName} on the map. \n"\
-                         f"It is connected by the following cables:\n"
-                         f"{json.dumps(grid[nodeName]['_cable'], sort_keys=False, indent=4)}\n"
+        raise ValueError(f"\n\nThere is an infinite loop going from/to {nodeName} on the map. \n"\
+                         f"It is connected by the following nodes:\n"
+                         f"{json.dumps(grid[nodeName]['children'], sort_keys=False, indent=4)}\n"
                          "Make sure to display all cable layers and fix.")
     
     # --- find what node(=children) is connected to nodeName
