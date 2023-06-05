@@ -27,7 +27,7 @@ grid = cumulateCurrent(grid, dlist)
 phaseBalance = 100*np.std(grid['generator']['cumPower']/np.mean(grid['generator']['cumPower']))
 
 print("computingVDrop...") 
-grid = computeVDrop(grid)
+grid, cablesDict = computeVDrop(grid, cablesDict)
 
 # print('\nchecking inventory:')
 # exec(Path('../nopywer/checkInventory.py').read_text())

@@ -73,11 +73,14 @@ cablesLayersList = ["norg2023_3phases", "norg2023_1phase","art2023_3phases", "ar
 thres = 5 # [meters] threshold to detect cable and load connections
 
 nodesDictModel = ['_cable','parent','children','deepness','cable','power','phase','date', 'cumPower']
+cablesDictModel = ['nodes','length','phase','area','current','r',"plugsAndsockets"]
 
 verbose = 0
 
 def inspectCableLayers(cablesLayersList):
     print('\n inspect cable layer:')
+    inventory_3P = 845
+    inventory_1P = 2020
     tot1P = 0
     tot3P = 0
     for cableLayerName in cablesLayersList:
@@ -101,8 +104,11 @@ def inspectCableLayers(cablesLayersList):
         
         print(f'\t total length of {cableLayerName}: {totLayer:.0f} meters')
 
-    print(f'\t total length of 1P cables: {tot1P:.0f} meters')
-    print(f'\t total length of 3P cables: {tot3P:.0f} meters')
+    print(f'\t total length of 1P cables: {tot1P:.0f} meters (inventory: {inventory_1P}m)')
+    print(f'\t total length of 3P cables: {tot3P:.0f} meters (inventory: {inventory_3P}m)')
+
+    if (tot1P>0.9*inventory_1P) or (tot3P>0.9*inventory_3P):
+        raise ValueError("You are running too short on cables (see above)")
 
     return None 
 
@@ -116,8 +122,8 @@ def findConnections(loadLayersList, cablesLayersList, thres):
         cableLayer = getLayer(cableLayerName)
         cablesDict[cableLayerName] = [None]*len(cableLayer) # init "empty" (cable) list for this layer 
         for cableIdx, cable in enumerate(cableLayer.getFeatures()):
-            cablesDict[cableLayerName][cableIdx] = dict() # init a dict to describe cable
-            cablesDict[cableLayerName][cableIdx]['nodes'] = [] # init list of nodes connected to this cable
+            cablesDict[cableLayerName][cableIdx] = dict.fromkeys(cablesDictModel) # init a dict to describe cable
+            cablesDict[cableLayerName][cableIdx]['nodes'] = [] # init empty list of nodes connected to this cable
             cablesDict[cableLayerName][cableIdx]["length"] = dClass.measureLength(cable.geometry())
 
 
@@ -208,7 +214,7 @@ def getGridGeometry():
             if parent != None:
                 cable2parent = grid[parent]['children'][load]["cable"]
                 grid[load]['cable'] = cable2parent
-                grid[load]['cable'].update(cablesDict[cable2parent['layer']][cable2parent['idx']]) # add info from cableDict
+                #grid[load]['cable'].update(cablesDict[cable2parent['layer']][cable2parent['idx']]) # add info from cableDict
      
     dlist = computeDeepnessList(grid)
 
