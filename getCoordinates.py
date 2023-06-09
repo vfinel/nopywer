@@ -12,7 +12,7 @@ def getCoordinates(feature):
     # fetch geometry
     geom = feature.geometry()
     geomSingleType = QgsWkbTypes.isSingleType(geom.wkbType())
-    if print2debug: print(f"geom.type() = {geom.type()}")
+    if print2debug: print(f"geom.type() = {geom.type()}, geom.wkbType: {geom.wkbType()}")
     
     if geom.type() == QgsWkbTypes.PointGeometry: # == 0
         # the geometry type can be of single or multi type
@@ -42,7 +42,7 @@ def getCoordinates(feature):
             if print2debug: print("MultiPolygon: ", x, "Area: ", geom.area())
             
     else:
-        raise ValueError("Unknown or invalid geometry. Have a look on the map to see if object is properly defined? ")
+        raise ValueError(f"Unknown or invalid geometry. Have a look on the map to see if object is properly defined? \n geom: {geom} ")
     
     if not geomSingleType:
         if len(x)==1:

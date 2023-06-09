@@ -6,6 +6,7 @@ def printGridInfo(grid, cablesDict, phaseBalance, hasNoPhase, dlist):
 
     print(f"total power: {1e-3*np.sum(grid['generator']['cumPower']):.0f}kW \t {np.round(1e-3*grid['generator']['cumPower'],1)} ")
 
+    # --- print vdrop for each load, sorted by deepness
     if phaseBalance>5:
         flag = ' <<<<<<<<<<'
     else:
@@ -15,7 +16,7 @@ def printGridInfo(grid, cablesDict, phaseBalance, hasNoPhase, dlist):
     for deep in range(len(dlist)):
         print(f"\t deepness {deep}")
         for load in dlist[deep]:
-            pwrPerPhase = np.round(1e-3*grid[load]['cumPower'],1)
+            pwrPerPhase = np.round(1e-3*grid[load]['cumPower'],1).tolist()
             pwrTotal = 1e-3*np.sum(grid[load]['cumPower'])
             vdrop = grid[load]['vdrop_percent']
             if vdrop>5:
@@ -23,11 +24,13 @@ def printGridInfo(grid, cablesDict, phaseBalance, hasNoPhase, dlist):
             else:
                 flag = ''
             
-            print(f"\t\t {load} cumPower={pwrPerPhase}kW, total {pwrTotal:.0f}kW, vdrop {vdrop:.1f}% {flag} ")
+            print(f"\t\t {load:20} cumPower={pwrPerPhase}kW, total {pwrTotal:5.1f}kW, vdrop {vdrop:.1f}% {flag} ")
 
+    # --- 
+    
     print('\nLoads not connected to a cable:')
     for load in grid.keys():
-        if (grid[load]['_cable'] == []) and not (grid[load]=='generator'):
+        if (grid[load]['_cable'] == []) and not (grid[load]=='generator') and any(grid[load]['power']>0):
             print(f'\t{load}')
 
     print(f"\nlist of loads on the spreadsheet that don't have a phase assigned: \n\t{hasNoPhase} \n ")

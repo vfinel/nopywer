@@ -37,9 +37,9 @@ for load in loadsOnMap:
  
             if pwr>0:
                 # store phase info into cable 
-                if grid[nameOnMap]['cable'] != None: 
-                    cableLayer = grid[nameOnMap]['cable']['layer']
-                    cableIdx = grid[nameOnMap]['cable']['idx']
+                if grid[load]['cable'] != None: 
+                    cableLayer = grid[load]['cable']['layer']
+                    cableIdx = grid[load]['cable']['idx']
                     cable = cablesDict[cableLayer][cableIdx]
                     if cable['phase'] == None:
                         cable['phase'] = phase
@@ -56,6 +56,8 @@ for load in loadsOnMap:
                 if (isinstance(phase, int) or (isinstance(phase,str) and (phase in 'TUY'))) \
                     and (pwr>0):
                     
+                    grid[load]['phase'] = phase
+                    
                     # cumulate power to this location
                     if isinstance(phase, int):
                             grid[load]['power'][phase-1] += pwr
@@ -64,7 +66,7 @@ for load in loadsOnMap:
                         grid[load]['power'] += pwr/3
 
                     else: # U, Y
-                        pass # do nothing
+                        grid[load]['power'] = pwr # store information
                     
                     # store date info:
                     #   grid[load]['date'] = dict()
@@ -87,7 +89,7 @@ for load in loadsOnMap:
     #           from {grid[load]['date']['from']} to {grid[load]['date']['to']}")
 
     if (len(idx)==0) and (load!='generator'): # load exists on the map but not on the spreadsheet
-        missingOnSheet.append(load)
+        missingOnSheet.append(nameOnMap)
 
 
 # sanity check: loop on spreadsheet to check if some are projects not on the map 
