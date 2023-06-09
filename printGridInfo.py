@@ -35,6 +35,30 @@ def printGridInfo(grid, cablesDict, phaseBalance, hasNoPhase, dlist):
 
     print(f"\nlist of loads on the spreadsheet that don't have a phase assigned: \n\t{hasNoPhase} \n ")
 
+    # --- compute and print loads on red and yellow grids 
+    print(f'total power on other grids: ')
+    tot = {'red':0, 'yellow':0}
+    for load in grid.keys():
+        if grid[load]['phase'] == 'U':
+            tot['red'] += grid[load]['power']
+        elif grid[load]['phase'] == 'Y':
+            tot['yellow'] += grid[load]['power']
+    for g in tot.keys():
+        print(f'\t {g} grid: {tot[g]/1e3:.1f}kW / {tot[g]/V0:.1f}A')
+    
+    # --- print distro requirements at each load , sorted by deepness
+    print('\ndistro requirements:')
+    for deep in range(0, len(dlist)):
+        print(f"\t deepness {deep}")
+        for load in dlist[deep]:
+            print(f"\t\t {load}:")
+            distro = grid[load]['distro']
+            print(f"\t\t\t in: {distro['in']}")
+            print(f"\t\t\t out: ")
+            for desc in distro['out'].keys():
+                print(f"\t\t\t\t {desc}: {distro['out'][desc]}")
+
+    # --- print usng json (doesnt work if np arrays in dict)
     if 0:
         print('\n')
         print(json.dumps(cablesDict, sort_keys=True, indent=4))

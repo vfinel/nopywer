@@ -28,7 +28,10 @@ grid = cumulateCurrent(grid, dlist)
 
 phaseBalance = 100*np.std(grid['generator']['cumPower']/np.mean(grid['generator']['cumPower']))
 
-print("computingVDrop...") 
+cablesDict = inspectCableLayers(cablesLayersList, cablesDict)
+grid = computeDistroRequirements(grid, cablesDict)
+
+print("\ncomputingVDrop...") 
 grid, cablesDict = computeVDrop(grid, cablesDict)
 
 # print('\nchecking inventory:')

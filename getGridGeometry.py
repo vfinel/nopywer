@@ -72,7 +72,7 @@ loadLayersList = ["norg2023_nodes", "art2023"]
 cablesLayersList = ["norg2023_3phases", "norg2023_1phase","art2023_3phases", "art2023_1phase"]
 thres = 5 # [meters] threshold to detect cable and load connections
 
-nodesDictModel = ['_cable','parent','children','deepness','cable','power','phase','date', 'cumPower']
+nodesDictModel = ['_cable','parent','children','deepness','cable','power','phase','date', 'cumPower', 'distro']
 cablesDictModel = ['nodes','length','phase','area','current','r',"plugsAndsockets"]
 
 verbose = 0
@@ -158,7 +158,65 @@ def computeDeepnessList(grid):
 
     return dlist
     
-    
+
+def computeDistroRequirements(grid, cablesDict):
+    ''' must be run after "inspectCableLayer" '''
+    verbose = 0
+    print('\ncomputeDistroRequirements...')
+    for load in grid.keys():
+        distro = dict.fromkeys(['in','out'])
+        if verbose: print(f"\n\t\t {load}:")
+
+        # --- checking input... 
+        if (grid[load]['parent']!=None) and (len(grid[load]['parent'])>0):
+            cable2parent_ref = grid[load]['cable']
+            cable2parent = cablesDict[cable2parent_ref['layer']][cable2parent_ref['idx']]
+            if "3phases" in cable2parent_ref['layer']:
+                ph = "3P"
+            elif "1phase" in cable2parent_ref['layer']:
+                ph = "1P"
+            else: 
+                print("\t\t\t can't figure out if this cable is 3P or 1P")
+
+            if cable2parent['plugsAndsockets']==None:
+                raise ValueError(f"cable2parent['plugsAndsockets'] is None, run inspectCableLayer?")
+            else:
+                distro['in'] = f"{ph} {cable2parent['plugsAndsockets']}A"
+
+        elif load == "generator":
+            distro["in"] = "3P 125A"
+        
+        #--- checking output...
+        distro['out'] = {}
+        if grid[load]['children']!=None:
+            cables2children_ref = [grid[load]['children'][child]['cable'] for child in grid[load]['children']]
+            cables2children = [ cablesDict[c['layer']][c['idx']] for c in cables2children_ref ]
+            for idx, cable in enumerate(cables2children):
+                if "3phases" in cables2children_ref[idx]['layer']:
+                    ph = "3P"
+                elif "1phase" in cables2children_ref[idx]['layer']:
+                    ph = "1P"
+                else: 
+                    print("\t\t\t can't figure out if this cable is 3P or 1P")
+
+                rating = f"{cable['plugsAndsockets']}A"
+                desc = f"{ph} {rating}"
+                if desc not in distro['out']:
+                    distro['out'][desc] = 1
+                else:
+                    distro['out'][desc] += 1
+
+        grid[load]['distro'] = distro 
+        
+        if verbose:  
+            print(f"\t\t\t in: {distro['in']}")
+            print(f"\t\t\t out: ")
+            for desc in distro['out'].keys():
+                print(f"\t\t\t\t {desc}: {distro['out'][desc]}")
+
+    return grid
+
+
 def getGridGeometry():
     if verbose: print('get grid geometry: \nfindConnections')
 
