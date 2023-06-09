@@ -77,42 +77,6 @@ cablesDictModel = ['nodes','length','phase','area','current','r',"plugsAndsocket
 
 verbose = 0
 
-def inspectCableLayers(cablesLayersList):
-    print('\n inspect cable layer:')
-    inventory_3P = 845
-    inventory_1P = 2020
-    tot1P = 0
-    tot3P = 0
-    for cableLayerName in cablesLayersList:
-        cableLayer = getLayer(cableLayerName)
-        cables = cableLayer.getFeatures() # is an interator, so needs to be reset after each load
-        totLayer = 0
-        for cableIdx, cable in enumerate(cables):
-            geom = cable.geometry()
-            length = dClass.measureLength(geom)
-            totLayer += length 
-            msg = f"\t\tcable layer {cableLayerName} idx {cableIdx} has length {length:.1f}m"
-            if length < 5:
-                raise ValueError(msg)
-            elif verbose:
-                print(msg)
-
-        if "1phase" in cableLayerName:
-            tot1P += totLayer
-        elif "3phases" in cableLayerName:
-            tot3P += totLayer
-        
-        print(f'\t total length of {cableLayerName}: {totLayer:.0f} meters')
-
-    print(f'\t total length of 1P cables: {tot1P:.0f} meters (inventory: {inventory_1P}m)')
-    print(f'\t total length of 3P cables: {tot3P:.0f} meters (inventory: {inventory_3P}m)')
-
-    if (tot1P>0.9*inventory_1P) or (tot3P>0.9*inventory_3P):
-        raise ValueError("You are running too short on cables (see above)")
-
-    return None 
-
-
 def findConnections(loadLayersList, cablesLayersList, thres):
 
     # --- a few init 
@@ -136,6 +100,8 @@ def findConnections(loadLayersList, cablesLayersList, thres):
         for load in load_layer.getFeatures():
             attrs = load.attributes() # attrs is a list. It contains all the attribute values of this feature
             loadName = attrs[1].lower()
+            loadName = loadName.replace('\n',' ') # in case of some names on the map have a \n
+            loadName = loadName.replace('  ', ' ') # avoid double blanks
             if verbose: 
                 print("\n\t load's ID: ", load.id())
                 print("\t load's attributes: ", attrs)
@@ -218,8 +184,6 @@ def getGridGeometry():
      
     dlist = computeDeepnessList(grid)
 
-    inspectCableLayers(cablesLayersList)
-    
     if 0:
         print('\n')
         print(json.dumps(cablesDict, sort_keys=True, indent=4))

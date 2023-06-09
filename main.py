@@ -11,6 +11,7 @@ exec(Path('../nopywer/getGridGeometry.py').read_text())
 exec(Path('../nopywer/computeVDrop.py').read_text())
 exec(Path('../nopywer/printGridInfo.py').read_text())
 exec(Path('../nopywer/updateLayers.py').read_text())
+exec(Path('../nopywer/inspectCableLayer.py').read_text())
 
 # find grid geometry
 cablesDict, grid, dlist = getGridGeometry()
@@ -32,6 +33,7 @@ grid, cablesDict = computeVDrop(grid, cablesDict)
 
 # print('\nchecking inventory:')
 # exec(Path('../nopywer/checkInventory.py').read_text())
+
 
 printGridInfo(grid, cablesDict, phaseBalance, hasNoPhase, dlist)
 

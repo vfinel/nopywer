@@ -12,29 +12,6 @@ vdrop_coef = 1 #np.sqrt(3) # todo: change coef for 1-phase vs 3-phase https://dr
 
 verbose = 0
 
-def getWireArea(cableInfo, cablesDict): 
-    # cable must be a cablesGrid['layerName'][idx] dictionnary 
-    # return area in mm²
-    cable = cablesDict[cableInfo['layer']][cableInfo['idx']]
-
-    goingToMalfare = any('malfare' in nodes for nodes in cable['nodes']) # to take into account 'malfareNode'
-    if ('nodes' in cable.keys()) and (('generator' in cable['nodes']) and (('werkhaus' in cable['nodes']) or goingToMalfare or ('kunsthaus' in cable['nodes']))):
-        wireArea = 16
-        plugsAndSockets = 63
-
-    elif '3phases' in cableInfo['layer']:
-        wireArea = 6
-        plugsAndSockets = 32
-
-    elif '1phase' in cableInfo['layer']:
-        wireArea = 2.5
-        plugsAndSockets = 16
-    
-    else:
-        raise ValueError(f"unable to determine wireArea of cable: {cable}")
-
-    return wireArea, plugsAndSockets
-
 
 def computeVDrop(grid: dict, cablesDict: dict,load=None):
     # load is supposed to be a string
@@ -49,18 +26,15 @@ def computeVDrop(grid: dict, cablesDict: dict,load=None):
     else: # compute vdrop at load 
         parent = grid[load]['parent']
         cable = cablesDict[grid[load]['cable']['layer']][grid[load]['cable']['idx']]
-        cableArea, plugsAndSockets = getWireArea(grid[load]['cable'], cablesDict)
         
-        r = rho*cable['length']/cableArea
+        r = rho*cable['length']/cable['area']
         i = grid[load]['cumPower']/V0/PF # todo: constant power or constant voltage ?
         cable['vdrop_volts'] = vdrop_coef*r*np.max(i) 
         grid[load]['voltage'] = grid[parent]['voltage'] - cable['vdrop_volts']
         grid[load]['vdrop_percent'] = 100*(V0-grid[load]['voltage'])/vdrop_ref
 
-        cable['area'] = cableArea
         cable['r'] = r
         cable['current'] = list(i)
-        cable['plugsAndsockets'] = plugsAndSockets
 
         if verbose:
             print(f"\t\t cable: length {cable['length']:.0f}m, area: {cableArea:.1f}mm²")
