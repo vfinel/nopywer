@@ -14,6 +14,13 @@ missingOnSheet = [] # list of loads on the map but not on the spreadsheet
 missingOnMap = [] # list of loads on the spreadsheet but not on the map
 hasNoPhase =[]
 
+# clean loadsOnSheet in case of it contains NaN
+# (happens if all columns of the sheet don't have the same length)
+for idx, load in reversed(list(enumerate(loadsOnSheet))):
+    if isinstance(loadsOnSheet[idx],str)==0:
+        loadsOnSheet.pop(idx)
+
+
 # loop through loads on the map and find corresponding info on the spreadsheet
 for load in loadsOnMap:
 
