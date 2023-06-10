@@ -4,7 +4,8 @@ import numpy as np
 def printGridInfo(grid, cablesDict, phaseBalance, hasNoPhase, dlist):    
     print("\n === info about the grid === \n") 
 
-    print(f"total power: {1e-3*np.sum(grid['generator']['cumPower']):.0f}kW \t {np.round(1e-3*grid['generator']['cumPower'],1)} ")
+    print(f"total power: {1e-3*np.sum(grid['generator']['cumPower']):.0f}kW \t {np.round(1e-3*grid['generator']['cumPower'],1)}kW "\
+          + f"/ {np.round(grid['generator']['cumPower']/PF/V0)}A")
 
     # --- print vdrop for each load, sorted by deepness
     if phaseBalance>5:
@@ -25,6 +26,7 @@ def printGridInfo(grid, cablesDict, phaseBalance, hasNoPhase, dlist):
                 flag = ''
             
             print(f"\t\t {load:20} cumPower={pwrPerPhase}kW, total {pwrTotal:5.1f}kW, vdrop {vdrop:.1f}% {flag} ")
+            
 
     # --- 
     

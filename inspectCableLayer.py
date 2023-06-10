@@ -10,8 +10,10 @@ def getWireArea(cableInfo, cablesDict):
     # return area in mm²
     cable = cablesDict[cableInfo['layer']][cableInfo['idx']]
 
-    goingToMalfare = any('malfare' in nodes for nodes in cable['nodes']) # to take into account 'malfareNode'
-    if ('nodes' in cable.keys()) and (('generator' in cable['nodes']) and (('werkhaus' in cable['nodes']) or goingToMalfare or ('kunsthaus' in cable['nodes']))):
+    toMalfare = any('malfare' in nodes for nodes in cable['nodes']) # takes into account 'malfareNode'
+    fromGenerator = ('generator' in cable['nodes'])
+    is16smm = ('nodes' in cable.keys()) and (fromGenerator and toMalfare)
+    if is16smm:
         wireArea = 16
         plugsAndSockets = 63
 

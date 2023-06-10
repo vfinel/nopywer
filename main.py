@@ -3,6 +3,10 @@
 # import startup
 # imp.reload(startup)
 
+# --- constant data (global variables)
+V0 = 230
+PF = 0.9
+
 # from pathlib import Path
 import numpy as np
 # from pyqgis.getGridGeometry import getGridGeometry
@@ -13,9 +17,7 @@ exec(Path('../nopywer/printGridInfo.py').read_text())
 exec(Path('../nopywer/updateLayers.py').read_text())
 exec(Path('../nopywer/inspectCableLayer.py').read_text())
 
-# --- constant data 
-V0 = 230
-PF = 0.9
+
 
 # find grid geometry
 cablesDict, grid, dlist = getGridGeometry()
