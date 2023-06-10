@@ -34,6 +34,7 @@ def getWireArea(cableInfo, cablesDict):
 
 def inspectCableLayers(cablesLayersList, cablesDict):
     print('\n inspect cable layer:')
+    verbose = 0
     inventory_3P = 845
     inventory_1P = 2020
     tot1P = 0
@@ -58,15 +59,20 @@ def inspectCableLayers(cablesLayersList, cablesDict):
             elif verbose:
                 print(msg)
 
+            # --- get cable area and plugs&sockets type 
+            cableInfo = {"layer": cableLayerName, "idx": cableIdx}
+            cablesDict = getWireArea(cableInfo, cablesDict)
+            
             # --- check current 
             if (cableDict['current']!=None) and (cableDict['plugsAndsockets']!=None):
                 if max(cableDict['current']) >= 0.9*(cableDict['plugsAndsockets']):
                     currentStr = [ '%.0f' % elem for elem in cableDict['current'] ]
                     currentOverload += f"\t cable between {cableDict['nodes']} is overloaded: {currentStr}A (plugs&sockets: {cableDict['plugsAndsockets']}A) \n"
 
-            # --- get cable area and plugs&sockets type 
-            cableInfo = {"layer": cableLayerName, "idx": cableIdx}
-            cablesDict = getWireArea(cableInfo, cablesDict)
+            
+
+            if verbose:
+                print(f"cable: {cablesDict[cableLayerName][cableIdx]}")
 
 
         if "1phase" in cableLayerName:
@@ -84,6 +90,8 @@ def inspectCableLayers(cablesLayersList, cablesDict):
     
     if len(currentOverload)>0:
         print(f'\n{currentOverload}')
+    else:
+        print(f'\t no overloaded cables')
 
     return cablesDict 
 

@@ -13,6 +13,10 @@ exec(Path('../nopywer/printGridInfo.py').read_text())
 exec(Path('../nopywer/updateLayers.py').read_text())
 exec(Path('../nopywer/inspectCableLayer.py').read_text())
 
+# --- constant data 
+V0 = 230
+PF = 0.9
+
 # find grid geometry
 cablesDict, grid, dlist = getGridGeometry()
 
@@ -24,7 +28,7 @@ exec(Path('../nopywer/readSpreadsheet.py').read_text())
 
 # compute cumulated current
 exec(Path('../nopywer/cumulateCurrent.py').read_text())
-grid = cumulateCurrent(grid, dlist)
+grid, cablesDict = cumulateCurrent(grid, cablesDict, dlist)
 
 phaseBalance = 100*np.std(grid['generator']['cumPower']/np.mean(grid['generator']['cumPower']))
 

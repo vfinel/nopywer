@@ -1,9 +1,7 @@
 import numpy as np 
 
 # --- constant data 
-V0 = 230
 th_percent = 5
-PF = 0.9 # todo: USE !!!
 rho = 1/26 # resistivity of copper cables in [ohm/m*mm²] R = rho*L/area
 
 # --- parameters
@@ -28,13 +26,10 @@ def computeVDrop(grid: dict, cablesDict: dict,load=None):
         cable = cablesDict[grid[load]['cable']['layer']][grid[load]['cable']['idx']]
         
         r = rho*cable['length']/cable['area']
-        i = grid[load]['cumPower']/V0/PF # todo: constant power or constant voltage ?
-        cable['vdrop_volts'] = vdrop_coef*r*np.max(i) 
+        cable['vdrop_volts'] = vdrop_coef*r*np.max(cable['current']) 
         grid[load]['voltage'] = grid[parent]['voltage'] - cable['vdrop_volts']
         grid[load]['vdrop_percent'] = 100*(V0-grid[load]['voltage'])/vdrop_ref
-
         cable['r'] = r
-        cable['current'] = list(i)
 
         if verbose:
             print(f"\t\t cable: length {cable['length']:.0f}m, area: {cableArea:.1f}mm²")
