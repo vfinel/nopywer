@@ -1,8 +1,8 @@
 import numpy as np 
 
 # --- constant data 
-th_percent = 5
-rho = 1/26 # resistivity of copper cables in [ohm/m*mm²] R = rho*L/area
+th_percent = 5 # vdrop threshold in %, above with a message is printed
+
 
 # --- parameters
 vdrop_ref = np.sqrt(3)*V0
@@ -25,11 +25,9 @@ def computeVDrop(grid: dict, cablesDict: dict,load=None):
         parent = grid[load]['parent']
         cable = cablesDict[grid[load]['cable']['layer']][grid[load]['cable']['idx']]
         
-        r = rho*cable['length']/cable['area']
-        cable['vdrop_volts'] = vdrop_coef*r*np.max(cable['current']) 
+        cable['vdrop_volts'] = vdrop_coef*cable['r']*np.max(cable['current']) 
         grid[load]['voltage'] = grid[parent]['voltage'] - cable['vdrop_volts']
         grid[load]['vdrop_percent'] = 100*(V0-grid[load]['voltage'])/vdrop_ref
-        cable['r'] = r
 
         if verbose:
             print(f"\t\t cable: length {cable['length']:.0f}m, area: {cableArea:.1f}mm²")

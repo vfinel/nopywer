@@ -37,6 +37,7 @@ def inspectCableLayers(cablesLayersList, cablesDict):
     verbose = 0
     inventory_3P = 845
     inventory_1P = 2020
+    rho = 1/26 # resistivity of copper cables in [ohm/m*mm²] R = rho*L/area
     tot1P = 0
     tot3P = 0
     currentOverload = ''
@@ -62,6 +63,9 @@ def inspectCableLayers(cablesLayersList, cablesDict):
             # --- get cable area and plugs&sockets type 
             cableInfo = {"layer": cableLayerName, "idx": cableIdx}
             cablesDict = getWireArea(cableInfo, cablesDict)
+
+            # --- compute resistance of cable 
+            cableDict['r'] = rho*cableDict['length']/cableDict['area']
             
             # --- check current 
             if (cableDict['current']!=None) and (cableDict['plugsAndsockets']!=None):
