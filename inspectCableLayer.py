@@ -40,7 +40,7 @@ def inspectCableLayers(cablesLayersList, cablesDict):
     rho = 1/26 # resistivity of copper cables in [ohm/m*mm²] R = rho*L/area
     tot1P = 0
     tot3P = 0
-    currentOverload = ''
+    currentOverloads = ''
 
     for cableLayerName in cablesLayersList:
         cableLayer = getLayer(cableLayerName)
@@ -70,14 +70,10 @@ def inspectCableLayers(cablesLayersList, cablesDict):
             # --- check current 
             if (cableDict['current']!=None) and (cableDict['plugsAndsockets']!=None):
                 if max(cableDict['current']) >= 0.9*(cableDict['plugsAndsockets']):
-                    currentStr = [ '%.0f' % elem for elem in cableDict['current'] ]
-                    currentOverload += f"\t cable between {cableDict['nodes']} is overloaded: {currentStr}A (plugs&sockets: {cableDict['plugsAndsockets']}A) \n"
-
-            
-
-            if verbose:
-                print(f"cable: {cablesDict[cableLayerName][cableIdx]}")
-
+                    currentStr = [ '%2.0f' % elem for elem in cableDict['current'] ]
+                    a = f"\t /!\ cable {cableDict['nodes']} overload:"
+                    b = f"{currentStr}A (plugs&sockets: {cableDict['plugsAndsockets']}A) \n"
+                    currentOverloads += f"{a:60} {b}"
 
         if "1phase" in cableLayerName:
             tot1P += totLayer
@@ -92,8 +88,8 @@ def inspectCableLayers(cablesLayersList, cablesDict):
     if (tot1P>0.9*inventory_1P) or (tot3P>0.9*inventory_3P):
         raise ValueError("You are running too short on cables (see above)")
     
-    if len(currentOverload)>0:
-        print(f'\n{currentOverload}')
+    if len(currentOverloads)>0:
+        print(f'\n{currentOverloads}')
     else:
         print(f'\t no overloaded cables')
 
