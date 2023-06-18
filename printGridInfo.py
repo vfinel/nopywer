@@ -39,15 +39,26 @@ def printGridInfo(grid, cablesDict, phaseBalance, hasNoPhase, dlist):
 
     # --- compute and print loads on red and yellow grids 
     print(f'total power on other grids: ')
-    tot = {'red':0, 'yellow':0}
+    subgrid_dict = {'tot': 0, "msg":""}
+    subgrid = {'red':subgrid_dict.copy(), 'yellow':subgrid_dict.copy()}
     for load in grid.keys():
         if grid[load]['phase'] == 'U':
-            tot['red'] += grid[load]['power']
+            g = 'red'
+            
         elif grid[load]['phase'] == 'Y':
-            tot['yellow'] += grid[load]['power']
-    for g in tot.keys():
-        print(f'\t {g} grid: {tot[g]/1e3:.1f}kW / {tot[g]/V0:.1f}A')
+            g = 'yellow'
+
+        else:
+            g = None
+
+        if g!=None:
+            subgrid[g]['tot'] += grid[load]['power']
+            subgrid[g]['msg'] += f"\t\t {load} ({grid[load]['power']}kW) \n"
     
+    for g in subgrid.keys():
+        print(f"\t {g} grid: {subgrid[g]['tot']/1e3:.1f}kW / {subgrid[g]['tot']/V0:.1f}A")
+        print(subgrid[g]['msg'])
+
     # --- print distro requirements at each load , sorted by deepness
     if 0:
         print('\ndistro requirements:')
