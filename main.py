@@ -18,7 +18,7 @@ exec(Path('../nopywer/computeVDrop.py').read_text())
 exec(Path('../nopywer/printGridInfo.py').read_text())
 exec(Path('../nopywer/updateLayers.py').read_text())
 exec(Path('../nopywer/inspectCableLayer.py').read_text())
-
+exec(Path('../nopywer/writeSpreadsheet.py').read_text())
 
 
 # find grid geometry
@@ -49,5 +49,8 @@ grid, cablesDict = computeVDrop(grid, cablesDict)
 printGridInfo(grid, cablesDict, phaseBalance, hasNoPhase, dlist)
 
 updateLayers(grid, cablesDict)
+
+writeSpreadsheet(grid, sh)
+
 
 print("\n end of script for now :)")
