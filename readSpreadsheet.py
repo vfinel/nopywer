@@ -16,6 +16,7 @@ hasNoPhase =[]
 
 # clean loadsOnSheet in case of it contains NaN
 # (happens if all columns of the sheet don't have the same length)
+# TODO: can probably do it nicely with panda dataframe
 for idx, load in reversed(list(enumerate(loadsOnSheet))):
     if isinstance(loadsOnSheet[idx],str)==0:
         loadsOnSheet.pop(idx)
@@ -28,11 +29,12 @@ for load in loadsOnMap:
     
     # find idx of the row in the spreadsheet
     idx = []
-    nameOnMap = load.lower()
+    nameOnMap = load.lower().strip()
 
     for i,x in enumerate(loadsOnSheet):
         nameOnSheet = x.lower().strip()
         isOnMap = (nameOnMap in nameOnSheet) and not (nameOnMap=='generator')
+
         if isOnMap:
             idx.append(i)
 
@@ -43,50 +45,57 @@ for load in loadsOnMap:
                 print(f"\t On map, '{load}' draws {pwr}W (on sheet: '{nameOnSheet}' phase '{phase})'")
  
             if pwr>0:
-                # store phase info into cable 
-                if grid[load]['cable'] != None: 
-                    cableLayer = grid[load]['cable']['layer']
-                    cableIdx = grid[load]['cable']['idx']
-                    cable = cablesDict[cableLayer][cableIdx]
-                    if cable['phase'] == None:
-                        cable['phase'] = phase
 
-                    elif isinstance(cable['phase'], int):
-                        cable['phase'] = 'T'
+                # --- parse phase info                 
+                if isinstance(phase, int):
+                    phaseParsed = phase
 
-                    else:
-                        pass # should be a Y,U phase, already assigned
+                elif isinstance(phase, str):
+                    if len(phase)==1:
+                        phaseParsed = phase
+                        if (phase=='X'):                                   
+                            hasNoPhase.append(nameOnSheet)
 
-                    #grid[load]['cable'].update(cablesDict[cable2parent['layer']][cable2parent['idx']]) # add info from cableDict
-                
-                # add grid info and sanity checks 
-                if (isinstance(phase, int) or (isinstance(phase,str) and (phase in 'TUY'))) \
-                    and (pwr>0):
-                    
-                    grid[load]['phase'] = phase
-                    
-                    # cumulate power to this location
-                    if isinstance(phase, int):
-                            grid[load]['power'][phase-1] += pwr
+                        else:
+                            pass
 
-                    elif phase=='T':
-                        grid[load]['power'] += pwr/3
+                    else: # len(phase)>1
+                        phaseParsed = list(map(int, phase.split(','))) # conv to a list of int
 
-                    else: # U, Y
-                        grid[load]['power'] = pwr # store information
-                    
-                    # store date info:
-                    #   grid[load]['date'] = dict()
-                    #   grid[load]['date']['from'] = sh['Arrive'][idx[0]]
-                    #   grid[load]['date']['to'] = sh['Depart'][idx[0]]
-                
-                elif (pwr>0) and ((phase==float('nan')) or (phase=='N') or (phase=='X')):
+                elif phase==float('nan'):
                     hasNoPhase.append(nameOnSheet)
-                
-                elif pwr>0:
+
+                else:
                     print(grid[load])
                     raise ValueError(f'{nameOnSheet} has a wrong phase assigned: {phase}')
                 
+                # --- store phase info in cableDict and grid
+                grid[load]['phase'] = phaseParsed
+                if grid[load]['cable'] != None: 
+                    cableLayer = grid[load]['cable']['layer']
+                    cableIdx = grid[load]['cable']['idx']
+                    cablesDict[cableLayer][cableIdx]['phase'] = phaseParsed
+                    #grid[load]['cable'].update(cablesDict[cable2parent['layer']][cable2parent['idx']]) # add info from cableDict
+
+                # --- deduce and store power info
+                if isinstance(phaseParsed, int):
+                    grid[load]['power'][phaseParsed-1] += pwr
+                        
+                elif isinstance(phaseParsed, list):
+                    grid[load]['power'][[p-1 for p in phaseParsed]] += pwr/len(phaseParsed)
+
+                elif isinstance(phaseParsed, str): # one-letter string
+                    if phase=='T':
+                        grid[load]['power'] += pwr/3
+
+                    else:
+                        grid[load]['power'] = pwr
+
+                # store date info:
+                #   grid[load]['date'] = dict()
+                #   grid[load]['date']['from'] = sh['Arrive'][idx[0]]
+                #   grid[load]['date']['to'] = sh['Depart'][idx[0]]
+
             else: # pwr is zero or none 
                 if verbose: print(f"deleting {load} because doesn't draw power")
                 del grid[load]
@@ -104,7 +113,7 @@ for idxOnSheet, nameOnSheet in enumerate(loadsOnSheet):
     if sh['worstcase power [W]'][idxOnSheet]>0:
         idxOnMap = [idx for idx,nameOnMap in enumerate(loadsOnMap) if (nameOnMap in nameOnSheet.lower())]
         if len(idxOnMap) == 0:
-            missingOnMap.append(load)
+            missingOnMap.append(nameOnSheet)
 
 
 print('\n!!! you should not go any futher if some loads on the map are not on spreadsheet:')
