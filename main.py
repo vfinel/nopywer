@@ -1,4 +1,6 @@
 # imports
+from qgis.core import *
+import qgis.utils
 # import imp
 # import startup
 # imp.reload(startup)
