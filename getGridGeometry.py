@@ -55,13 +55,11 @@
 
 # imports
 import json # to do: print(json.dumps(cablesDict, sort_keys=True, indent=4))
-from qgis.core import QgsDistanceArea
-# from nopywer.getLayer import getLayer
-# from pyqgis.getCoordinates import getCoordinates
-# from pyqgis.getChildren import getChildren
-exec(Path('../nopywer/getLayer.py').read_text())
-exec(Path('../nopywer/getCoordinates.py').read_text())
-exec(Path('../nopywer/getChildren.py').read_text())
+from qgis.core import QgsDistanceArea, QgsUnitTypes
+from getLayer import getLayer
+from getCoordinates import getCoordinates
+from getChildren import getChildren
+from get_user_parameters import get_user_parameters
 
 
 dClass = QgsDistanceArea() # https://qgis.org/pyqgis/3.22/core/QgsDistanceArea.html
@@ -78,13 +76,14 @@ cablesDictModel = ['nodes','length','phase','area','current','r',"plugsAndsocket
 
 verbose = 0
 
-def findConnections(loadLayersList, cablesLayersList, thres):
-
-    # --- a few init 
+def findConnections(project, loadLayersList, cablesLayersList, thres):
+    verbose = 0
     nodesDict = {} 
     cablesDict = {} 
+
+    # --- fill cables dict with lengthes
     for cableLayerName in cablesLayersList:
-        cableLayer = getLayer(cableLayerName)
+        cableLayer = getLayer(project, cableLayerName)
         cablesDict[cableLayerName] = [None]*len(cableLayer) # init "empty" (cable) list for this layer 
         for cableIdx, cable in enumerate(cableLayer.getFeatures()):
             cablesDict[cableLayerName][cableIdx] = dict.fromkeys(cablesDictModel) # init a dict to describe cable
@@ -94,7 +93,7 @@ def findConnections(loadLayersList, cablesLayersList, thres):
 
     # --- find connections 
     for loadLayerName in loadLayersList:
-        load_layer = getLayer(loadLayerName)
+        load_layer = getLayer(project, loadLayerName)
 
         if verbose: print(f"loads layer = {load_layer}")
 
@@ -114,8 +113,9 @@ def findConnections(loadLayersList, cablesLayersList, thres):
             loadPos = getCoordinates(load)
             
             # --- find which cable(s) are connected to that load
+            loadPos = getCoordinates(load)
             for cableLayerName in cablesLayersList:
-                cableLayer = getLayer(cableLayerName)
+                cableLayer = getLayer(project, cableLayerName)
                 for cableIdx, cable in enumerate(cableLayer.getFeatures()):
                     cablePos = getCoordinates(cable)
                     
@@ -218,11 +218,12 @@ def computeDistroRequirements(grid, cablesDict):
     return grid
 
 
-def getGridGeometry():
+def getGridGeometry(project):
+    verbose = 0
     if verbose: print('get grid geometry: \nfindConnections')
 
     # 1. find connections between loads and cables (find what load is plugged into what cable, and vice-versa)
-    nodesDict, cablesDict = findConnections(loadLayersList, cablesLayersList, thres)
+    nodesDict, cablesDict = findConnections(project, loadLayersList, cablesLayersList, thres)
 
     # 2. find connections between nodes to get the "flow direction":
     # Now, all cables that are connected to something are (supposed to be) stored in cablesDict. 

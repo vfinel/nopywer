@@ -1,9 +1,7 @@
-from qgis.core import QgsDistanceArea
-exec(Path('../nopywer/getLayer.py').read_text())
-
 dClass = QgsDistanceArea() # https://qgis.org/pyqgis/3.22/core/QgsDistanceArea.html
 dClass.setEllipsoid('WGS84')
-
+from qgis.core import QgsDistanceArea, QgsUnitTypes
+from getLayer import getLayer
 
 def getWireArea(cableInfo, cablesDict): 
     # cable must be a cablesGrid['layerName'][idx] dictionnary 
@@ -34,7 +32,7 @@ def getWireArea(cableInfo, cablesDict):
     return cablesDict
 
 
-def inspectCableLayers(cablesLayersList, cablesDict):
+def inspectCableLayers(project, cablesLayersList, cablesDict):
     print('\n inspect cable layer:')
     verbose = 0
     inventory_3P = 845
@@ -45,7 +43,7 @@ def inspectCableLayers(cablesLayersList, cablesDict):
     currentOverloads = ''
 
     for cableLayerName in cablesLayersList:
-        cableLayer = getLayer(cableLayerName)
+        cableLayer = getLayer(project, cableLayerName)
         cables = cableLayer.getFeatures() # is an interator, so needs to be reset after each load
         totLayer = 0
 
