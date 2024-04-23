@@ -109,10 +109,14 @@ def findConnections(project, loadLayersList, cablesLayersList, thres):
         load_layer = getLayer(project, loadLayerName)
 
         if verbose: print(f"loads layer = {load_layer}")
+        idxNameAttribute = 1 # 1 for work before 'CRS correction layer'
 
         for load in load_layer.getFeatures():
+            
+            # get load's name 
             attrs = load.attributes() # attrs is a list. It contains all the attribute values of this feature
-            loadName = attrs[1].lower()
+            assert(isinstance(attrs[idxNameAttribute], str), 'this should be a string containing the name of the load')
+            loadName = attrs[idxNameAttribute].lower() 
             loadName = loadName.replace('\n',' ') # in case of some names on the map have a \n
             loadName = loadName.replace('  ', ' ') # avoid double blanks
             if verbose: 
