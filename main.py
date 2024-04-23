@@ -1,13 +1,11 @@
 # imports
 from qgis.core import *
 import qgis.utils
+from get_user_parameters import get_user_parameters
 # import imp
 # import startup
 # imp.reload(startup)
 
-# --- constant data (global variables)
-V0 = 230
-PF = 0.9
 
 # from pathlib import Path
 import numpy as np
@@ -19,7 +17,13 @@ exec(Path('../nopywer/printGridInfo.py').read_text())
 exec(Path('../nopywer/updateLayers.py').read_text())
 exec(Path('../nopywer/inspectCableLayer.py').read_text())
 exec(Path('../nopywer/writeSpreadsheet.py').read_text())
+# --------------------------------------------------------- #
+# --- constant data (global variables)
+CONSTANTS = get_constant_parameters()
+V0 = CONSTANTS['V0']
+PF = CONSTANTS['PF']
 
+param = get_user_parameters()
 
 # find grid geometry
 cablesDict, grid, dlist = getGridGeometry()

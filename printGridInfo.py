@@ -1,7 +1,13 @@
 import json 
 import numpy as np 
+from get_constant_parameters import get_constant_parameters
 
 def printGridInfo(grid, cablesDict, phaseBalance, hasNoPhase, dlist):    
+
+    CONSTANTS = get_constant_parameters()
+    V0 = CONSTANTS['V0']
+    PF = CONSTANTS['PF']
+
     print("\n === info about the grid === \n") 
 
     print(f"total power: {1e-3*np.sum(grid['generator']['cumPower']):.0f}kW \t {np.round(1e-3*grid['generator']['cumPower'],1)}kW "\

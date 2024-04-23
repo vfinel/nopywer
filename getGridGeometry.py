@@ -68,10 +68,11 @@ dClass = QgsDistanceArea() # https://qgis.org/pyqgis/3.22/core/QgsDistanceArea.h
 dClass.setEllipsoid('WGS84')
 
 # user settings
-loadLayersList = ["norg2023_nodes", "art2023"]
-cablesLayersList = ["norg2023_3phases", "norg2023_1phase","art2023_3phases", "art2023_1phase"]
-thres = 5 # [meters] threshold to detect cable and load connections
+param = get_user_parameters()
+loadLayersList = param['loadLayersList']
+cablesLayersList = param['cablesLayersList']
 
+thres = 5 # [meters] threshold to detect cable and load connections
 nodesDictModel = ['_cable','parent','children','deepness','cable','power','phase','date', 'cumPower', 'distro']
 cablesDictModel = ['nodes','length','phase','area','current','r',"plugsAndsockets"]
 

@@ -1,6 +1,6 @@
 import numpy as np 
 
-def cumulateCurrent(grid, cablesDict, dlist):
+def cumulateCurrent(grid, cablesDict, dlist, V0, PF):
     verbose =  0
     if verbose: print('\ncumulateCurrent.py:')
 
