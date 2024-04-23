@@ -39,6 +39,8 @@ param = get_user_parameters()
 project_file = param['project_file']
 cablesLayersList = param['cablesLayersList']
 
+project = QgsProject.instance() 
+
 standalone_exec = __name__ == '__main__'
 if standalone_exec:
     # --- run qgis (to be able to run code from vscode - NOT HELPING)
@@ -52,10 +54,9 @@ if standalone_exec:
     # --- load project 
     # from https://gis.stackexchange.com/questions/136861/getting-layer-by-name-in-pyqgis/136879#136879
     print('\nloading project...')
-    project = QgsProject.instance() 
     project.read(project_file)
-    print(f'\tproject_file: {project_file}')
-    print(f'\tproject filename: {project.fileName()}\n')
+
+print(f'project filename: {project.fileName()}\n')
 
 
 # find grid geometry
