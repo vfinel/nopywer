@@ -51,12 +51,11 @@ def inspectCableLayers(project, cablesLayersList, cablesDict):
             cableDict = cablesDict[cableLayerName][cableIdx]
 
             # --- get length 
-            geom = cable.geometry()
-            length = dClass.measureLength(geom)
-            totLayer += length 
-            msg = f"\t\tcable layer {cableLayerName} idx {cableIdx} has length {length:.1f}m"
-            if length < 5:
+            totLayer += cableDict["length"]
+            msg = f'\t\tcable layer {cableLayerName} idx {cableIdx} has length {cableDict["length"]:.1f}m'
+            if cableDict["length"] < 5:
                 raise ValueError(msg)
+            
             elif verbose:
                 print(msg)
 

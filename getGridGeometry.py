@@ -61,10 +61,6 @@ from getCoordinates import getCoordinates
 from getChildren import getChildren
 from get_user_parameters import get_user_parameters
 
-
-dClass = QgsDistanceArea() # https://qgis.org/pyqgis/3.22/core/QgsDistanceArea.html
-dClass.setEllipsoid('WGS84')
-
 # user settings
 param = get_user_parameters()
 loadLayersList = param['loadLayersList']
@@ -85,10 +81,27 @@ def findConnections(project, loadLayersList, cablesLayersList, thres):
     for cableLayerName in cablesLayersList:
         cableLayer = getLayer(project, cableLayerName)
         cablesDict[cableLayerName] = [None]*len(cableLayer) # init "empty" (cable) list for this layer 
+
+        # --- mesure distance ---  https://gis.stackexchange.com/questions/347802/calculating-elipsoidal-length-of-line-in-pyqgis
+        qgsDist = QgsDistanceArea() # https://qgis.org/pyqgis/3.22/core/QgsDistanceArea.html
+        qgsDist.setSourceCrs(cableLayer.crs(), project.transformContext()) # https://gis.stackexchange.com/questions/57745/how-to-get-crs-of-a-raster-layer-in-pyqgis
+        
+        # on ellipsoids: 
+        #   - set global settings on qgis: https://gis.stackexchange.com/questions/341997/how-to-set-global-setting-ellipsoid-in-qgis
+        #   - crs for ellipsoid measurements: https://gis.stackexchange.com/questions/376703/crs-for-ellipsoid-measurements
+
+        # d.setEllipsoid(QgsProject.instance().ellipsoid())
+        # project.ellipsoid() why this is NONE ? 
+        # qgsDist.setEllipsoid('WGS84') #todo: this is not smart, should get the CRS from the project ?!
+
+        assert QgsUnitTypes.toString(qgsDist.lengthUnits())=='meters', 'distance units should be meters' # https://gis.stackexchange.com/questions/341455/how-to-display-the-correct-unit-of-measure-in-pyqgis
+
         for cableIdx, cable in enumerate(cableLayer.getFeatures()):
             cablesDict[cableLayerName][cableIdx] = dict.fromkeys(cablesDictModel) # init a dict to describe cable
             cablesDict[cableLayerName][cableIdx]['nodes'] = [] # init empty list of nodes connected to this cable
-            cablesDict[cableLayerName][cableIdx]["length"] = dClass.measureLength(cable.geometry())
+            cableLength = qgsDist.measureLength(cable.geometry())
+            assert cableLength>0, "there is a problem computing cable length"
+            cablesDict[cableLayerName][cableIdx]["length"] = cableLength
 
 
     # --- find connections 
@@ -109,29 +122,37 @@ def findConnections(project, loadLayersList, cablesLayersList, thres):
             # init a dict for that node
             nodesDict[loadName] = dict.fromkeys(nodesDictModel) 
             nodesDict[loadName]['_cable'] = []
-                
-            loadPos = getCoordinates(load)
             
             # --- find which cable(s) are connected to that load
             loadPos = getCoordinates(load)
+            is_load_connected = False
             for cableLayerName in cablesLayersList:
                 cableLayer = getLayer(project, cableLayerName)
                 for cableIdx, cable in enumerate(cableLayer.getFeatures()):
-                    cablePos = getCoordinates(cable)
+                    cablePos = getCoordinates(cable) # TODO: check correctness of distance ??
                     
                     elist = list() # elist = extremities list. one list for each cable. todo: use numpy array ?
                     for extrem in cablePos: # compute distance load-extremities of the cable
-                        elist.append(dClass.measureLine(loadPos, extrem))
+                        elist.append(qgsDist.measureLine(loadPos, extrem))
                         
                     dmin = min(elist)
                     if dmin<= thres: # we found a connection 
                         # TODO: woule be better to do the test outside cable loop (see below)
-                        if verbose: print(f'\t\t cable layer  {cableLayerName}, cable {cable.id()} is connected to {attrs[1]}')
+                        is_load_connected = True
+                        if verbose: print(f'\t\t in cable layer "{cableLayerName}", cable {cable.id()} is connected to "{attrs[idxNameAttribute]}"')
                         
                         # update dicts
                         cablesDict[cableLayerName][cableIdx]['nodes'].append(loadName)
                         nodesDict[loadName]['_cable'].append({"layer":cableLayerName,"idx":cableIdx})
+
                         
+            if verbose:
+                if is_load_connected==0:
+                    print(f'\t{loadName} is NOT connected')
+
+                else:
+                    print(f'\t{loadName} is connected')
+
                 # TODO here: 
                 # in the list of cables, test if one (or more) is closer than threshold 
                 # if not, throw an error 
