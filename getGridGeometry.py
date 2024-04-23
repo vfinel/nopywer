@@ -101,7 +101,7 @@ def findConnections(project, loadLayersList, cablesLayersList, thres):
             cablesDict[cableLayerName][cableIdx]['nodes'] = [] # init empty list of nodes connected to this cable
             cableLength = qgsDist.measureLength(cable.geometry())
             assert cableLength>0, "there is a problem computing cable length"
-            cablesDict[cableLayerName][cableIdx]["length"] = cableLength
+            cablesDict[cableLayerName][cableIdx]["length"] = cableLength + param['extra_cable_length']
 
 
     # --- find connections 

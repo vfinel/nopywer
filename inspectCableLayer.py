@@ -88,7 +88,7 @@ def inspectCableLayers(project, cablesLayersList, cablesDict):
     print(f'\t total length of 1P cables: {tot1P:.0f} meters (inventory: {inventory_1P}m) - {n1P} cables')
     print(f'\t total length of 3P cables: {tot3P:.0f} meters (inventory: {inventory_3P}m) - {n3P} cables')
 
-    if (tot1P>0.9*inventory_1P) or (tot3P>0.9*inventory_3P):
+    if (tot1P>0.95*inventory_1P) or (tot3P>0.95*inventory_3P):
         raise ValueError("You are running too short on cables (see above)")
     
     if len(currentOverloads)>0:
