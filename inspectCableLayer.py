@@ -1,5 +1,3 @@
-dClass = QgsDistanceArea() # https://qgis.org/pyqgis/3.22/core/QgsDistanceArea.html
-dClass.setEllipsoid('WGS84')
 from qgis.core import QgsDistanceArea, QgsUnitTypes
 from getLayer import getLayer
 
@@ -35,11 +33,13 @@ def getWireArea(cableInfo, cablesDict):
 def inspectCableLayers(project, cablesLayersList, cablesDict):
     print('\n inspect cable layer:')
     verbose = 0
-    inventory_3P = 845
+    inventory_3P = 845 # todo: smarter thing
     inventory_1P = 2020
     rho = 1/26 # resistivity of copper cables in [ohm/m*mm²] R = rho*L/area
-    tot1P = 0
-    tot3P = 0
+    tot1P = 0   # [m] total length of 1P cables 
+    tot3P = 0   # [m] total length of 3P cables 
+    n1P = 0     # total number of 1P cables
+    n3P = 0     # total number of "P cables
     currentOverloads = ''
 
     for cableLayerName in cablesLayersList:
@@ -74,21 +74,26 @@ def inspectCableLayers(project, cablesLayersList, cablesDict):
                     b = f"{currentStr}A (plugs&sockets: {cableDict['plugsAndsockets']}A) \n"
                     currentOverloads += f"{a:60} {b}"
 
+        nCablesInLayer = cableIdx+1
         if "1phase" in cableLayerName:
             tot1P += totLayer
+            n1P += nCablesInLayer
+
         elif "3phases" in cableLayerName:
             tot3P += totLayer
-        
-        print(f'\t total length of {cableLayerName}: {totLayer:.0f} meters')
+            n3P += nCablesInLayer
 
-    print(f'\t total length of 1P cables: {tot1P:.0f} meters (inventory: {inventory_1P}m)')
-    print(f'\t total length of 3P cables: {tot3P:.0f} meters (inventory: {inventory_3P}m)')
+        print(f'\t total length of {cableLayerName}: {totLayer:.0f} meters - {nCablesInLayer} cables')
+
+    print(f'\t total length of 1P cables: {tot1P:.0f} meters (inventory: {inventory_1P}m) - {n1P} cables')
+    print(f'\t total length of 3P cables: {tot3P:.0f} meters (inventory: {inventory_3P}m) - {n3P} cables')
 
     if (tot1P>0.9*inventory_1P) or (tot3P>0.9*inventory_3P):
         raise ValueError("You are running too short on cables (see above)")
     
     if len(currentOverloads)>0:
         print(f'\n{currentOverloads}')
+    
     else:
         print(f'\t no overloaded cables')
 
