@@ -38,7 +38,8 @@ def printGridInfo(grid, cablesDict, phaseBalance, hasNoPhase, dlist):
     
     print('\nLoads not connected to a cable:')
     for load in grid.keys():
-        if (grid[load]['_cable'] == []) and not (grid[load]=='generator') and any(grid[load]['power']>0):
+        needsPower = bool( np.double(grid[load]['power']>0).sum() )
+        if (grid[load]['_cable'] == []) and not (grid[load]=='generator') and needsPower:
             print(f'\t{load}')
 
     print(f"\nlist of loads on the spreadsheet that don't have a phase assigned: \n\t{hasNoPhase} \n ")
