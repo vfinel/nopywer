@@ -54,7 +54,9 @@ if standalone_exec: # code is not ran from QGIS
     # from https://gis.stackexchange.com/questions/136861/getting-layer-by-name-in-pyqgis/136879#136879
     print('\nloading project...')
     project_file = param['project_file']
-    project.read(project_file)
+    assert os.path.isfile(project_file), f'the project file does not exists: "{project_file}"'
+    status = project.read(project_file)
+    assert status, f'unable to read project "{project_file}"'
 
 else: # code is ran from QGIS
     project_file = project.absoluteFilePath()
