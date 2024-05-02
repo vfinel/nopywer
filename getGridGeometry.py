@@ -83,6 +83,9 @@ def findConnections(project, loadLayersList, cablesLayersList, thres):
         cablesDict[cableLayerName] = [None]*len(cableLayer) # init "empty" (cable) list for this layer 
 
         # --- mesure distance ---  https://gis.stackexchange.com/questions/347802/calculating-elipsoidal-length-of-line-in-pyqgis
+        assert project.crs() == cableLayer.crs(), \
+               f"project CRS ({project.crs()}) does not match layer {cableLayerName}'s CRS ({cableLayer.crs()}), stg is weird... "
+        
         qgsDist = QgsDistanceArea() # https://qgis.org/pyqgis/3.22/core/QgsDistanceArea.html
         qgsDist.setSourceCrs(cableLayer.crs(), project.transformContext()) # https://gis.stackexchange.com/questions/57745/how-to-get-crs-of-a-raster-layer-in-pyqgis
         
