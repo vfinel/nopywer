@@ -97,7 +97,12 @@ def findConnections(project, loadLayersList, cablesLayersList, thres):
         # project.ellipsoid() why this is NONE ? 
         # qgsDist.setEllipsoid('WGS84') #todo: this is not smart, should get the CRS from the project ?!
 
-        assert QgsUnitTypes.toString(qgsDist.lengthUnits())=='meters', 'distance units should be meters' # https://gis.stackexchange.com/questions/341455/how-to-display-the-correct-unit-of-measure-in-pyqgis
+        # check that units are meters 
+        # https://gis.stackexchange.com/questions/341455/how-to-display-the-correct-unit-of-measure-in-pyqgis
+        units_in_meters = QgsUnitTypes.toString(qgsDist.lengthUnits())=='meters'
+        if not units_in_meters: 
+            print(f'in layer "{cableLayerName}", qgsDist.lengthUnits()): {QgsUnitTypes.toString(qgsDist.lengthUnits())}')
+            raise ValueError('distance units should be meters') 
 
         for cableIdx, cable in enumerate(cableLayer.getFeatures()):
             cablesDict[cableLayerName][cableIdx] = dict.fromkeys(cablesDictModel) # init a dict to describe cable
