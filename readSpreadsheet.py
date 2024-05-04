@@ -119,10 +119,9 @@ def readSpreadsheet(project_path: str, grid: dict, cablesDict: dict, sparam: dic
 
     # sanity check: loop on spreadsheet to check if some are projects not on the map 
     for idxOnSheet, nameOnSheet in enumerate(loadsOnSheet):
-        if sh[headers['power']][idxOnSheet]>0:
-            idxOnMap = [idx for idx,nameOnMap in enumerate(loadsOnMap) if (nameOnMap in nameOnSheet.lower())]
-            if len(idxOnMap) == 0:
-                missingOnMap.append(nameOnSheet)
+        idxOnMap = [idx for idx,nameOnMap in enumerate(loadsOnMap) if (nameOnMap in nameOnSheet.lower())]
+        if len(idxOnMap) == 0:
+            missingOnMap.append(nameOnSheet)
 
 
     print('\n!!! you should not go any futher if some loads on the map are not on spreadsheet:')
