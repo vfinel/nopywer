@@ -18,6 +18,7 @@ from get_user_parameters import get_user_parameters
 from get_constant_parameters import get_constant_parameters
 from computeVDrop import computeVDrop
 from printGridInfo import printGridInfo
+from updateLayers import update1PhaseLayers, updateLoadLayers
 
 
 # tests (to reload code from QGIS python terminal ?)
@@ -33,7 +34,7 @@ V0 = CONSTANTS['V0']
 PF = CONSTANTS['PF']
 
 # user parameters
-updateStuff = 0
+updateStuff = 1
 param = get_user_parameters()
 cablesLayersList = param['cablesLayersList']
 
@@ -94,9 +95,9 @@ grid, cablesDict = computeVDrop(grid, cablesDict)
 printGridInfo(grid, cablesDict, phaseBalance, hasNoPhase, dlist)
 
 if updateStuff:
-    updateLayers(grid, cablesDict)
-
-    writeSpreadsheet(grid, sh)
+    update1PhaseLayers(grid, cablesDict, project)
+    updateLoadLayers(grid, param['loadLayersList'], project)
+    #writeSpreadsheet(grid, sh)
 
 
 print("\n end of script for now :)")
