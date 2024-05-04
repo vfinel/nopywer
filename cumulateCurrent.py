@@ -12,6 +12,7 @@ def cumulateCurrent(grid, cablesDict, dlist, V0, PF):
             
             if type(grid[load]['cumPower']).__module__ != 'numpy':
                 grid[load]['cumPower'] = np.array([0.0]*3)
+                
             if type(grid[parent]['cumPower']).__module__ != 'numpy':
                 grid[parent]['cumPower'] = np.array([0.0]*3)
 

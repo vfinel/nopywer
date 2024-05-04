@@ -6,18 +6,26 @@ from getGridGeometry import getLoadName
 
 
 def update1PhaseLayers(grid: dict, cables: dict, project: QgsProject):
+    verbose = 0
+    
     print('\nupdating 1-phase layers with phase label...')
-
+    
     # write phase (=attribute) for each cable (=feature) of each cable layer
     for cableLayerName in cables.keys():
         if "1phase" in cableLayerName:
+            if verbose: print(f'\t cable layer {cableLayerName}')
             cableLayer = getLayer(project, cableLayerName)
             if cableLayer.isEditable()==False:
                 with edit(cableLayer):
                     for i,cable in enumerate(list(cableLayer.getFeatures())):
                         phase = cables[cableLayerName][i]['phase']
+                        if verbose: print(f'\t\t cable idx {i} on phase {phase}')
+                        if phase==None:
+                            phase = 0
+
                         cable.setAttribute('phase', f'{phase}')
                         cableLayer.updateFeature(cable)
+                        
 
             else:
                 raise ValueError(f'Layer "{cableLayerName}" cannot be edited by nopywer '\
