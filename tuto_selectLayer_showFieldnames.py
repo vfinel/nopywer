@@ -41,9 +41,9 @@ for field in vlayer.fields():
 # get values of one fieldname 
 print("\n Some of the attributes of that layer:")
 for feature in vlayer.getFeatures():
-    #print(feature["watts"]) # print watts usage
+    #print(feature["power"]) # print watts usage
     fname = feature['name']
-    fload = feature['watts']
+    fload = feature['power']
     print(f"\t{fname} uses {fload} kW")
 
 
