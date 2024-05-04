@@ -55,7 +55,7 @@
 
 # imports
 import json # to do: print(json.dumps(cablesDict, sort_keys=True, indent=4))
-from qgis.core import QgsDistanceArea, QgsUnitTypes
+from qgis.core import QgsDistanceArea, QgsUnitTypes, QgsVectorLayer, QgsFeature
 from getLayer import getLayer
 from getCoordinates import getCoordinates
 from getChildren import getChildren
@@ -71,6 +71,25 @@ nodesDictModel = ['_cable','parent','children','deepness','cable','power','phase
 cablesDictModel = ['nodes','length','phase','area','current','r',"plugsAndsockets"]
 
 verbose = 0
+
+
+def getLoadName(load: QgsFeature) -> str:
+    verbose = 0
+
+    loadName = load.attribute('name')
+    assert isinstance(loadName, str), 'this should be a string containing the name of the load'
+
+    loadName = loadName.lower() 
+    loadName = loadName.replace('\n',' ') # in case of some names on the map have a \n
+    loadName = loadName.replace('  ', ' ') # avoid double blanks
+
+    if verbose: 
+        attrs = load.attributes() # attrs is a list. It contains all the attribute values of this feature
+        print("\n\t load's ID: ", load.id())
+        print("\t load's attributes: ", attrs)
+
+    return loadName 
+
 
 def findConnections(project, loadLayersList, cablesLayersList, thres):
     verbose = 0
@@ -115,25 +134,13 @@ def findConnections(project, loadLayersList, cablesLayersList, thres):
     # --- find connections 
     for loadLayerName in loadLayersList:
         load_layer = getLayer(project, loadLayerName)
-
         if verbose: print(f"loads layer = {load_layer}")
-
+        field = 'name'
+        assert field in load_layer.fields().names(), f'layer "{loadLayerName} does not have a field "{field}"'
+        
         for load in load_layer.getFeatures():
-            
-            # get load's name 
-            attrs = load.attributes() # attrs is a list. It contains all the attribute values of this feature
-
-            kw = 'name'
-            idxNameAttribute = load.fieldNameIndex(kw)
-            assert idxNameAttribute!=-1, f'The layer "{loadLayerName}" does not have a "{kw}" field name'
-            
-            assert isinstance(attrs[idxNameAttribute], str), 'this should be a string containing the name of the load'
-            loadName = attrs[idxNameAttribute].lower() 
-            loadName = loadName.replace('\n',' ') # in case of some names on the map have a \n
-            loadName = loadName.replace('  ', ' ') # avoid double blanks
-            if verbose: 
-                print("\n\t load's ID: ", load.id())
-                print("\t load's attributes: ", attrs)
+                        
+            loadName = getLoadName(load)
             
             # init a dict for that node
             nodesDict[loadName] = dict.fromkeys(nodesDictModel) 
@@ -153,9 +160,9 @@ def findConnections(project, loadLayersList, cablesLayersList, thres):
                         
                     dmin = min(elist)
                     if dmin<= thres: # we found a connection 
-                        # TODO: woule be better to do the test outside cable loop (see below)
+                        # TODO: would be better to do the test outside cable loop (see below)
                         is_load_connected = True
-                        if verbose: print(f'\t\t in cable layer "{cableLayerName}", cable {cable.id()} is connected to "{attrs[idxNameAttribute]}"')
+                        if verbose: print(f'\t\t in cable layer "{cableLayerName}", cable {cable.id()} is connected to "{loadName}"')
                         
                         # update dicts
                         cablesDict[cableLayerName][cableIdx]['nodes'].append(loadName)
@@ -287,5 +294,5 @@ def getGridGeometry(project):
         print(json.dumps(nodesDict, sort_keys=True, indent=4))
         print(json.dumps(grid, sort_keys=True, indent=4))
 
-    return cablesDict, grid, dlist 
+    return cablesDict, grid, dlist
 
