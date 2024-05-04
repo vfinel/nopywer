@@ -75,7 +75,7 @@ assert grid['middleofnowhere']['parent']!=None, 'why MoN is orphelin? in this pr
 
 # load spreadsheet (power usage + phase) and add it to "grid" dictionnary
 project_path = os.path.split(project_file)[0]
-grid, cablesDict, hasNoPhase = readSpreadsheet(project_path, grid, cablesDict)
+grid, cablesDict, hasNoPhase = readSpreadsheet(project_path, grid, cablesDict, param['spreadsheet'])
 
 
 # compute cumulated current

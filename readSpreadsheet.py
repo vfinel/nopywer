@@ -3,17 +3,26 @@ import numpy as np
 import os
 import copy 
 
-def readSpreadsheet(project_path, grid, cablesDict):
+def readSpreadsheet(project_path: str, grid: dict, cablesDict: dict, sparam: dict) -> tuple[dict, dict, list]:
     verbose = 0
+    headers = {'name': 'Project',
+            'phase': 'which phase(1, 2, 3, T, U or Y)',
+            'power': 'worstcase power [W]'}
 
     print('\nReading spreadsheet')
     #TODO: one sheet per "norg / power swap / art", loop on sheets, build dict of all loadsOnSheet ---> avoid manual editing of .ods
-    sh = pd.read_excel(os.path.join(project_path, "Power 2023 map balance.ods"), sheet_name="Sheet1", skiprows=3, engine="odf")
+    sh = pd.read_excel(os.path.join(project_path, sparam['name']), 
+                       sheet_name=sparam['sheet'], 
+                       skiprows=sparam['skiprows'], 
+                       engine="odf")
+
+    for key in headers.values():
+        assert key in sh.keys(), f'key "{key}" is not on the spreadsheet. The following keys were found: {sh.keys()}'
 
     loadsOnMap = list(grid.keys())
-    loadsOnSheet = list(sh['Project'])
+    loadsOnSheet = list(sh[headers['name']])
     missingOnSheet = [] # list of loads on the map but not on the spreadsheet 
-    missingOnMap = [] # list of loads on the spreadsheet but not on the map
+    missingOnMap = []   # list of loads on the spreadsheet but not on the map
     hasNoPhase =[]
 
     # clean loadsOnSheet in case of it contains NaN
@@ -23,31 +32,27 @@ def readSpreadsheet(project_path, grid, cablesDict):
         if isinstance(loadsOnSheet[idx],str)==0:
             loadsOnSheet.pop(idx)
 
-
     # loop through loads on the map and find corresponding info on the spreadsheet
     for load in loadsOnMap:
-
         grid[load]['power'] = np.array([0.0]*3)
         
         # find idx of the row in the spreadsheet
         idx = []
         nameOnMap = load.lower().strip()
 
-        for i,x in enumerate(loadsOnSheet):
+        for row,x in enumerate(loadsOnSheet):
             nameOnSheet = x.lower().strip()
             isOnMap = (nameOnMap in nameOnSheet) and not (nameOnMap=='generator')
 
             if isOnMap:
-                idx.append(i)
-
-                phase = sh['which phase(1, 2, 3, T, U or Y)'][i] 
-                pwr = np.double(sh['worstcase power [W]'][i])
-
+                idx.append(row)
+                phase = sh[headers['phase']][row]
+                pwr = np.double(sh[headers['power']][row]) 
+                assert pwr!=np.NaN, f'load {nameOnSheet} has no power indicated'
                 if verbose: 
-                    print(f"\t On map, '{load}' draws {pwr}W (on sheet: '{nameOnSheet}' phase '{phase})'")
+                    print(f"\t'{nameOnSheet}' draws {pwr}W on phase {phase} ('{load}' on the map)")
     
                 if pwr>0:
-
                     # --- parse phase info                 
                     if isinstance(phase, int):
                         phaseParsed = phase
@@ -98,10 +103,12 @@ def readSpreadsheet(project_path, grid, cablesDict):
                     #   grid[load]['date']['from'] = sh['Arrive'][idx[0]]
                     #   grid[load]['date']['to'] = sh['Depart'][idx[0]]
 
-                else: # pwr is zero or none 
+                elif pwr==0:
                     if verbose: print(f"deleting {load} because doesn't draw power")
                     del grid[load]
 
+                else:
+                    raise ValueError(f'Unable to read "{nameOnSheet}" power usage')
                 
         # print(f"\t {load} draws {grid[load]['power']/1e3:.1f}kW on phase {grid[load]['phase']} \
         #           from {grid[load]['date']['from']} to {grid[load]['date']['to']}")
@@ -112,15 +119,15 @@ def readSpreadsheet(project_path, grid, cablesDict):
 
     # sanity check: loop on spreadsheet to check if some are projects not on the map 
     for idxOnSheet, nameOnSheet in enumerate(loadsOnSheet):
-        if sh['worstcase power [W]'][idxOnSheet]>0:
+        if sh[headers['power']][idxOnSheet]>0:
             idxOnMap = [idx for idx,nameOnMap in enumerate(loadsOnMap) if (nameOnMap in nameOnSheet.lower())]
             if len(idxOnMap) == 0:
                 missingOnMap.append(nameOnSheet)
 
 
     print('\n!!! you should not go any futher if some loads on the map are not on spreadsheet:')
-    print(f"\ton map but missing on spreadsheet: \n\t{missingOnSheet}") # will make computeVDrop to crash because those don't have cable lengthes
-    print(f"\n\ton spreadsheet but missing on map: \n\t{missingOnMap}")
-    print(f"\nlist of loads on the spreadsheet that don't have a phase assigned: \n\t{hasNoPhase} \n ")
+    print(f"\t on map but missing on spreadsheet: \n\t {missingOnSheet}") # will make computeVDrop to crash because those don't have cable lengthes
+    print(f"\n\t on spreadsheet but missing on map: \n\t {missingOnMap}")
+    print(f"\n list of loads on the spreadsheet that don't have a phase assigned: \n\t {hasNoPhase} \n ")
 
     return grid, cablesDict, hasNoPhase
