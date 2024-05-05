@@ -27,6 +27,9 @@ This part of the documentation is incomplete. In a nutshell:
     - should NOT contains any notes or comments on the cells 
 
 ## how to setup nopywer parameters 
+
+To download the code, click on the green ```<> Code``` button on the top-right corner of this page, and then click on "Download ZIP". Note that if you are familiar with git, it would be best to clone the repository to get updates easily. 
+
 The file ```get_user_parameters.py``` contains some fields that can be edited:
 - ```project_file```: this actually NOT used if you run nopywer from QGIS console directly, so you can ignore this 
 - ```extra_cable_length```: extra length to add to the "straight line length" measured on the map, to get the necessary length of the cable to have some slack. 10m should be the minimum.
