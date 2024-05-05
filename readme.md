@@ -24,6 +24,7 @@ This part of the documentation is incomplete. In a nutshell:
             - ```T``` splits it on the 3 phases 
             - ```Y``` and ```U``` assign them to the Y and U grids and does not compute power stuff for them.
         - ```worstcase power [W]```: how many watts this loads needs 
+    - should NOT contains any notes or comments on the cells 
 
 ## how to setup nopywer parameters 
 The file ```get_user_parameters.py``` contains some fields that can be edited:
