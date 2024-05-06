@@ -1,8 +1,8 @@
 def get_user_parameters():
     param = {
-            'project_file': "H:\\Mon Drive\\vico\\map\\map_experiments\\map_20230701_correctionCRS\\nowhere2023 map.qgz", # this is not used and be ignored if the code is ran from QGIS console.
-            'loadLayersList': ["norg2023_nodes", "art2023"],
-            'cablesLayersList': ["norg2023_3phases", "norg2023_1phase","art2023_3phases", "art2023_1phase"],
+            'project_file': "H:\\Mon Drive\\vico\\map\\map2024\\qfieldcloud\\_cloud.qgs", # this is not used and be ignored if the code is ran from QGIS console.
+            'loadLayersList': ["norg_nodes_2024"],
+            'cablesLayersList': ["norg_3phases_63A_2024", "norg_3phases_32A_2024", "norg_1phase_2024"],
             'spreadsheet': {
                 'name': "Power 2024 map balance.ods",
                 'sheet': "All",

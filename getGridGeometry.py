@@ -129,6 +129,8 @@ def findConnections(project, loadLayersList, cablesLayersList, thres):
             cableLength = qgsDist.measureLength(cable.geometry())
             assert cableLength>0, "there is a problem computing cable length"
             cablesDict[cableLayerName][cableIdx]["length"] = cableLength + param['extra_cable_length']
+            cablesDict[cableLayerName][cableIdx]["area"] = cable.attribute('area')
+            cablesDict[cableLayerName][cableIdx]["plugsAndsockets"] = cable.attribute(r'plugs&sockets')
 
 
     # --- find connections 

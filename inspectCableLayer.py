@@ -1,34 +1,6 @@
 from qgis.core import QgsDistanceArea, QgsUnitTypes
 from getLayer import getLayer
 
-def getWireArea(cableInfo, cablesDict): 
-    # cable must be a cablesGrid['layerName'][idx] dictionnary 
-    # return area in mm²
-    cable = cablesDict[cableInfo['layer']][cableInfo['idx']]
-
-    toMalfare = any('malfare' in nodes for nodes in cable['nodes']) # takes into account 'malfareNode'
-    fromGenerator = ('generator' in cable['nodes'])
-    is16smm = ('nodes' in cable.keys()) and (fromGenerator and toMalfare)
-    if is16smm:
-        wireArea = 16
-        plugsAndSockets = 63
-
-    elif '3phases' in cableInfo['layer']:
-        wireArea = 6
-        plugsAndSockets = 32
-
-    elif '1phase' in cableInfo['layer']:
-        wireArea = 2.5
-        plugsAndSockets = 16
-    
-    else:
-        raise ValueError(f"unable to determine wireArea of cable: {cable}")
-
-    cable['area'] = wireArea
-    cable['plugsAndsockets'] = plugsAndSockets
-
-    return cablesDict
-
 
 def inspectCableLayers(project, cablesLayersList, cablesDict):
     print('\n inspect cable layer:')
@@ -61,7 +33,6 @@ def inspectCableLayers(project, cablesLayersList, cablesDict):
 
             # --- get cable area and plugs&sockets type 
             cableInfo = {"layer": cableLayerName, "idx": cableIdx}
-            cablesDict = getWireArea(cableInfo, cablesDict)
 
             # --- compute resistance of cable 
             cableDict['r'] = rho*cableDict['length']/cableDict['area']
