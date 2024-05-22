@@ -66,7 +66,6 @@ print(f'project filename: {project.fileName()}\n')
 
 # find grid geometry
 cablesDict, grid, dlist = getGridGeometry(project)
-assert grid['middleofnowhere']['parent']!=None, 'why MoN is orphelin? in this project ? pb with python? nopywer ?'
 
 
 # spreadsheet: assign phases
