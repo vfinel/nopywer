@@ -92,7 +92,7 @@ def getLoadName(load: QgsFeature) -> str:
 
 
 def findConnections(project, loadLayersList, cablesLayersList, thres):
-    verbose = 0
+    verbose = 0 
     nodesDict = {} 
     cablesDict = {} 
 
@@ -127,7 +127,7 @@ def findConnections(project, loadLayersList, cablesLayersList, thres):
             cablesDict[cableLayerName][cableIdx] = dict.fromkeys(cablesDictModel) # init a dict to describe cable
             cablesDict[cableLayerName][cableIdx]['nodes'] = [] # init empty list of nodes connected to this cable
             cableLength = qgsDist.measureLength(cable.geometry())
-            assert cableLength>0, "there is a problem computing cable length"
+            assert cableLength>0, f"in layer '{cableLayer}', cable {cableIdx+1} has length = 0m. It should be deleted"
             cablesDict[cableLayerName][cableIdx]["length"] = cableLength + param['extra_cable_length']
             cablesDict[cableLayerName][cableIdx]["area"] = cable.attribute('area')
             cablesDict[cableLayerName][cableIdx]["plugsAndsockets"] = cable.attribute(r'plugs&sockets')
@@ -141,9 +141,9 @@ def findConnections(project, loadLayersList, cablesLayersList, thres):
         assert field in load_layer.fields().names(), f'layer "{loadLayerName} does not have a field "{field}"'
         
         for load in load_layer.getFeatures():
-                        
             loadName = getLoadName(load)
-            
+            if verbose: print(f'\t load {loadName}')
+
             # init a dict for that node
             nodesDict[loadName] = dict.fromkeys(nodesDictModel) 
             nodesDict[loadName]['_cable'] = []
