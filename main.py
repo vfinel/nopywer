@@ -10,6 +10,7 @@ import numpy as np
 import os
 
 # nopywer imports 
+from checkInventory import compute_cable_length_in_inventory
 from cumulateCurrent import cumulateCurrent
 from getGridGeometry import getGridGeometry, computeDistroRequirements
 from readSpreadsheet import readSpreadsheet
@@ -89,7 +90,7 @@ print("\ncomputingVDrop...")
 grid, cablesDict = computeVDrop(grid, cablesDict)
 
 # print('\nchecking inventory:')
-# exec(Path('../nopywer/checkInventory.py').read_text())
+# compute_cable_length_in_inventory()
 
 printGridInfo(grid, cablesDict, phaseBalance, hasNoPhase, dlist)
 
