@@ -138,7 +138,7 @@ def findConnections(project, loadLayersList, cablesLayersList, thres):
         load_layer = getLayer(project, loadLayerName)
         if verbose: print(f"loads layer = {load_layer}")
         field = 'name'
-        assert field in load_layer.fields().names(), f'layer "{loadLayerName} does not have a field "{field}"'
+        assert field in load_layer.fields().names(), f'layer "{loadLayerName}" does not have a field "{field}"'
         
         for load in load_layer.getFeatures():
             loadName = getLoadName(load)

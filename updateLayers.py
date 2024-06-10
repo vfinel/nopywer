@@ -36,7 +36,7 @@ def update1PhaseLayers(grid: dict, cables: dict, project: QgsProject):
 
 def updateLoadLayers(grid: dict, loadLayersList: list, project: QgsProject):
     # write nodes' power and cumPower (=attributes) for each nodes (=feature) of load layer
-    print('\nupdating load layers with with power usage and cumulated power...')
+    print('\nupdating load layers with power usage and cumulated power...')
     for loadLayerName in loadLayersList:
         layer = getLayer(project, loadLayerName)
         if layer.isEditable()==False:
@@ -44,16 +44,17 @@ def updateLoadLayers(grid: dict, loadLayersList: list, project: QgsProject):
                 for load in list(layer.getFeatures()):
                     loadName = getLoadName(load)
                     
-                    field = 'power'
-                    assert field in load.fields().names(), f'layer "{loadLayerName} does not have a field "{field}"'
-                    load.setAttribute(field, f"{1e-3*sum(grid[loadName]['power'])}")
-                    
-                    if type(grid[loadName]['cumPower'])!=type(None): # this can be False if load is not connected
-                        field = 'cumPower'
+                    if loadName in grid.keys():
+                        field = 'power'
                         assert field in load.fields().names(), f'layer "{loadLayerName} does not have a field "{field}"'
-                        load.setAttribute(field, f"{1e-3*sum(grid[loadName]['cumPower'])}")
-                    
-                    layer.updateFeature(load)
+                        load.setAttribute(field, f"{1e-3*grid[loadName]['power'].sum()}")
+                        
+                        field = 'cumPower'
+                        if type(grid[loadName][field])!=type(None): # this can be False if load is not connected
+                            assert field in load.fields().names(), f'layer "{loadLayerName}" does not have a field "{field}"'
+                            load.setAttribute(field, f"{1e-3*sum(grid[loadName]['cumPower'])}")
+                        
+                        layer.updateFeature(load)
             
         else:
             raise ValueError(f'Layer "{loadName}" cannot be edited by nopywer '\
