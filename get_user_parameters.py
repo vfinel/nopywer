@@ -8,6 +8,7 @@ def get_user_parameters():
                 'sheet': "All",
                 'skiprows': 0
             },
+            'inventory': "./power/norg_power_inventory.ods",
             'extra_cable_length': 10  # extra length to add to the "straight line length" to get the necessary length of the cable to have some slack. 10m should be the minimum
             }
         
