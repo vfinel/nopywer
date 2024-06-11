@@ -5,13 +5,13 @@ from getLayer import getLayer
 def inspectCableLayers(project, cablesLayersList, cablesDict):
     print('\n inspect cable layer:')
     verbose = 0
-    inventory_3P = 845 # todo: smarter thing
-    inventory_1P = 2020
+    inventory_3P = 785 # todo: smarter thing
+    inventory_1P = 2340
     rho = 1/26 # resistivity of copper cables in [ohm/m*mm²] R = rho*L/area
     tot1P = 0   # [m] total length of 1P cables 
     tot3P = 0   # [m] total length of 3P cables 
     n1P = 0     # total number of 1P cables
-    n3P = 0     # total number of "P cables
+    n3P = 0     # total number of 3P cables
     currentOverloads = ''
 
     for cableLayerName in cablesLayersList:
