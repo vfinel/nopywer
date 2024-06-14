@@ -10,7 +10,7 @@ import numpy as np
 import os
 
 # nopywer imports 
-from checkInventory import choose_cables_in_inventory
+from checkInventory import choose_cables_in_inventory, choose_distros_in_inventory
 from cumulateCurrent import cumulateCurrent
 from getGridGeometry import getGridGeometry, computeDistroRequirements
 from readSpreadsheet import readSpreadsheet
@@ -91,6 +91,7 @@ grid, cablesDict = computeVDrop(grid, cablesDict)
 
 print('\nchecking inventory:')
 choose_cables_in_inventory(project_path, cablesDict, param['inventory'])
+choose_distros_in_inventory(project_path, grid, param['inventory'])
 
 printGridInfo(grid, cablesDict, phaseBalance, hasNoPhase, dlist)
 
