@@ -55,7 +55,17 @@ The file ```get_constant_parameters.py``` also contains some informations you mi
 
 
 # troubleshooting
-If you have erros, please reach out (please include of copy of complete message displayed in the console)
+If you have errors, please reach out (please include of copy of complete message displayed in the console). 
+
+Here are some explanations on how to interpret nopywer's output:
+
+- loads not using power appear on the "on map but missing on spreadsheet" list: --> they should be added on the spreadsheet
+
+- loads not using power appear on the "on spreadsheet but missing on map" list: 
+--> they should be removed from the spreadsheet
+
+- loads which have U or Y assigned appear on the 'loads not connected to a cable' list
+--> connect them to a cable layer that nopywer is actually checking
 
 
 
