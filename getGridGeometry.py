@@ -60,6 +60,8 @@ from getLayer import getLayer
 from getCoordinates import getCoordinates
 from getChildren import getChildren
 from get_user_parameters import get_user_parameters
+import traceback
+import logging
 
 # user settings
 param = get_user_parameters()
@@ -149,7 +151,14 @@ def findConnections(project, loadLayersList, cablesLayersList, thres):
             nodesDict[loadName]['_cable'] = []
             
             # --- find which cable(s) are connected to that load
-            loadPos = getCoordinates(load)
+            try:
+                loadPos = getCoordinates(load)
+
+            except Exception as e:  #https://stackoverflow.com/questions/4990718/how-can-i-write-a-try-except-block-that-catches-all-exceptions/4992124#4992124
+                print(f'\t there is a problem with load "{loadName}" in "{loadLayerName}" layer:')
+                logging.error(traceback.format_exc()) # Logs the error appropriately. 
+                
+            
             is_load_connected = False
             for cableLayerName in cablesLayersList:
                 cableLayer = getLayer(project, cableLayerName)
