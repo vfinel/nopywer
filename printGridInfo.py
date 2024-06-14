@@ -60,7 +60,7 @@ def printGridInfo(grid, cablesDict, phaseBalance, hasNoPhase, dlist):
 
         if g!=None:
             subgrid[g]['tot'] += grid[load]['power']
-            subgrid[g]['msg'] += f"\t\t {load} ({grid[load]['power']}kW) \n"
+            subgrid[g]['msg'] += f"\t\t {load} ({grid[load]['power']}W) \n"
     
     for g in subgrid.keys():
         print(f"\t {g} grid: {subgrid[g]['tot']/1e3:.1f}kW / {subgrid[g]['tot']/V0:.1f}A")
