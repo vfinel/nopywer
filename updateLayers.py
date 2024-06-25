@@ -18,14 +18,24 @@ def update1PhaseLayers(grid: dict, cables: dict, project: QgsProject):
             if cableLayer.isEditable()==False:
                 with edit(cableLayer):
                     for i,cable in enumerate(list(cableLayer.getFeatures())):
-                        phase = cables[cableLayerName][i]['phase']
-                        if verbose: print(f'\t\t cable idx {i} on phase {phase}')
-                        if phase==None:
-                            phase = 0
+                        if cables[cableLayerName][i]['current'] != None: # don't update not connecte cables
+                            phase = cables[cableLayerName][i]['phase']                        
+                            if phase==None:
+                                phase = 0
+                            
+                            if verbose: print(f'\t\t cable idx {i} on phase {phase} (type: {type(phase)})')
+                            if phase == 'T':
+                                raise ValueError(f'cable idx {i} cannot be on phase "{phase}" because it is in a single phase layer.')
 
-                        cable.setAttribute('phase', f'{phase}')
-                        cableLayer.updateFeature(cable)
-                        
+                            cable.setAttribute('phase', f'{phase}')
+                            try:
+                                cableLayer.updateFeature(cable)
+
+                            except ValueError as err:
+                                print(f'problem found in {cableLayerName} while updating cable idx {i} with phase info "{phase}":')
+                                print(err.args)
+                                raise ValueError(err.args)
+                                                
 
             else:
                 raise ValueError(f'Layer "{cableLayerName}" cannot be edited by nopywer '\
