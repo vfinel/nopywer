@@ -11,7 +11,7 @@ import os
 
 # nopywer imports 
 import nopywer as npw
-from automatic_stuff import phase_assignment_greedy
+from automatic_stuff import phase_assignment_greedy, find_optimal_layout, qgis2list, find_min_spanning_tree
 
 # --------------------------------------------------------- #
 # --- constant data (global variables)
@@ -20,13 +20,14 @@ V0 = CONSTANTS['V0']
 PF = CONSTANTS['PF']
 
 # user parameters
-updateStuff = 1
+updateStuff = 0
 param = npw.get_user_parameters()
 cablesLayersList = param['cablesLayersList']
 
 project = QgsProject.instance() 
 
 standalone_exec = __name__ == '__main__'
+"""
 if standalone_exec: # code is not ran from QGIS 
     # --- run qgis (to be able to run code from vscode - NOT HELPING)
     # Supply path to qgis install location
@@ -87,7 +88,37 @@ if updateStuff:
 
 phase_assignment_greedy(grid)
 
+"""
+
+# find_optimal_layout(grid)
+# qgis2list(grid)
+
+if 1:   # load previously saved data 
+    import pickle
+    with open('grid.pkl', 'rb') as f:  # Python 3: open(..., 'rb')
+        nodes, edges = pickle.load(f)
+
+else:   # try on a simplistic graphe
+    nodes = {'A': {'power':10, 'cumPower':None, 'x': 1, 'y':1}, 
+             'B': {'power':20, 'cumPower':None, 'x': 0, 'y':1}, 
+             'C': {'power':30, 'cumPower':None, 'x': 1, 'y':0}, 
+             'generator': {'power':0, 'cumPower':None, 'x': 0, 'y':0}, 
+             }
+    edges = []
+    for src in nodes:
+        for dst in nodes:
+            if (src!=dst) and (dst!='generator'):
+                edges.append((src, 
+                             dst, 
+                             (nodes[src]['x']-nodes[dst]['x'])**2 + (nodes[src]['y']-nodes[dst]['y'])**2)
+                )
+
+find_optimal_layout(nodes, edges)
+# find_min_spanning_tree(nodes, edges) # too computational intensive 
+
 print("\n end of script for now :)")
 
+"""
 if standalone_exec:
     qgs.exitQgis()
+"""
