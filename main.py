@@ -11,7 +11,7 @@ import os
 
 # nopywer imports 
 import nopywer as npw
-
+from automatic_stuff import phase_assignment_greedy
 
 # --------------------------------------------------------- #
 # --- constant data (global variables)
@@ -85,6 +85,7 @@ if updateStuff:
     npw.updateLoadLayers(grid, param['loadLayersList'], project)
     #npw.writeSpreadsheet(grid, sh)
 
+phase_assignment_greedy(grid)
 
 print("\n end of script for now :)")
 
