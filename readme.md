@@ -7,14 +7,27 @@ This project is under development. I am learning python along the way, the code 
 
 Contributions welcome !
 
-
 # setup
 
+First of all, make sure that QGIS is configured in English.
+
+## prepare QGIS python 
+You need to install some modules. Below are the explanations (for Windows only, other systems yet to come...)
+- open OSGeo4W shell. It is accessible from Windows' start menu or the QGIS installation folder. If you have multiple QGIS version installed, make sure to open the OSgeo4W shell of the QGIS version you are using.
+- Use Python’s pip to install the libraries: ```python -m pip install odfpy pandas pulp networkx```
+
+For more help see https://landscapearchaeology.org/2018/installing-python-packages-in-qgis-3-for-windows/
+
+
 ## how to set up your QGIS project
+
+### configure QGIS 
+
+
 This part of the documentation is incomplete. In a nutshell: 
 - start by duplicating the nodes and cables layers of the example qgis project
 
-*(note: the example project as yet to created and shared, but if you are reading this we probably know each other and you got your hands on the qgis project ;))*
+*(note: the example project as yet to be created and shared, but if you are reading this we probably know each other and you got your hands on the qgis project ;))*
 
 - create a spreadsheet containing power requirements for each load of the qgis' loads layer(s). The spreadsheet must comply with the following rules:
     - should be a .ods file 
