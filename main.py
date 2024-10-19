@@ -106,7 +106,7 @@ else:   # try on a simplistic graphe
     edges = []
     for src in nodes:
         for dst in nodes:
-            if (src!=dst) and (dst!='generator'):
+            if (src!=dst): #and (dst!='generator'): allow connection towards generator, this case is managed by pulp constraints
                 edges.append((src, 
                              dst, 
                              (nodes[src]['x']-nodes[dst]['x'])**2 + (nodes[src]['y']-nodes[dst]['y'])**2)
