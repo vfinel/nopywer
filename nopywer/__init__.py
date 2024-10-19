@@ -1,4 +1,5 @@
 # nopywer imports 
+from .automatic_stuff import phase_assignment_greedy, find_optimal_layout, qgis2list, find_min_spanning_tree
 from .checkInventory import choose_cables_in_inventory, choose_distros_in_inventory
 from .cumulateCurrent import cumulateCurrent
 from .getGridGeometry import getGridGeometry, computeDistroRequirements

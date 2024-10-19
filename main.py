@@ -11,7 +11,6 @@ import os
 
 # nopywer imports 
 import nopywer as npw
-from automatic_stuff import phase_assignment_greedy, find_optimal_layout, qgis2list, find_min_spanning_tree
 
 # --------------------------------------------------------- #
 # --- constant data (global variables)
@@ -86,12 +85,12 @@ if updateStuff:
     npw.updateLoadLayers(grid, param['loadLayersList'], project)
     #npw.writeSpreadsheet(grid, sh)
 
-phase_assignment_greedy(grid)
+npw.phase_assignment_greedy(grid)
 
 """
 
-# find_optimal_layout(grid)
-# qgis2list(grid)
+# npw.find_optimal_layout(grid)
+# npw.qgis2list(grid)
 
 if 1:   # load previously saved data 
     import pickle
@@ -113,8 +112,8 @@ else:   # try on a simplistic graphe
                              (nodes[src]['x']-nodes[dst]['x'])**2 + (nodes[src]['y']-nodes[dst]['y'])**2)
                 )
 
-find_optimal_layout(nodes, edges)
-# find_min_spanning_tree(nodes, edges) # too computational intensive 
+npw.find_optimal_layout(nodes, edges)
+# npw.find_min_spanning_tree(nodes, edges) # too computational intensive 
 
 print("\n end of script for now :)")
 
