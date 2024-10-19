@@ -187,9 +187,9 @@ def find_optimal_layout(grid, edges):
 			if pulp.value(edges_conn[u, v]):
 				print(f"\t{u} connected to {v}")
 		
-		print('loads info')
+		print('\nloads info:')
 		for n in nodes:
-			print(f"{n} cumPower = {pulp.value(nodes[n]['cumPower'])}")
+			print(f"\t{n} cumPower = {pulp.value(nodes[n]['cumPower'])}")
 		
 		# too verbose:
 		# print("\nOptimal Result:")
