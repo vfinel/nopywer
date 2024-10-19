@@ -51,6 +51,19 @@ The file ```get_constant_parameters.py``` also contains some informations you mi
 
 
 # usage 
+
+## type of layers you'll have
+- nodes : what it is 
+- phases: what it is (3P, 11, etc) 
+
+## work on your layers 
+- do not write power usage of your nodes in qgis  
+- do not assign phases on qgis
+--> nopywer reads the spreadsheet and does that for you
+(the idea is to try to use very little qgis and more automated stuff as well spreadsheets)
+
+
+## run code 
 - download the nopywer code on your computer 
 - open your qgis project 
 - open the python console by typing Ctrl+Alt+P (or clicking on Plugins -> Python Console)
