@@ -56,10 +56,10 @@
 # imports
 import json # to do: print(json.dumps(cablesDict, sort_keys=True, indent=4))
 from qgis.core import QgsDistanceArea, QgsUnitTypes, QgsVectorLayer, QgsFeature
-from getLayer import getLayer
-from getCoordinates import getCoordinates
-from getChildren import getChildren
-from get_user_parameters import get_user_parameters
+from .getLayer import getLayer
+from .getCoordinates import getCoordinates
+from .getChildren import getChildren
+from .get_user_parameters import get_user_parameters
 import traceback
 import logging
 

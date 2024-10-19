@@ -10,27 +10,18 @@ import numpy as np
 import os
 
 # nopywer imports 
-from checkInventory import choose_cables_in_inventory, choose_distros_in_inventory
-from cumulateCurrent import cumulateCurrent
-from getGridGeometry import getGridGeometry, computeDistroRequirements
-from readSpreadsheet import readSpreadsheet
-from inspectCableLayer import inspectCableLayers
-from get_user_parameters import get_user_parameters
-from get_constant_parameters import get_constant_parameters
-from computeVDrop import computeVDrop
-from printGridInfo import printGridInfo
-from updateLayers import update1PhaseLayers, updateLoadLayers
+import nopywer as npw
 
 
 # --------------------------------------------------------- #
 # --- constant data (global variables)
-CONSTANTS = get_constant_parameters()
+CONSTANTS = npw.get_constant_parameters()
 V0 = CONSTANTS['V0']
 PF = CONSTANTS['PF']
 
 # user parameters
 updateStuff = 1
-param = get_user_parameters()
+param = npw.get_user_parameters()
 cablesLayersList = param['cablesLayersList']
 
 project = QgsProject.instance() 
@@ -60,7 +51,7 @@ print(f'project filename: {project.fileName()}\n')
 
 
 # find grid geometry
-cablesDict, grid, dlist = getGridGeometry(project)
+cablesDict, grid, dlist = npw.getGridGeometry(project)
 
 
 # spreadsheet: assign phases
@@ -69,30 +60,30 @@ cablesDict, grid, dlist = getGridGeometry(project)
 
 # load spreadsheet (power usage + phase) and add it to "grid" dictionnary
 project_path = os.path.split(project_file)[0]
-grid, cablesDict, hasNoPhase = readSpreadsheet(project_path, grid, cablesDict, param['spreadsheet'])
+grid, cablesDict, hasNoPhase = npw.readSpreadsheet(project_path, grid, cablesDict, param['spreadsheet'])
 
 
 # compute cumulated current
-grid, cablesDict = cumulateCurrent(grid, cablesDict, dlist, V0, PF)
+grid, cablesDict = npw.cumulateCurrent(grid, cablesDict, dlist, V0, PF)
 
 phaseBalance = 100*np.std(grid['generator']['cumPower']/np.mean(grid['generator']['cumPower']))
 
-cablesDict = inspectCableLayers(project, cablesLayersList, cablesDict) 
-grid = computeDistroRequirements(grid, cablesDict)
+cablesDict = npw.inspectCableLayers(project, cablesLayersList, cablesDict) 
+grid = npw.computeDistroRequirements(grid, cablesDict)
 
 print("\ncomputingVDrop...") 
-grid, cablesDict = computeVDrop(grid, cablesDict)
+grid, cablesDict = npw.computeVDrop(grid, cablesDict)
 
 print('\nchecking inventory:')
-choose_cables_in_inventory(project_path, cablesDict, param['inventory'])
-choose_distros_in_inventory(project_path, grid, param['inventory'])
+npw.choose_cables_in_inventory(project_path, cablesDict, param['inventory'])
+npw.choose_distros_in_inventory(project_path, grid, param['inventory'])
 
-printGridInfo(grid, cablesDict, phaseBalance, hasNoPhase, dlist)
+npw.printGridInfo(grid, cablesDict, phaseBalance, hasNoPhase, dlist)
 
 if updateStuff:
-    update1PhaseLayers(grid, cablesDict, project)
-    updateLoadLayers(grid, param['loadLayersList'], project)
-    #writeSpreadsheet(grid, sh)
+    npw.update1PhaseLayers(grid, cablesDict, project)
+    npw.updateLoadLayers(grid, param['loadLayersList'], project)
+    #npw.writeSpreadsheet(grid, sh)
 
 
 print("\n end of script for now :)")

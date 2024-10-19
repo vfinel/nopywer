@@ -1,5 +1,5 @@
 import numpy as np 
-from get_constant_parameters import get_constant_parameters
+from .get_constant_parameters import get_constant_parameters
 
 # --- constant data 
 th_percent = 5 # vdrop threshold in %, above with a message is printed

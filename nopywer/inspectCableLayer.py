@@ -1,5 +1,5 @@
 from qgis.core import QgsDistanceArea, QgsUnitTypes
-from getLayer import getLayer
+from .getLayer import getLayer
 
 
 def inspectCableLayers(project, cablesLayersList, cablesDict):
