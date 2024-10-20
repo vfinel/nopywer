@@ -216,7 +216,7 @@ def find_optimal_layout(grid, edges):
 		nx.draw_networkx_edge_labels(G, pos, edge_labels=labels)
 		plt.show()
 	
-	return None
+	return edges_final
 
 
 def find_min_spanning_tree(grid, edges):

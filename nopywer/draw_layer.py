@@ -3,6 +3,7 @@ import sys
 sys.path += ['C:/PROGRA~1/QGIS33~1.3/apps/qgis/./python', 'C:/Users/v.finel/AppData/Roaming/QGIS/QGIS3\\profiles\\default/python', 'C:/Users/v.finel/AppData/Roaming/QGIS/QGIS3\\profiles\\default/python/plugins', 'C:/PROGRA~1/QGIS33~1.3/apps/qgis/./python/plugins', 'C:\\PROGRA~1\\QGIS33~1.3\\apps\\grass\\grass83\\etc\\python', 'H:\\Mon Drive\\vico\\map\\map2023\\map_20230701_correctionCRS', 'C:\\PROGRA~1\\QGIS33~1.3\\bin\\python39.zip', 'C:\\PROGRA~1\\QGIS33~1.3\\apps\\Python39\\DLLs', 'C:\\PROGRA~1\\QGIS33~1.3\\apps\\Python39\\lib', 'C:\\PROGRA~1\\QGIS33~1.3\\bin', 'C:\\Users\\v.finel\\AppData\\Roaming\\Python\\Python39\\site-packages', 'C:\\PROGRA~1\\QGIS33~1.3\\apps\\Python39', 'C:\\PROGRA~1\\QGIS33~1.3\\apps\\Python39\\lib\\site-packages', 'C:\\PROGRA~1\\QGIS33~1.3\\apps\\Python39\\lib\\site-packages\\win32', 'C:\\PROGRA~1\\QGIS33~1.3\\apps\\Python39\\lib\\site-packages\\win32\\lib', 'C:\\PROGRA~1\\QGIS33~1.3\\apps\\Python39\\lib\\site-packages\\Pythonwin', 'C:/Users/v.finel/AppData/Roaming/QGIS/QGIS3\\profiles\\default/python', 'H:/Mon Drive/vico/map/map2023/map_20230701_correctionCRS'] #from sys.path ran from qgis' python console
 
 import os 
+from typing import List, Dict
 from qgis.core import (QgsApplication,
                        QgsProject, 
                        QgsVectorLayer, 
@@ -88,29 +89,44 @@ def draw_point_layer(project: QgsProject):
     return None
 
 
-def draw_cable_layer(project: QgsProject):
+def draw_cable_layer(project: QgsProject, grid: Dict, optim_edges: List):
     # based on 
     #   https://anitagraser.com/pyqgis-101-introduction-to-qgis-python-programming-for-non-programmers/pyqgis101-creating-editing-a-new-vector-layer/   
     #   https://gis.stackexchange.com/questions/445087/adding-linestring-from-points-using-pyqgis
 
-    # create a new vector layer 
-    vl = QgsVectorLayer("linestring", "optim_cable_layer", "memory")
+    if optim_edges == []: # demo 
+        points = [QgsPointXY(738087.4, 4620389.3), 
+                  QgsPointXY(738136.4, 4620342.7)]
+        
+        optim_lines = [{'from': 'A',
+                       'to': 'B', 
+                       'length': 42,
+                       'points': points
+                       }]
+
+    else: # get optimized from calling function 
+        optim_lines = _format_edges(grid, optim_edges)
+
+    # create a new vector layer with current project's crs
+    vl = QgsVectorLayer(f"linestring?crs={project.crs().authid()}",
+                        "optim_cable_layer", 
+                        "memory")
 
     # add some attributes (=properties of each 'feature' belonging to the layer)
     pr = vl.dataProvider()
-    pr.addAttributes([QgsField("name", QVariant.String),
-                    QgsField("age",  QVariant.Int),
-                    QgsField("size", QVariant.Double)])
+    pr.addAttributes([QgsField("from", QVariant.String),
+                    QgsField("to",  QVariant.String),
+                    QgsField("length", QVariant.Double)])
     
     vl.updateFields()
 
-    # add a 'line' feature to the layer
-    points = [QgsPointXY(-0.13852453255756446, 41.700398388825257), 
-              QgsPointXY(-0.13902453255756446, 41.600398388825257)]
-    f = QgsFeature()
-    f.setGeometry(QgsGeometry.fromPolylineXY(points))
-    f.setAttributes(["this is my name", 34, 34.3]) # set its attribute
-    pr.addFeature(f)
+    # add 'lines' features to the layer
+    for line in optim_lines:
+        f = QgsFeature()
+        f.setGeometry(QgsGeometry.fromPolylineXY(line['points']))
+        f.setAttributes([line['from'], line['to'], line['length']]) # set its attribute
+        pr.addFeature(f)
+
     vl.updateExtents() 
 
     # add the layer to the project
@@ -119,19 +135,31 @@ def draw_cable_layer(project: QgsProject):
     return None
 
 
-print(f'hello, my __name__ is {__name__}')
+def _format_edges(grid: Dict, optim_edges: List): 
+    optim_lines = []
+    for e in optim_edges: 
+        optim_lines.append({'from': e[0],
+                            'to': e[1], 
+                            'length': e[2],
+                            'points': [grid[e[0]]['coordinates'], grid[e[1]]['coordinates']]
+                            })
+
+    return optim_lines 
 
 
 if __name__=='__console__': # ran from pyqgis console 
     project = QgsProject.instance()
     draw_point_layer(project)
-    draw_cable_layer(project)
+    grid = {}
+    edges = []
+    draw_cable_layer(project, grid, edges)
 
 
 if __name__=='__main__':
+    # WARNING: update won''t show when code ran from QGIS
     print('running draw_layer as __main__') 
     from get_user_parameters import get_user_parameters
-    
+
     print('initializing QGIS...')
     QgsApplication.setPrefixPath('C:/PROGRA~1/QGIS33~1.3/apps/qgis', True)
     qgs = QgsApplication([], False) # second argument to False disables the GUI.
@@ -147,4 +175,4 @@ if __name__=='__main__':
     assert status, f'unable to read project "{project_file}"'
 
     draw_point_layer(project)
-    print('wWARNING: update won''t show when code ran from QGIS')
+    print('WARNING: update won''t show when code ran from QGIS')
