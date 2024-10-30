@@ -1,4 +1,6 @@
-# intro 
+# nopywer
+
+## introduction
 This code analyses power grid draw on QGIS to compute current flowing through cables, 3-phases balance, and a rough estimation of voltage drop. 
 
 This is not professional software, I am neither a professionnal electrician nor a python developer. This software does not comes with any waranties or whatsoever.
@@ -7,11 +9,11 @@ This project is under development. I am learning python along the way, the code 
 
 Contributions welcome !
 
-# setup
+## setup
 
 First of all, make sure that QGIS is configured in English.
 
-## prepare QGIS python 
+### prepare QGIS python 
 You need to install some modules. Below are the explanations (for Windows only, other systems yet to come...)
 - open OSGeo4W shell. It is accessible from Windows' start menu or the QGIS installation folder. If you have multiple QGIS version installed, make sure to open the OSgeo4W shell of the QGIS version you are using.
 - Use Python’s pip to install the libraries: ```python -m pip install odfpy pandas pulp networkx```
@@ -19,9 +21,9 @@ You need to install some modules. Below are the explanations (for Windows only, 
 For more help see https://landscapearchaeology.org/2018/installing-python-packages-in-qgis-3-for-windows/
 
 
-## how to set up your QGIS project
+### how to set up your QGIS project
 
-### configure QGIS 
+#### configure QGIS 
 
 
 This part of the documentation is incomplete. In a nutshell: 
@@ -39,7 +41,7 @@ This part of the documentation is incomplete. In a nutshell:
         - ```worstcase power [W]```: how many watts this loads needs 
     - should NOT contains any notes or comments on the cells 
 
-## how to setup nopywer parameters 
+### how to setup nopywer parameters 
 
 To download the code, click on the green ```<> Code``` button on the top-right corner of this page, and then click on "Download ZIP". Note that if you are familiar with git, it would be best to clone the repository to get updates easily. 
 
@@ -50,7 +52,7 @@ The file ```get_user_parameters.py``` contains some fields that can be edited:
 The file ```get_constant_parameters.py``` also contains some informations you might want to look at. 
 
 
-# usage 
+## usage 
 - download the nopywer code on your computer 
 - open your qgis project 
 - open the python console by typing Ctrl+Alt+P (or clicking on Plugins -> Python Console)
@@ -67,7 +69,7 @@ The file ```get_constant_parameters.py``` also contains some informations you mi
 - That's it ! The code should run, show lots of info, and conclude by "end of script for now :)"
 
 
-# troubleshooting
+## troubleshooting
 If you have errors, please reach out (please include of copy of complete message displayed in the console). 
 
 Here are some explanations on how to interpret nopywer's output:
