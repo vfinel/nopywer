@@ -104,20 +104,20 @@ def draw_cable_layer(project: QgsProject, grid: Dict, optim_edges: List):
                        'points': points
                        }]
 
-    else: # get optimized from calling function 
+    else: # get optimized edges from calling function 
         optim_lines = _format_edges(grid, optim_edges)
 
     # create a new vector layer with current project's crs
     vl = QgsVectorLayer(f"linestring?crs={project.crs().authid()}",
                         "optim_cable_layer", 
                         "memory")
-
+    
     # add some attributes (=properties of each 'feature' belonging to the layer)
     pr = vl.dataProvider()
     pr.addAttributes([QgsField("from", QVariant.String),
                     QgsField("to",  QVariant.String),
                     QgsField("length", QVariant.Double)])
-    
+
     vl.updateFields()
 
     # add 'lines' features to the layer
@@ -127,7 +127,7 @@ def draw_cable_layer(project: QgsProject, grid: Dict, optim_edges: List):
         f.setAttributes([line['from'], line['to'], line['length']]) # set its attribute
         pr.addFeature(f)
 
-    vl.updateExtents() 
+    vl.updateExtents()
 
     # add the layer to the project
     project.addMapLayer(vl)

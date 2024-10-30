@@ -211,7 +211,7 @@ def find_optimal_layout(grid, edges):
 		# Plot the graph
 		pos = {name: (node['x'], node['y']) for name, node in grid.items()}
 		colormap = ['red' if node=='generator' else 'green' for node in G.nodes()]
-		nx.draw(G, pos, with_labels=True, node_color=colormap, node_size=500, arrows=True, horizontalalignment='left', font_size=8)
+		nx.draw(G, pos, with_labels=True, node_color=colormap, node_size=100, arrows=True, horizontalalignment='left', font_size=8)
 		labels = {(e[0], e[1]): f"{e[2]:.0f}m" for e in edges if pulp.value(edges_conn[e[0], e[1]])}
 		nx.draw_networkx_edge_labels(G, pos, edge_labels=labels)
 		plt.show()
