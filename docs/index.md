@@ -5,7 +5,7 @@ This page is the documentation of [https://github.com/vfinel/nopywer/](https://g
 Nopywer has been successfully used to design several power grids, as illustred by the following figure.
 
 ![alt text](nopywer_map_example.png "Title")
-*Example of a real-case scenario. Houses represent power loads at specific geographic coordinate; their size scales with their power need. Two 3-phases islanded grids provide power to 61 loads (totalling 195kW) from two generators.*
+*Example of a real-case scenario: on this map, houses represent power loads at specific geographic coordinates; their sizes scale with their power needs. In this case, two 3-phases islanded grids were designed to provide power to 61 loads (totalling 195kW) from two generators.*
 
 This site will soon be populated with examples and tutorials about how to design power grids yourself, stayed tuned ! 
 
