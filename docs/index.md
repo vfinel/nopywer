@@ -9,4 +9,4 @@ Nopywer has been successfully used to design several power grids, as illustred b
 
 This site will soon be populated with examples and tutorials about how to design power grids yourself, stayed tuned ! 
 
-Oh, and this is an open source projet: contributions are most than welcome :)
+Oh, and this is an open source projet: contributions are more than welcome :)
