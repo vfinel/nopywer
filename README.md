@@ -2,19 +2,17 @@
 
 Welcome to npywer source code. Visit the homepage of the project here: https://vfinel.github.io/nopywer/
 
-## introduction
+## Introduction
 
 This code analyses power grid gathered from QGIS to compute current flowing through cables, 3-phases balance, and voltage drop. 
 
-This is not professional software, I am neither a professionnal electrician nor a python developer. This software does not comes with any waranties or whatsoever.
+Contributions are welcome and encouraged! Please see the [CONTRIBUTING.md](CONTRIBUTING.md) file for guidelines.
 
-This project is under development. Contributions welcome !
-
-## setup
+## Setup
 
 First of all, make sure that QGIS is configured in English.
 
-### prepare QGIS python 
+### Prepare QGIS python 
 You need to install some modules. Below are the explanations (for Windows only, other systems yet to come...)
 - open OSGeo4W shell. It is accessible from Windows' start menu or the QGIS installation folder. If you have multiple QGIS version installed, make sure to open the OSgeo4W shell of the QGIS version you are using.
 - Use Python’s pip to install the libraries: ```python -m pip install odfpy pandas pulp networkx```
@@ -22,10 +20,9 @@ You need to install some modules. Below are the explanations (for Windows only, 
 For more help see https://landscapearchaeology.org/2018/installing-python-packages-in-qgis-3-for-windows/
 
 
-### how to set up your QGIS project
+### How to set up your QGIS project
 
-#### configure QGIS 
-
+#### Configure QGIS 
 
 This part of the documentation is incomplete. In a nutshell: 
 - start by duplicating the nodes and cables layers of the example qgis project
@@ -42,7 +39,7 @@ This part of the documentation is incomplete. In a nutshell:
         - ```worstcase power [W]```: how many watts this loads needs 
     - should NOT contains any notes or comments on the cells 
 
-### how to setup nopywer parameters 
+### How to setup nopywer parameters 
 
 To download the code, click on the green ```<> Code``` button on the top-right corner of this page, and then click on "Download ZIP". Note that if you are familiar with git, it would be best to clone the repository to get updates easily. 
 
@@ -53,7 +50,7 @@ The file ```get_user_parameters.py``` contains some fields that can be edited:
 The file ```get_constant_parameters.py``` also contains some informations you might want to look at. 
 
 
-## usage 
+## Usage 
 - download the nopywer code on your computer 
 - open your qgis project 
 - open the python console by typing Ctrl+Alt+P (or clicking on Plugins -> Python Console)
@@ -70,7 +67,7 @@ The file ```get_constant_parameters.py``` also contains some informations you mi
 - That's it ! The code should run, show lots of info, and conclude by "end of script for now :)"
 
 
-## troubleshooting
+## Troubleshooting
 If you have errors, please reach out (please include of copy of complete message displayed in the console). 
 
 Here are some explanations on how to interpret nopywer's output:
@@ -83,5 +80,6 @@ Here are some explanations on how to interpret nopywer's output:
 - loads which have U or Y assigned appear on the 'loads not connected to a cable' list
 --> connect them to a cable layer that nopywer is actually checking
 
-
+## Disclaimer 
+While efforts have been made to ensure this project functionality, it is provided "as is" without any warranties.
 
