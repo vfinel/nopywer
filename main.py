@@ -18,13 +18,11 @@ cablesLayersList = param['cablesLayersList']
 
 project = QgsProject.instance() 
 
-standalone_exec = __name__ == '__main__'
-if standalone_exec: # code is not ran from QGIS 
-    # --- run qgis (to be able to run code from vscode - NOT HELPING)
-    # Supply path to qgis install location
-    print('initializing QGIS...')
-    qgs = QgsApplication([], False) # second argument to False disables the GUI.
-    qgs.initQgis() # Load providers
+standalone_exec = __name__ == "__main__"
+if standalone_exec:  # code is not ran from QGIS
+    print("initializing QGIS...")
+    qgs = QgsApplication([], False)  # second argument to False disables the GUI.
+    qgs.initQgis()  # Load providers
 
     # --- load project 
     # from https://gis.stackexchange.com/questions/136861/getting-layer-by-name-in-pyqgis/136879#136879
