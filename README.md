@@ -10,19 +10,27 @@ Contributions are welcome and encouraged! Please see the [CONTRIBUTING.md](CONTR
 
 ## Setup
 
-First of all, make sure that QGIS is configured in English.
 
-### Prepare QGIS python 
-You need to install some modules. Below are the explanations (for Windows only, other systems yet to come...)
+### Configuration to run nopywer outside QGIS 
+To run outside QGIS, it is necessary to use a virtual environment with ```conda```.
+```
+conda create -n "nopywer" --channel conda-forge --file requirements.yaml
+```
+
+### Configuration to run nopywer from QGIS python console 
+
+You need to install some modules in the python environment used by QGIS. To do so, follow the instructions below (Windows only, other systems yet to come...)
 - open OSGeo4W shell. It is accessible from Windows' start menu or the QGIS installation folder. If you have multiple QGIS version installed, make sure to open the OSgeo4W shell of the QGIS version you are using.
 - Use Python’s pip to install the libraries: ```python -m pip install odfpy pandas pulp networkx```
 
-For more help see https://landscapearchaeology.org/2018/installing-python-packages-in-qgis-3-for-windows/
+For further details see https://landscapearchaeology.org/2018/installing-python-packages-in-qgis-3-for-windows/
 
 
 ### How to set up your QGIS project
 
 #### Configure QGIS 
+
+prerequisites: make sure that QGIS is configured in English.
 
 This part of the documentation is incomplete. In a nutshell: 
 - start by duplicating the nodes and cables layers of the example qgis project
