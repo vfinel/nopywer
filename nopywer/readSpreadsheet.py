@@ -48,7 +48,7 @@ def readSpreadsheet(project_path: str, grid: dict, cablesDict: dict, sparam: dic
                 idx.append(row)
                 phase = sh[headers['phase']][row]
                 pwr = np.double(sh[headers['power']][row]) 
-                assert pwr!=np.NaN, f'load {nameOnSheet} has no power indicated'
+                assert pwr!=np.nan, f'load {nameOnSheet} has no power indicated'
                 if verbose: 
                     print(f"\t'{nameOnSheet}' draws {pwr}W on phase {phase} ('{load}' on the map)")
     
