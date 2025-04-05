@@ -20,22 +20,14 @@ cablesLayersList = param["cablesLayersList"]
 project = QgsProject.instance()
 
 standalone_exec = __name__ == "__main__"
-if standalone_exec:  # code is not ran from QGIS
-    # --- run qgis (to be able to run code from vscode - NOT HELPING)
-    # Supply path to qgis install location
-    print("initializing QGIS...")
-    qgs = QgsApplication([], False)  # second argument to False disables the GUI.
-    qgs.initQgis()  # Load providers
 
-recompute_from_qgis_data = 1
-if recompute_from_qgis_data:
+if param["grid_src"] == "compute":
     print("computing from qgis project...")
     if standalone_exec:  # code is not ran from QGIS
         # --- run qgis (to be able to run code from vscode - NOT HELPING)
         # Supply path to qgis install location
         # QgsApplication.setPrefixPath("C:/Program Files/QGIS 3.34.3/apps/qgis/", True) # true=default paths to be used
         print("initializing QGIS...")
-        QgsApplication.setPrefixPath("C:/PROGRA~1/QGIS33~1.3/apps/qgis", True)
         qgs = QgsApplication([], False)  # second argument to False disables the GUI.
         qgs.initQgis()  # Load providers
 
@@ -105,40 +97,41 @@ if recompute_from_qgis_data:
     #       --> maybe the autmatic experiments shiuld be put away from main.py and have their own function
     #
 
-else:
+elif param["grid_src"] == "load":
+    import pickle
 
-    use_saved_data = 1
-    if use_saved_data:  # load previously saved data
-        import pickle
+    with open("grid.pkl", "rb") as f:  # Python 3: open(..., 'rb')
+        nodes, edges = pickle.load(f)
 
-        with open(npw_path + "grid.pkl", "rb") as f:  # Python 3: open(..., 'rb')
-            nodes, edges = pickle.load(f)
-
-    else:  # try on a simplistic graphe
-        nodes = {
-            "A": {"power": 10, "cumPower": None, "x": 1, "y": 1},
-            "B": {"power": 20, "cumPower": None, "x": 0, "y": 1},
-            "C": {"power": 30, "cumPower": None, "x": 1, "y": 0},
-            "generator": {"power": 0, "cumPower": None, "x": 0, "y": 0},
-        }
-        edges = []
-        for src in nodes:
-            for dst in nodes:
-                if (
-                    src != dst
-                ):  # and (dst!='generator'): allow connection towards generator, this case is managed by pulp constraints
-                    edges.append(
-                        (
-                            src,
-                            dst,
-                            (nodes[src]["x"] - nodes[dst]["x"]) ** 2
-                            + (nodes[src]["y"] - nodes[dst]["y"]) ** 2,
-                        )
+elif param["grid_src"] == "test":
+    nodes = {
+        "A": {"power": 10, "cumPower": None, "x": 1, "y": 1},
+        "B": {"power": 20, "cumPower": None, "x": 0, "y": 1},
+        "C": {"power": 30, "cumPower": None, "x": 1, "y": 0},
+        "generator": {"power": 0, "cumPower": None, "x": 0, "y": 0},
+    }
+    edges = []
+    for src in nodes:
+        for dst in nodes:
+            if (
+                src != dst
+            ):  # and (dst!='generator'): allow connection towards generator, this case is managed by pulp constraints
+                edges.append(
+                    (
+                        src,
+                        dst,
+                        (nodes[src]["x"] - nodes[dst]["x"]) ** 2
+                        + (nodes[src]["y"] - nodes[dst]["y"]) ** 2,
                     )
+                )
+
+else:
+    ValueError("unkwnown data source")
 
 optim_edges = npw.find_optimal_layout(nodes, edges)
 # npw.find_min_spanning_tree(nodes, edges) # too computational intensive
-npw.draw_cable_layer(project, grid, optim_edges)
+if param["grid_src"] == "compute":
+    npw.draw_cable_layer(project, grid, optim_edges)
 
 # npw.phase_assignment_greedy(grid)
 
