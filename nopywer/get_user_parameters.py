@@ -1,15 +1,20 @@
 def get_user_parameters():
     param = {
-            'project_file': "H:\\Mon Drive\\vico\\map\\map2024\\qfield\\_cloud.qgs", # this is not used and be ignored if the code is ran from QGIS console.
-            'loadLayersList': ["norg_nodes_2024"],
-            'cablesLayersList': ["norg_3phases_63A_2024", "norg_3phases_32A_2024", "norg_1phase_2024"],
-            'spreadsheet': {
-                'name': "Power 2024 map balance.ods",
-                'sheet': "All",
-                'skiprows': 0
-            },
-            'inventory': "./power/norg_power_inventory.ods",
-            'extra_cable_length': 10  # extra length to add to the "straight line length" to get the necessary length of the cable to have some slack. 10m should be the minimum
-            }
-        
+        "project_file": "H:\\Mon Drive\\vico\\map\\map2024\\qfield\\_cloud.qgs",  # this is not used and be ignored if the code is ran from QGIS console.
+        "loadLayersList": ["norg_nodes_2024"],
+        "cablesLayersList": [
+            "norg_3phases_63A_2024",
+            "norg_3phases_32A_2024",
+            "norg_1phase_2024",
+        ],
+        "spreadsheet": {
+            "name": "Power 2024 map balance.ods",
+            "sheet": "All",
+            "skiprows": 0,
+        },
+        "inventory": "./power/norg_power_inventory.ods",
+        "extra_cable_length": 10,  # extra length to add to the 'straight line length' to get the necessary length of the cable to have some slack. 10m should be the minimum
+        "grid_src": "compute",  # 'compute', 'load', or 'test
+    }
+
     return param

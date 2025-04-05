@@ -1,0 +1,14 @@
+# This list of packages has been created manually 
+# (couldn't solve issues encountered when trying to recreate on other systems env exported automatically...)
+#
+# To create an environment using this file, type the following command in a conda terminal: 
+#   conda create -n "nopywer" --channel conda-forge --file requirements.yaml       
+#
+
+python=3.12.9
+qgis=3.42.1
+pulp=2.8.0
+odfpy=1.4.1
+pandas=2.2.2
+matplotlib=3.10.1
+networkx=3.4.2

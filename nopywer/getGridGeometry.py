@@ -153,6 +153,7 @@ def findConnections(project, loadLayersList, cablesLayersList, thres):
             # --- find which cable(s) are connected to that load
             try:
                 loadPos = getCoordinates(load)
+                nodesDict[loadName]['coordinates'] = loadPos
 
             except Exception as e:  #https://stackoverflow.com/questions/4990718/how-can-i-write-a-try-except-block-that-catches-all-exceptions/4992124#4992124
                 print(f'\t there is a problem with load "{loadName}" in "{loadLayerName}" layer:')
