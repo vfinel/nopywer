@@ -1,8 +1,4 @@
-import sys
-# to be able to import qgis, ie, add qgis to PYTHONPATH
-sys.path += ['C:/PROGRA~1/QGIS33~1.3/apps/qgis/./python', 'C:/Users/v.finel/AppData/Roaming/QGIS/QGIS3\\profiles\\default/python', 'C:/Users/v.finel/AppData/Roaming/QGIS/QGIS3\\profiles\\default/python/plugins', 'C:/PROGRA~1/QGIS33~1.3/apps/qgis/./python/plugins', 'C:\\PROGRA~1\\QGIS33~1.3\\apps\\grass\\grass83\\etc\\python', 'H:\\Mon Drive\\vico\\map\\map2023\\map_20230701_correctionCRS', 'C:\\PROGRA~1\\QGIS33~1.3\\bin\\python39.zip', 'C:\\PROGRA~1\\QGIS33~1.3\\apps\\Python39\\DLLs', 'C:\\PROGRA~1\\QGIS33~1.3\\apps\\Python39\\lib', 'C:\\PROGRA~1\\QGIS33~1.3\\bin', 'C:\\Users\\v.finel\\AppData\\Roaming\\Python\\Python39\\site-packages', 'C:\\PROGRA~1\\QGIS33~1.3\\apps\\Python39', 'C:\\PROGRA~1\\QGIS33~1.3\\apps\\Python39\\lib\\site-packages', 'C:\\PROGRA~1\\QGIS33~1.3\\apps\\Python39\\lib\\site-packages\\win32', 'C:\\PROGRA~1\\QGIS33~1.3\\apps\\Python39\\lib\\site-packages\\win32\\lib', 'C:\\PROGRA~1\\QGIS33~1.3\\apps\\Python39\\lib\\site-packages\\Pythonwin', 'C:/Users/v.finel/AppData/Roaming/QGIS/QGIS3\\profiles\\default/python', 'H:/Mon Drive/vico/map/map2023/map_20230701_correctionCRS'] #from sys.path ran from qgis' python console
-
-import os 
+import os
 from typing import List, Dict
 from qgis.core import (QgsApplication,
                        QgsProject, 
@@ -15,7 +11,7 @@ from qgis.core import (QgsApplication,
                        edit)
 
 from qgis.utils import iface
-from qgis.PyQt.QtCore import QVariant
+from qgis.PyQt.QtCore import QMetaType
 
 
 def draw_point_layer(project: QgsProject):
@@ -27,10 +23,14 @@ def draw_point_layer(project: QgsProject):
 
     # add some attributes of the fields of the layer 
     pr = vl.dataProvider()
-    pr.addAttributes([QgsField("name", QVariant.String),
-                    QgsField("age",  QVariant.Int),
-                    QgsField("size", QVariant.Double)])
-    
+    pr.addAttributes(
+        [
+            QgsField("name", QMetaType.QString),
+            QgsField("age", QMetaType.Int),
+            QgsField("size", QMetaType.Double),
+        ]
+    )
+
     vl.updateFields()
 
     # add a 'point' feature to the layer
@@ -58,9 +58,9 @@ def draw_point_layer(project: QgsProject):
     use_with = 1
     print(f'use_with: {use_with}')
     if not use_with:
-        """ using startEditing """
-        vl.startEditing() 
-        vl.addAttribute(QgsField(my_field_name, QVariant.String))
+        """using startEditing"""
+        vl.startEditing()
+        vl.addAttribute(QgsField(my_field_name, QMetaType.QString))
         vl.updateFields()
 
         # populate the new attribute field with feature
@@ -76,7 +76,7 @@ def draw_point_layer(project: QgsProject):
     else:
         "using width edit(vl)"
         with edit(vl):  # replaces startEditing() and (commitChange() or rollBack())
-            vl.addAttribute(QgsField(my_field_name, QVariant.String))
+            vl.addAttribute(QgsField(my_field_name, QMetaType.QString))
             vl.updateFields()
             for f in vl.getFeatures():
                 f[my_field_name] = my_field_value
@@ -114,9 +114,13 @@ def draw_cable_layer(project: QgsProject, grid: Dict, optim_edges: List):
     
     # add some attributes (=properties of each 'feature' belonging to the layer)
     pr = vl.dataProvider()
-    pr.addAttributes([QgsField("from", QVariant.String),
-                    QgsField("to",  QVariant.String),
-                    QgsField("length", QVariant.Double)])
+    pr.addAttributes(
+        [
+            QgsField("from", QMetaType.QString),
+            QgsField("to", QMetaType.QString),
+            QgsField("length", QMetaType.Double),
+        ]
+    )
 
     vl.updateFields()
 
