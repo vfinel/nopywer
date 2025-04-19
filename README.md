@@ -32,6 +32,8 @@ For further details see https://landscapearchaeology.org/2018/installing-python-
 
 prerequisites: make sure that QGIS is configured in English.
 
+prerequisites: make sure that QGIS is configured in English.
+
 This part of the documentation is incomplete. In a nutshell: 
 - start by duplicating the nodes and cables layers of the example qgis project
 
