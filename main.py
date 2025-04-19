@@ -54,6 +54,8 @@ def run_analysis(qgs_project: QgsProject, project_folder: str, param: dict) -> t
 
     # spreadsheet: assign phases
     # --> user manually assign phases via the spreadsheet
+    # TODO: use npw.phase_assignment_greedy(grid)
+
 
     # load spreadsheet (power usage + phase) and add it to "grid" dictionnary
     grid, cablesDict, hasNoPhase = npw.readSpreadsheet(
@@ -94,67 +96,6 @@ def main() -> tuple[dict, dict, str]:
     if not running_in_qgis:
         qgs.exitQgis()
 
-    return grid, cablesDict 
-
-
-
-# if param["grid_src"] == "compute":
-
-#     # get "nodes" and "edges" from computed grid
-#     #   - should be executed along with the above commented code (when 'grid' is computed):
-#     #   - can be skipped (and other code) when either:
-#     #       - running a simple toy example
-#     #       - loading precalculated grid from pickle object
-#     nodes, edges = npw.qgis2list(grid, project_path)
-
-#     # TODO :
-#     #   - clean management of the above (not with comments)
-#     #      - ok: create a main() fct that computes the grid stuff "as in in 2024"
-#     #      - create an automatic() fct too ? that takes in arg the data
-#     #      - create a load data, that can give the pickle data, or the simple toy, (or recompute the grid ? )
-#     #       --> maybe the autmatic experiments shiuld be put away from main.py and have their own function
-#     #
-
-# elif param["grid_src"] == "load":
-#     import pickle
-
-#     with open("grid.pkl", "rb") as f:  # Python 3: open(..., 'rb')
-#         nodes, edges = pickle.load(f)
-
-# elif param["grid_src"] == "test":
-#     nodes = {
-#         "A": {"power": 10, "cumPower": None, "x": 1, "y": 1},
-#         "B": {"power": 20, "cumPower": None, "x": 0, "y": 1},
-#         "C": {"power": 30, "cumPower": None, "x": 1, "y": 0},
-#         "generator": {"power": 0, "cumPower": None, "x": 0, "y": 0},
-#     }
-#     edges = []
-#     for src in nodes:
-#         for dst in nodes:
-#             if (
-#                 src != dst
-#             ):  # and (dst!='generator'): allow connection towards generator, this case is managed by pulp constraints
-#                 edges.append(
-#                     (
-#                         src,
-#                         dst,
-#                         (nodes[src]["x"] - nodes[dst]["x"]) ** 2
-#                         + (nodes[src]["y"] - nodes[dst]["y"]) ** 2,
-#                     )
-#                 )
-
-# else:
-#     ValueError("unkwnown data source")
-
-# optim_edges = npw.find_optimal_layout(nodes, edges)
-# # npw.find_min_spanning_tree(nodes, edges) # too computational intensive
-# if (param["grid_src"] == "compute") and (not standalone_exec):
-#     print(f"drawing optimal cable layer in QGIS: {project_file}...")
-#     npw.draw_cable_layer(qgs_project, grid, optim_edges)
-
-# # npw.phase_assignment_greedy(grid)
-
-# print("\n end of script for now :)")
     print("\n end of script for now :)")
     
     return grid, cablesDict, project_folder
