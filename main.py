@@ -102,5 +102,5 @@ def main() -> tuple[dict, dict, str]:
     return grid, qgs_project, running_in_qgis
 
 
-if __name__ == "__main__":
+if( __name__ == "__main__") or (QgsApplication.instance() is not None):
     main()

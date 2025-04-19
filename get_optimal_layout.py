@@ -75,5 +75,5 @@ def get_toy_example() -> tuple[dict, list]:
     return nodes, edges
 
 
-if __name__ == "__main__":
+if( __name__ == "__main__") or (QgsApplication.instance() is not None):
     get_optimal_layout()
