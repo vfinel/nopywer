@@ -91,6 +91,7 @@ def run_analysis(qgs_project: QgsProject, project_folder: str, param: dict) -> t
 
 def main() -> tuple[dict, dict, str]:
     param = npw.get_user_parameters()
+    
     qgs_project, project_folder, qgs, running_in_qgis = get_project(param)
     grid, cablesDict = run_analysis(qgs_project, project_folder, param)
     if not running_in_qgis:
