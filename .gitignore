@@ -3,3 +3,5 @@ __pycache__/
 .vscode 
 *._code-workspace
 *.code-workspace
+*.db
+*.pkl
