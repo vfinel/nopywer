@@ -19,9 +19,9 @@ def get_project(param: dict) -> tuple[QgsProject, str, qgis._core.QgsApplication
         project_file, qgs = load_qgis_project(param, qgs_project)
 
     print(f"project filename: {qgs_project.fileName()}\n")
-    project_path = os.path.split(project_file)[0]
-    
-    return qgs_project, project_path, qgs, running_in_qgis
+    project_folder = os.path.split(project_file)[0]
+
+    return qgs_project, project_folder, qgs, running_in_qgis
 
 
 def load_qgis_project(param: dict, qgs_project: QgsProject) -> tuple[str, qgis._core.QgsApplication]:
@@ -39,7 +39,7 @@ def load_qgis_project(param: dict, qgs_project: QgsProject) -> tuple[str, qgis._
     return project_file, qgs
 
 
-def run_analysis(qgs_project: QgsProject, project_path: str, param: dict) -> tuple[dict, dict]:
+def run_analysis(qgs_project: QgsProject, project_folder: str, param: dict) -> tuple[dict, dict]:
     # constant data (global variables)
     CONSTANTS = npw.get_constant_parameters()
     V0 = CONSTANTS["V0"]
@@ -57,7 +57,7 @@ def run_analysis(qgs_project: QgsProject, project_path: str, param: dict) -> tup
 
     # load spreadsheet (power usage + phase) and add it to "grid" dictionnary
     grid, cablesDict, hasNoPhase = npw.readSpreadsheet(
-        project_path, grid, cablesDict, param["spreadsheet"]
+        project_folder, grid, cablesDict, param["spreadsheet"]
     )
 
     # compute cumulated current
@@ -74,8 +74,8 @@ def run_analysis(qgs_project: QgsProject, project_path: str, param: dict) -> tup
     grid, cablesDict = npw.computeVDrop(grid, cablesDict)
 
     print("\nchecking inventory:")
-    npw.choose_cables_in_inventory(project_path, cablesDict, param["inventory"])
-    npw.choose_distros_in_inventory(project_path, grid, param["inventory"])
+    npw.choose_cables_in_inventory(project_folder, cablesDict, param["inventory"])
+    npw.choose_distros_in_inventory(project_folder, grid, param["inventory"])
 
     npw.printGridInfo(grid, cablesDict, phaseBalance, hasNoPhase, dlist)
 
@@ -87,10 +87,10 @@ def run_analysis(qgs_project: QgsProject, project_path: str, param: dict) -> tup
     return grid, cablesDict
 
 
-def main() -> tuple[dict, dict]:
+def main() -> tuple[dict, dict, str]:
     param = npw.get_user_parameters()
-    qgs_project, project_path, qgs, running_in_qgis = get_project(param)
-    grid, cablesDict = run_analysis(qgs_project, project_path, param)
+    qgs_project, project_folder, qgs, running_in_qgis = get_project(param)
+    grid, cablesDict = run_analysis(qgs_project, project_folder, param)
     if not running_in_qgis:
         qgs.exitQgis()
 
@@ -155,6 +155,10 @@ def main() -> tuple[dict, dict]:
 # # npw.phase_assignment_greedy(grid)
 
 # print("\n end of script for now :)")
+    print("\n end of script for now :)")
+    
+    return grid, cablesDict, project_folder
+
 
 if __name__ == "__main__":
     main()
