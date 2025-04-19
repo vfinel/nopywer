@@ -13,27 +13,28 @@ def get_optimal_layout():
 
     # get input data 
     param = npw.get_user_parameters()    
-    nodes, edges, grid, qgs_project = get_grid_data(param)
+    nodes, edges, grid, qgs_project, running_in_qgis = get_grid_data(param)
 
     # find optimal layout 
     optim_edges = npw.find_optimal_layout(nodes, edges)
     # npw.find_min_spanning_tree(nodes, edges) # too computational intensive
 
     # if applicable, draw back the grid in QGIS 
-    if (param["grid_src"] == "compute") and isinstance(qgs_project, QgsProject):
+    if (param["grid_src"] == "compute") and running_in_qgis:
         print(f"drawing optimal cable layer in QGIS: {qgs_project.fileName()}...")
         npw.draw_cable_layer(qgs_project, grid, optim_edges)
 
     return None 
 
 
-def get_grid_data(param: dict) -> tuple[dict, list, dict|None, QgsProject|None]:
+def get_grid_data(param: dict) -> tuple[dict, list, dict|None, QgsProject|None, bool]:
     qgs_project = None
     grid = None
+    running_in_qgis = False
     if param["grid_src"] == "compute":
         # get "nodes" and "edges" from computed grid from QGIS project
-        grid, qgs_project, project_path = main()
-        nodes, edges = npw.qgis2list(grid, project_path)
+        grid, qgs_project, running_in_qgis = main()
+        nodes, edges = npw.qgis2list(grid)
 
     elif param["grid_src"] == "load":
         with open("grid.pkl", "rb") as f:
@@ -45,7 +46,7 @@ def get_grid_data(param: dict) -> tuple[dict, list, dict|None, QgsProject|None]:
     else:
         ValueError("unkwnown data source")
 
-    return nodes, edges, grid, qgs_project
+    return nodes, edges, grid, qgs_project, running_in_qgis
 
 
 def get_toy_example() -> tuple[dict, list]:

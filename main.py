@@ -98,7 +98,7 @@ def main() -> tuple[dict, dict, str]:
 
     print("\n end of script for now :)")
     
-    return grid, cablesDict, project_folder
+    return grid, qgs_project, running_in_qgis
 
 
 if __name__ == "__main__":
