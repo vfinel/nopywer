@@ -4,7 +4,7 @@ import os
 import pandas as pd
 import re 
 
-def find_combinations(arr: list, target_sum, th=5): 
+def find_combinations(arr: list, target_sum, th: float = 5.0):
     # find combination of cables from in the list 'arr', to have make the length 'target_sum', with thresholt 'th'
     # https://www.quora.com/How-can-Python-be-used-to-find-all-possible-combinations-of-numbers-in-an-array-that-add-up-to-a-given-sum
     # https://www.geeksforgeeks.org/python-closest-sum-pair-in-list/
