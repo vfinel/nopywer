@@ -63,7 +63,7 @@ def run_analysis(qgs_project: QgsProject, project_folder: str, param: dict) -> t
     )
 
     # compute cumulated current
-    grid, cablesDict = npw.cumulateCurrent(grid, cablesDict, dlist, V0, PF)
+    grid, cablesDict = npw.cumulate_current(grid, cablesDict, dlist, V0, PF)
 
     phaseBalance = 100 * np.std(
         grid["generator"]["cumPower"] / np.mean(grid["generator"]["cumPower"])

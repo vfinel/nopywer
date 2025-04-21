@@ -1,8 +1,8 @@
 import numpy as np 
 
-def cumulateCurrent(grid, cablesDict, dlist, V0, PF):
+def cumulate_current(grid, cablesDict, dlist, V0, PF):
     verbose =  0
-    if verbose: print('\ncumulateCurrent.py:')
+    if verbose: print('\ncumulate_current.py:')
 
     for deepness in range(len(dlist)-1, 0, -1):
         if verbose: print(f"\tdeepness: {deepness}")
