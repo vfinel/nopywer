@@ -2,7 +2,7 @@
 # - features of a layer
 # - geometry of a feature
 #
-# It works for both Point layers and (multiple)line layers. 
+# It works for both Point layers and (multiple)line layers.
 # Note that in the case of a multiple line, you may have more than 2 points,
 # even if the line looks like having only 2 points (it depends on how you clicked)
 #
@@ -11,25 +11,24 @@
 # https://docs.qgis.org/testing/en/docs/pyqgis_developer_cookbook/vector.html#iterating-over-vector-layer
 #
 
-print('\n\n=================================================')
-print('get features')
-print('=================================================')
+print("\n\n=================================================")
+print("get features")
+print("=================================================")
 
 # "layer" is a QgsVectorLayer instance
 layer = iface.activeLayer()
 print(f"layer is : {layer}")
-features = layer.getFeatures() # features is a iterator so needs to be recreated
+features = layer.getFeatures()  # features is a iterator so needs to be recreated
 
 for feature in features:
-    
     # retrieve every feature with its geometry and attributes
     print("\nFeature ID: ", feature.id())
-    
+
     # fetch geometry
     # show some information about the feature geometry
     geom = feature.geometry()
     geomSingleType = QgsWkbTypes.isSingleType(geom.wkbType())
-    
+
     if geom.type() == QgsWkbTypes.PointGeometry:
         # the geometry type can be of single or multi type
         if geomSingleType:
@@ -38,7 +37,7 @@ for feature in features:
         else:
             x = geom.asMultiPoint()
             print("MultiPoint: ", x)
-            
+
     elif geom.type() == QgsWkbTypes.LineGeometry:
         if geomSingleType:
             x = geom.asPolyline()
@@ -48,7 +47,7 @@ for feature in features:
             print("MultiLine: ", x, "length: ", geom.length())
             # first point: x[0][0]
             # last point:  x[0][-1]
-            
+
     elif geom.type() == QgsWkbTypes.PolygonGeometry:
         if geomSingleType:
             x = geom.asPolygon()
@@ -56,10 +55,10 @@ for feature in features:
         else:
             x = geom.asMultiPolygon()
             print("MultiPolygon: ", x, "Area: ", geom.area())
-            
+
     else:
         print("Unknown or invalid geometry")
-        
+
     # fetch attributes
     attrs = feature.attributes()
     # attrs is a list. It contains all the attribute values of this feature
