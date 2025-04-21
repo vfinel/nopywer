@@ -1,7 +1,7 @@
 import os
 import json # print(json.dumps(cablesDict, sort_keys=True, indent=4))
 
-def getChildren(nodeName, grid, cables):
+def get_children(nodeName, grid, cables):
     debugPrint = 0
     childrenDict = dict() # for parent to store info about its children
 
@@ -51,7 +51,7 @@ def getChildren(nodeName, grid, cables):
     
     # --- recursive call to find all the grid
     for child in childrenDict.keys():
-        grid, kids = getChildren(child, grid, cables)
+        grid, kids = get_children(child, grid, cables)
 
     return grid, childrenDict
     
@@ -59,4 +59,4 @@ def getChildren(nodeName, grid, cables):
 
 if __name__ == "__main__":
 # test: 
-    grid, childrenDict = getChildren("generator", nodesDict, cablesDict)
+    grid, childrenDict = get_children("generator", nodesDict, cablesDict)

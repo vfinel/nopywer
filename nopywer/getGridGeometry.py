@@ -58,7 +58,7 @@ import json # to do: print(json.dumps(cablesDict, sort_keys=True, indent=4))
 from qgis.core import QgsDistanceArea, QgsUnitTypes, QgsVectorLayer, QgsFeature
 from .getLayer import getLayer
 from .getCoordinates import getCoordinates
-from .getChildren import getChildren
+from .get_children import get_children
 from .get_user_parameters import get_user_parameters
 import traceback
 import logging
@@ -285,8 +285,8 @@ def getGridGeometry(project):
     # Now, all cables that are connected to something are (supposed to be) stored in cablesDict. 
     # Let's loop over the nodes again, but this time, we will find to what node is connected each node
     # We'll start with "generator" node, get its children, then check its children's children, etc
-    if verbose: print('\ngetChildren')
-    grid = getChildren("generator", nodesDict, cablesDict)
+    if verbose: print('\nget_children')
+    grid = get_children("generator", nodesDict, cablesDict)
     grid = grid[0]
 
     # --- for each load, add "cable to daddy" information
