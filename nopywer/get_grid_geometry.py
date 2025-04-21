@@ -36,10 +36,10 @@
 
 # notes on structures:
 #
-# - nodesDict=grid: dict(). each node is a key. each node is itself a dictonnary.
-#   nodesDict['someLoad'] has the following keys:
+# - nodes_dict=grid: dict(). each node is a key. each node is itself a dictonnary.
+#   nodes_dict['someLoad'] has the following keys:
 #       - _cable: a list of cables. Each cable in the list is described as a dictionnary with keys 'layer' and 'id'
-#           exemple: nodesDict['generator']['cable'][0]
+#           exemple: nodes_dict['generator']['cable'][0]
 #
 #       - children: dictionary. One kid = one key. 
 #           each kid is itself a dict. eg: grid['generator']['children']['Werkhaus'].keys() ---> dict_keys(['cable']) 
@@ -69,7 +69,7 @@ loadLayersList = param['loadLayersList']
 cablesLayersList = param['cablesLayersList']
 
 thres = 5 # [meters] threshold to detect cable and load connections
-nodesDictModel = ['_cable','parent','children','deepness','cable','power','phase','date', 'cumPower', 'distro']
+nodes_dictModel = ['_cable','parent','children','deepness','cable','power','phase','date', 'cumPower', 'distro']
 cablesDictModel = ['nodes','length','phase','area','current','r',"plugsAndsockets"]
 
 verbose = 0
@@ -95,7 +95,7 @@ def getLoadName(load: QgsFeature) -> str:
 
 def findConnections(project, loadLayersList, cablesLayersList, thres):
     verbose = 0 
-    nodesDict = {} 
+    nodes_dict = {} 
     cablesDict = {} 
 
     # --- fill cables dict with lengthes
@@ -147,13 +147,13 @@ def findConnections(project, loadLayersList, cablesLayersList, thres):
             if verbose: print(f'\t load {loadName}')
 
             # init a dict for that node
-            nodesDict[loadName] = dict.fromkeys(nodesDictModel) 
-            nodesDict[loadName]['_cable'] = []
+            nodes_dict[loadName] = dict.fromkeys(nodes_dictModel) 
+            nodes_dict[loadName]['_cable'] = []
             
             # --- find which cable(s) are connected to that load
             try:
                 loadPos = get_coordinates(load)
-                nodesDict[loadName]['coordinates'] = loadPos
+                nodes_dict[loadName]['coordinates'] = loadPos
 
             except Exception as e:  #https://stackoverflow.com/questions/4990718/how-can-i-write-a-try-except-block-that-catches-all-exceptions/4992124#4992124
                 print(f'\t there is a problem with load "{loadName}" in "{loadLayerName}" layer:')
@@ -178,7 +178,7 @@ def findConnections(project, loadLayersList, cablesLayersList, thres):
                         
                         # update dicts
                         cablesDict[cableLayerName][cableIdx]['nodes'].append(loadName)
-                        nodesDict[loadName]['_cable'].append({"layer":cableLayerName,"idx":cableIdx})
+                        nodes_dict[loadName]['_cable'].append({"layer":cableLayerName,"idx":cableIdx})
 
                         
             if verbose:
@@ -192,7 +192,7 @@ def findConnections(project, loadLayersList, cablesLayersList, thres):
                 # in the list of cables, test if one (or more) is closer than threshold 
                 # if not, throw an error 
             
-    return nodesDict, cablesDict
+    return nodes_dict, cablesDict
 
 
 def computeDeepnessList(grid):
@@ -279,14 +279,14 @@ def get_grid_geometry(project):
     if verbose: print('get grid geometry: \nfindConnections')
 
     # 1. find connections between loads and cables (find what load is plugged into what cable, and vice-versa)
-    nodesDict, cablesDict = findConnections(project, loadLayersList, cablesLayersList, thres)
+    nodes_dict, cablesDict = findConnections(project, loadLayersList, cablesLayersList, thres)
 
     # 2. find connections between nodes to get the "flow direction":
     # Now, all cables that are connected to something are (supposed to be) stored in cablesDict. 
     # Let's loop over the nodes again, but this time, we will find to what node is connected each node
     # We'll start with "generator" node, get its children, then check its children's children, etc
     if verbose: print('\nget_children')
-    grid = get_children("generator", nodesDict, cablesDict)
+    grid = get_children("generator", nodes_dict, cablesDict)
     grid = grid[0]
 
     # --- for each load, add "cable to daddy" information
@@ -303,7 +303,7 @@ def get_grid_geometry(project):
     if 0:
         print('\n')
         print(json.dumps(cablesDict, sort_keys=True, indent=4))
-        print(json.dumps(nodesDict, sort_keys=True, indent=4))
+        print(json.dumps(nodes_dict, sort_keys=True, indent=4))
         print(json.dumps(grid, sort_keys=True, indent=4))
 
     return cablesDict, grid, dlist
