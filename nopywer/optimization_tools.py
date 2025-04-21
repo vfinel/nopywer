@@ -5,7 +5,7 @@ import pulp
 import matplotlib.pyplot as plt
 import networkx as nx
 from qgis.core import QgsDistanceArea
-from nopywer.minimum_spanning_tree2 import minimumSpanningTree
+from nopywer.minimum_spanning_tree2 import minimum_spanning_tree
 from nopywer.get_user_parameters import get_user_parameters
 
 
@@ -240,7 +240,7 @@ def find_min_spanning_tree(grid, edges):
 		# if len(edges_with_cost)>10: # 30 is already too big
 		# 	break
 	
-	pprint(minimumSpanningTree(edges_with_cost))	
+	pprint(minimum_spanning_tree(edges_with_cost))	
 	return None
 	
 

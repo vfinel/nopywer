@@ -10,7 +10,7 @@ def getCombinations(xs):
     return returner
 
 
-def minimumSpanningTree(edges_with_cost):
+def minimum_spanning_tree(edges_with_cost):
 
     prob = LpProblem(
         "Shortest Path between 2 points with Linear Programming", LpMinimize
@@ -112,4 +112,4 @@ if __name__ == "__main__":
         ["C", "F", 5],
     ]
 
-    print(minimumSpanningTree(edges_with_cost))
+    print(minimum_spanning_tree(edges_with_cost))
