@@ -1,8 +1,5 @@
 import pickle
 from qgis.core import QgsApplication, QgsProject
-import qgis.utils
-import numpy as np
-import os
 
 import nopywer as npw
 from main import main

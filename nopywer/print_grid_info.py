@@ -54,7 +54,7 @@ def print_grid_info(grid, cables_dict, phase_balance, has_no_phase, dlist):
     )
 
     # --- compute and print loads on red and yellow grids
-    print(f"total power on other grids: ")
+    print("total power on other grids: ")
     subgrid_dict = {"tot": 0, "msg": ""}
     subgrid = {"red": subgrid_dict.copy(), "yellow": subgrid_dict.copy()}
     for load in grid.keys():
@@ -86,7 +86,7 @@ def print_grid_info(grid, cables_dict, phase_balance, has_no_phase, dlist):
                 print(f"\t\t {load}:")
                 distro = grid[load]["distro"]
                 print(f"\t\t\t in: {distro['in']}")
-                print(f"\t\t\t out: ")
+                print("\t\t\t out: ")
                 for desc in distro["out"].keys():
                     print(f"\t\t\t\t {desc}: {distro['out'][desc]}")
 

@@ -1,4 +1,3 @@
-import os
 import json  # print(json.dumps(cables_dict, sort_keys=True, indent=4))
 
 

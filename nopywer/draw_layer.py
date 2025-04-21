@@ -8,7 +8,6 @@ from qgis.core import (
     QgsFeature,
     QgsGeometry,
     QgsPointXY,
-    QgsLineString,
     edit,
 )
 

@@ -1,4 +1,3 @@
-from qgis.core import QgsDistanceArea, QgsUnitTypes
 from .get_layer import get_layer
 
 
@@ -76,6 +75,6 @@ def inspect_cable_layers(project, cables_layers_list, cables_dict):
         print(f"\n{current_overloads}")
 
     else:
-        print(f"\t no overloaded cables")
+        print("\t no overloaded cables")
 
     return cables_dict

@@ -1,17 +1,5 @@
-import qgis.core
 from qgis.core import (
-    QgsGeometry,
-    QgsGeometryCollection,
-    QgsPoint,
-    QgsPointXY,
-    QgsWkbTypes,
     QgsProject,
-    QgsFeatureRequest,
-    QgsVectorLayer,
-    QgsDistanceArea,
-    QgsUnitTypes,
-    QgsCoordinateTransform,
-    QgsCoordinateReferenceSystem,
 )
 
 # example made from https://anitagraser.com/pyqgis-101-introduction-to-qgis-python-programming-for-non-programmers/pyqgis-101-viewing-vector-layer-attributes/

@@ -55,7 +55,7 @@
 
 # imports
 import json  # to do: print(json.dumps(cables_dict, sort_keys=True, indent=4))
-from qgis.core import QgsDistanceArea, QgsUnitTypes, QgsVectorLayer, QgsFeature
+from qgis.core import QgsDistanceArea, QgsUnitTypes, QgsFeature
 from .get_layer import get_layer
 from .get_coordinates import get_coordinates
 from .get_children import get_children
@@ -202,7 +202,7 @@ def find_connections(project, loads_layers_list, cables_layers_list, thres):
                 load_pos = get_coordinates(load)
                 nodes_dict[load_name]["coordinates"] = load_pos
 
-            except Exception as e:  # https://stackoverflow.com/questions/4990718/how-can-i-write-a-try-except-block-that-catches-all-exceptions/4992124#4992124
+            except Exception:  # https://stackoverflow.com/questions/4990718/how-can-i-write-a-try-except-block-that-catches-all-exceptions/4992124#4992124
                 print(
                     f'\t there is a problem with load "{load_name}" in "{load_layer_name}" layer:'
                 )
@@ -298,7 +298,7 @@ def compute_distro_requirements(grid, cables_dict):
 
             if cable2parent["plugsAndsockets"] == None:
                 raise ValueError(
-                    f"cable2parent['plugsAndsockets'] is None, run inspect_cable_layer?"
+                    "cable2parent['plugsAndsockets'] is None, run inspect_cable_layer?"
                 )
             else:
                 distro["in"] = f"{ph} {cable2parent['plugsAndsockets']}A"
@@ -335,7 +335,7 @@ def compute_distro_requirements(grid, cables_dict):
 
         if verbose:
             print(f"\t\t\t in: {distro['in']}")
-            print(f"\t\t\t out: ")
+            print("\t\t\t out: ")
             for desc in distro["out"].keys():
                 print(f"\t\t\t\t {desc}: {distro['out'][desc]}")
 

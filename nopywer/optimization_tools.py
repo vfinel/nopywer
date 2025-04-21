@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 import networkx as nx
 from qgis.core import QgsDistanceArea
 from nopywer.minimum_spanning_tree2 import minimum_spanning_tree
-from nopywer.get_user_parameters import get_user_parameters
 
 
 def phase_assignment_greedy(grid: dict):
