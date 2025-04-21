@@ -70,8 +70,8 @@ def write_spreadsheet(grid: dict, sh):
                 norgLoads.append(idx)
 
     otherLoads = [i for j, i in enumerate(range(len(sh))) if j not in norgLoads]
-    dfNorg = sh.iloc[norgLoads, :]
-    dfOthers = sh.iloc[otherLoads, :]
+    df_norg = sh.iloc[norgLoads, :]
+    df_others = sh.iloc[otherLoads, :]
 
     if verbose:
         print(f'norg loads: {norgLoads}')
@@ -79,13 +79,13 @@ def write_spreadsheet(grid: dict, sh):
         with pd.option_context('display.max_rows', None, 'display.max_columns', None):  # more options can be specified also
             print(sh)
             print('splitted:')
-            print(dfNorg)
-            print(dfOthers)
+            print(df_norg)
+            print(df_others)
 
     # ... create a excel writer object and write file
     with pd.ExcelWriter("output.ods") as writer:
         sh.to_excel(writer, sheet_name="all", index=False)
-        dfNorg.to_excel(writer, sheet_name="norg", index=False)
-        dfOthers.to_excel(writer, sheet_name="other", index=False)
+        df_norg.to_excel(writer, sheet_name="norg", index=False)
+        df_others.to_excel(writer, sheet_name="other", index=False)
 
     return None

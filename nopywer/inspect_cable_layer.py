@@ -12,7 +12,7 @@ def inspect_cable_layers(project, cables_layers_list, cables_dict):
     tot3P = 0   # [m] total length of 3P cables 
     n1P = 0     # total number of 1P cables
     n3P = 0     # total number of 3P cables
-    currentOverloads = ''
+    current_overloads = ''
 
     for cable_layer_name in cables_layers_list:
         cable_layer = get_layer(project, cable_layer_name)
@@ -40,10 +40,10 @@ def inspect_cable_layers(project, cables_layers_list, cables_dict):
             # --- check current 
             if (cableDict['current']!=None) and (cableDict['plugsAndsockets']!=None):
                 if max(cableDict['current']) >= 0.9*(cableDict['plugsAndsockets']):
-                    currentStr = [ '%2.0f' % elem for elem in cableDict['current'] ]
+                    current_str = [ '%2.0f' % elem for elem in cableDict['current'] ]
                     a = f"\t /!\ cable {cableDict['nodes']} overload:"
-                    b = f"{currentStr}A (plugs&sockets: {cableDict['plugsAndsockets']}A) \n"
-                    currentOverloads += f"{a:60} {b}"
+                    b = f"{current_str}A (plugs&sockets: {cableDict['plugsAndsockets']}A) \n"
+                    current_overloads += f"{a:60} {b}"
 
         nCablesInLayer = cable_idx+1
         if "1phase" in cable_layer_name:
@@ -62,8 +62,8 @@ def inspect_cable_layers(project, cables_layers_list, cables_dict):
     if (tot1P>0.95*inventory_1P) or (tot3P>0.95*inventory_3P):
         raise ValueError("You are running too short on cables (see above)")
     
-    if len(currentOverloads)>0:
-        print(f'\n{currentOverloads}')
+    if len(current_overloads)>0:
+        print(f'\n{current_overloads}')
     
     else:
         print(f'\t no overloaded cables')

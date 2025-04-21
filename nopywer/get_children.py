@@ -2,7 +2,7 @@ import os
 import json # print(json.dumps(cables_dict, sort_keys=True, indent=4))
 
 def get_children(node_name, grid, cables):
-    debugPrint = 0
+    debug_print = 0
     children_dict = dict() # for parent to store info about its children
 
     if grid[node_name]['children'] != None: 
@@ -22,7 +22,7 @@ def get_children(node_name, grid, cables):
 
                 #grid[child]["cable"] = children_dict[child]['cable']
                 
-        if debugPrint>1: print(f"\t {node_name} has one cable connecting it to: {children}")
+        if debug_print>1: print(f"\t {node_name} has one cable connecting it to: {children}")
         
     
     # --- remove parent from the list of connected nodes
@@ -35,7 +35,7 @@ def get_children(node_name, grid, cables):
     else: 
         grid[node_name]["parent"] = []
         
-    if debugPrint: print(f"\t{node_name} has children: {children_dict.keys()}")
+    if debug_print: print(f"\t{node_name} has children: {children_dict.keys()}")
     
     # --- store 
     grid[node_name]["children"] = children_dict # store current node's children

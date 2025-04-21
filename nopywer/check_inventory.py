@@ -151,8 +151,8 @@ def parse_distro_req(req: str) -> tuple[str, float]:
     phaseType = req[:2] 
     assert ((phaseType=='3P') or (phaseType=='1P'))
     result = re.search('P(.*)A', req)
-    currentRating = float(result.group(1))
-    return phaseType, currentRating
+    current_rating = float(result.group(1))
+    return phaseType, current_rating
 
 
 def choose_distros_in_inventory(project_path: str, grid: dict, sh_name: str) -> None: 
