@@ -3,7 +3,7 @@ import numpy as np
 import os
 import copy 
 
-def read_spreadsheet(project_path: str, grid: dict, cables_dict: dict, sparam: dict) -> tuple[dict, dict, list]:
+def read_spreadsheet(project_path: str, grid: dict, cables_dict: dict, sparam: dict) -> tuple[dict, dict, list, pd.DataFrame]:
     verbose = 0
     headers = {'name': 'Project',
             'phase': 'which phase(1, 2, 3, T, U or Y)',
@@ -129,4 +129,4 @@ def read_spreadsheet(project_path: str, grid: dict, cables_dict: dict, sparam: d
     print(f"\n\t on spreadsheet but missing on map: \n\t {missing_on_map}")
     print(f"\n list of loads on the spreadsheet that don't have a phase assigned: \n\t {has_no_phase} \n ")
 
-    return grid, cables_dict, has_no_phase
+    return grid, cables_dict, has_no_phase, sh

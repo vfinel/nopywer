@@ -44,9 +44,6 @@ def run_analysis(qgs_project: QgsProject, project_folder: str, param: dict) -> t
     CONSTANTS = npw.get_constant_parameters()
     V0 = CONSTANTS["V0"]
     PF = CONSTANTS["PF"]
-
-    # user parameters
-    update_sutff = 0 # TODO: move to get_user_parameters()    
     cables_layers_list = param["cables_layers_list"]
 
     # find grid geometry
@@ -58,8 +55,8 @@ def run_analysis(qgs_project: QgsProject, project_folder: str, param: dict) -> t
 
 
     # load spreadsheet (power usage + phase) and add it to "grid" dictionnary
-    grid, cables_dict, has_no_phase = npw.read_spreadsheet(
-        project_folder, grid, cables_dict, param["spreadsheet"]
+    grid, cables_dict, has_no_phase, sh = npw.read_spreadsheet(
+        project_folder, grid, cables_dict, param["phase_balance_spreadsheet"]
     )
 
     # compute cumulated current
@@ -81,10 +78,12 @@ def run_analysis(qgs_project: QgsProject, project_folder: str, param: dict) -> t
 
     npw.print_grid_info(grid, cables_dict, phase_balance, has_no_phase, dlist)
 
-    if update_sutff:
+    if param["update"]["qgis_layers"]:
         npw.update_1phase_layers(grid, cables_dict, qgs_project)
         npw.update_load_layers(grid, param["loads_layers_list"], qgs_project)
-        # npw.write_spreadsheet(grid, sh)
+
+    if param["update"]["phase_balance_spreadsheet"]:
+        npw.write_spreadsheet(grid, sh)
 
     return grid, cables_dict
 
