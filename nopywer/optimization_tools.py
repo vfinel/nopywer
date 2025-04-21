@@ -12,7 +12,7 @@ from nopywer.get_user_parameters import get_user_parameters
 def phase_assignment_greedy(grid: dict):
 	'''
         each item has the foloowing:
-        - 'power' (or 'cumPower')
+        - 'power' (or 'cum_power')
 		- name 
 		- ....
 	'''
@@ -27,7 +27,7 @@ def phase_assignment_greedy(grid: dict):
 		print(f'{key}: {value:.0f}W, phase {assigned_phase}')
 
 	print(f'\ntotal on phases: {phases}')
-	phaseBalance = 100*np.std(grid['generator']['cumPower']/np.mean(grid['generator']['cumPower']))
+	phaseBalance = 100*np.std(grid['generator']['cum_power']/np.mean(grid['generator']['cum_power']))
 	print(f'balance : {phaseBalance:.1f}%')
 
 	return loads
@@ -56,7 +56,7 @@ def qgis2list(grid):
 	qgsDist = QgsDistanceArea() # https://qgis.org/pyqgis/3.22/core/QgsDistanceArea.html
 	for src_name, source in grid.items():
 		nodes[src_name] = {'power': source['power'],
-		 				 'cumPower': source['cumPower'],
+		 				 'cum_power': source['cum_power'],
 						 'x': source['coordinates'].x(),  # https://qgis.org/pyqgis/3.38/core/QgsPointXY.html
 						 'y': source['coordinates'].y()}
 
@@ -86,7 +86,7 @@ def find_optimal_layout(grid, edges):
 						'parent': "",
 						'children': [], # pas besoi de ca si j'utilise bien edges_conn ?
 						'power': np.sum(grid[node]['power']),
-						'cumPower': pulp.LpVariable(f"cumPower_{node}", lowBound=0, cat='Continuous')}
+						'cum_power': pulp.LpVariable(f"cum_power_{node}", lowBound=0, cat='Continuous')}
 
 	# Objective function
 	print('\t creating objective function')
@@ -103,27 +103,27 @@ def find_optimal_layout(grid, edges):
 		if n=='generator':
 			prob += (n_in == 0)
 			prob += (n_out >= 1)
-			prob += (nodes[n]['cumPower'] == sum([load['power'] for _, load in nodes.items()])) # all must be connected to generator
+			prob += (nodes[n]['cum_power'] == sum([load['power'] for _, load in nodes.items()])) # all must be connected to generator
 			
 		else:
 			prob += (n_in == 1) # all nodes must be have 1 incoming cable, except generator (0) 
 
 			# constraint (attempt): check power flow constraint at one node 
 			# outgoing = [(src, dst) for src, dst in edges_conn if src == n] # connections going from n to its children
-			# outgoing_power = pulp.lpSum(nodes[dst]['cumPower'] for src, dst in outgoing)
+			# outgoing_power = pulp.lpSum(nodes[dst]['cum_power'] for src, dst in outgoing)
 			# incoming = [(src, dst) for src, dst in edges_conn if dst == node]
-			# ingoing_power = pulp.lpSum(nodes[dst]['cumPower'] for src, dst in incoming)
-			# prob += (nodes[n]['cumPower'] == pulp.lpSum([nodes[n]['power'], outgoing_power]))
+			# ingoing_power = pulp.lpSum(nodes[dst]['cum_power'] for src, dst in incoming)
+			# prob += (nodes[n]['cum_power'] == pulp.lpSum([nodes[n]['power'], outgoing_power]))
 
-		# constraint (attempt): cumPower of each node is the sum of children's cumPower
-		# children_power = pulp.lpSum([edges_conn[src,dst]*nodes[dst]['cumPower'] for src, dst, _ in edges if src==n]) 
-		# children_power = pulp.lpSum([nodes[dst]['cumPower'] for src, dst, _ in edges if (src==n) and (edges_conn[src,dst])]) 
-		# prob += (nodes[n]['cumPower'] == pulp.lpSum([nodes[n]['power'], children_power]))
+		# constraint (attempt): cum_power of each node is the sum of children's cum_power
+		# children_power = pulp.lpSum([edges_conn[src,dst]*nodes[dst]['cum_power'] for src, dst, _ in edges if src==n]) 
+		# children_power = pulp.lpSum([nodes[dst]['cum_power'] for src, dst, _ in edges if (src==n) and (edges_conn[src,dst])]) 
+		# prob += (nodes[n]['cum_power'] == pulp.lpSum([nodes[n]['power'], children_power]))
 
 		# outgoing = [(src, dst) for src, dst in edges_conn if src == n] # connections going from n to its children
-		# outgoing_power = pulp.lpSum(nodes[dst]['cumPower'] for src, dst in outgoing)
-		# # prob += (nodes[n]['cumPower'] == pulp.lpSum([nodes[n]['power'], outgoing_power]))
-		# cp = pulp.LpConstraint(e=nodes[n]['cumPower'], sense=pulp.LpConstraintEQ, name=f'cumPower_{n}', rhs=outgoing_power)
+		# outgoing_power = pulp.lpSum(nodes[dst]['cum_power'] for src, dst in outgoing)
+		# # prob += (nodes[n]['cum_power'] == pulp.lpSum([nodes[n]['power'], outgoing_power]))
+		# cp = pulp.LpConstraint(e=nodes[n]['cum_power'], sense=pulp.LpConstraintEQ, name=f'cum_power_{n}', rhs=outgoing_power)
 		# prob.add(cp)
 		
 	for e in edges:
@@ -133,16 +133,16 @@ def find_optimal_layout(grid, edges):
 	
 		# la ligne ci dessous marche po car 'children' est mal géré, mais je devrais pouvoir utiser edges_conn 
 		# (qui inclu le sens sc->dst?)
-		# prob += nodes[node]['cumPower'] == (nodes[node]['power'] + sum([child['cumPower'] for child in nodes[node]['children']]))
+		# prob += nodes[node]['cum_power'] == (nodes[node]['power'] + sum([child['cum_power'] for child in nodes[node]['children']]))
 	
 	# "all are connected to the generator" or "the generator is the source" constraint
 	# could be: 
-	#	- the cumPower of the generator must be the sum of all power:
+	#	- the cum_power of the generator must be the sum of all power:
 	#		-> implies to be able to compute cumulated power (ie store [children] info)
 	#
 	#	- recursive: if node not 'generator', 'generator' must be foundable in the 'in' of 'in' parents...
 	#
-	# 	- the cumulated power of each node must be it's own power + the sum of the cumPower of its children
+	# 	- the cumulated power of each node must be it's own power + the sum of the cum_power of its children
 	#			cf tentative d'implémentaton ci dessus, mais besoin de mieux gérer 'children' (and/or use edges_conn)
 	#
 	#	- tsp: (n_edges) == (n_nodes-1) 	to connect all nodes together
@@ -190,7 +190,7 @@ def find_optimal_layout(grid, edges):
 		
 		print('\nloads info:')
 		for n in nodes:
-			print(f"\t{n} cumPower = {pulp.value(nodes[n]['cumPower'])}")
+			print(f"\t{n} cum_power = {pulp.value(nodes[n]['cum_power'])}")
 		
 		# too verbose:
 		# print("\nOptimal Result:")

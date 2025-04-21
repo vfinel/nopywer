@@ -51,10 +51,10 @@ def get_grid_data(param: dict) -> tuple[dict, list, dict|None, QgsProject|None, 
 
 def get_toy_example() -> tuple[dict, list]:
     nodes = {
-        "A": {"power": 10, "cumPower": None, "x": 1, "y": 1},
-        "B": {"power": 20, "cumPower": None, "x": 0, "y": 1},
-        "C": {"power": 30, "cumPower": None, "x": 1, "y": 0},
-        "generator": {"power": 0, "cumPower": None, "x": 0, "y": 0},
+        "A": {"power": 10, "cum_power": None, "x": 1, "y": 1},
+        "B": {"power": 20, "cum_power": None, "x": 0, "y": 1},
+        "C": {"power": 30, "cum_power": None, "x": 1, "y": 0},
+        "generator": {"power": 0, "cum_power": None, "x": 0, "y": 0},
     }
         
     edges = []

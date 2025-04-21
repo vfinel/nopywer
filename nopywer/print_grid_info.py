@@ -10,8 +10,8 @@ def print_grid_info(grid, cables_dict, phaseBalance, hasNoPhase, dlist):
 
     print("\n === info about the grid === \n") 
 
-    print(f"total power: {1e-3*np.sum(grid['generator']['cumPower']):.0f}kW \t {np.round(1e-3*grid['generator']['cumPower'],1)}kW "\
-          + f"/ {np.round(grid['generator']['cumPower']/PF/V0)}A")
+    print(f"total power: {1e-3*np.sum(grid['generator']['cum_power']):.0f}kW \t {np.round(1e-3*grid['generator']['cum_power'],1)}kW "\
+          + f"/ {np.round(grid['generator']['cum_power']/PF/V0)}A")
 
     # --- print vdrop for each load, sorted by deepness
     if phaseBalance>5:
@@ -23,15 +23,15 @@ def print_grid_info(grid, cables_dict, phaseBalance, hasNoPhase, dlist):
     for deep in range(len(dlist)):
         print(f"\t deepness {deep}")
         for load in dlist[deep]:
-            pwrPerPhase = np.round(1e-3*grid[load]['cumPower'],1).tolist()
-            pwrTotal = 1e-3*np.sum(grid[load]['cumPower'])
+            pwrPerPhase = np.round(1e-3*grid[load]['cum_power'],1).tolist()
+            pwrTotal = 1e-3*np.sum(grid[load]['cum_power'])
             vdrop = grid[load]['vdrop_percent']
             if vdrop>5:
                 flag = ' <<<<<<<<<<'
             else:
                 flag = ''
             
-            print(f"\t\t {load:20} cumPower={pwrPerPhase}kW, total {pwrTotal:5.1f}kW, vdrop {vdrop:.1f}% {flag} ")
+            print(f"\t\t {load:20} cum_power={pwrPerPhase}kW, total {pwrTotal:5.1f}kW, vdrop {vdrop:.1f}% {flag} ")
             
 
     # --- 

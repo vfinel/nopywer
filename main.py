@@ -66,7 +66,7 @@ def run_analysis(qgs_project: QgsProject, project_folder: str, param: dict) -> t
     grid, cables_dict = npw.cumulate_current(grid, cables_dict, dlist, V0, PF)
 
     phaseBalance = 100 * np.std(
-        grid["generator"]["cumPower"] / np.mean(grid["generator"]["cumPower"])
+        grid["generator"]["cum_power"] / np.mean(grid["generator"]["cum_power"])
     )
 
     cables_dict = npw.inspect_cable_layers(qgs_project, cables_layers_list, cables_dict)

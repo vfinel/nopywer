@@ -69,7 +69,7 @@ loadLayersList = param['loadLayersList']
 cables_layers_list = param['cables_layers_list']
 
 thres = 5 # [meters] threshold to detect cable and load connections
-nodes_dictModel = ['_cable','parent','children','deepness','cable','power','phase','date', 'cumPower', 'distro']
+nodes_dictModel = ['_cable','parent','children','deepness','cable','power','phase','date', 'cum_power', 'distro']
 cables_dictModel = ['nodes','length','phase','area','current','r',"plugsAndsockets"]
 
 verbose = 0

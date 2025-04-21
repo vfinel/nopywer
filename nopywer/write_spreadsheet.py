@@ -9,7 +9,7 @@ def write_spreadsheet(grid: dict, sh):
             - power / current
 
         - the grid dict
-            - add cumPower if load exist (eg not for Spoonhaus)
+            - add cum_power if load exist (eg not for Spoonhaus)
             - add nodes without loads (eg malfarenode)
     '''
 
@@ -31,17 +31,17 @@ def write_spreadsheet(grid: dict, sh):
         sh[f'cumulated power L{l+1} [kW]'] = 'NA' # init columns
 
     for loadOnMap in grid.keys():
-        # cumPower from grid dict...
+        # cum_power from grid dict...
         idx = [loadOnMap in nameOnSheet.lower() for nameOnSheet in sh['Project']]
-        if isinstance(grid[loadOnMap]['cumPower'], np.ndarray):
+        if isinstance(grid[loadOnMap]['cum_power'], np.ndarray):
             for l in range(3):
-                sh.loc[idx, f'cumulated power L{l+1} [kW]'] = 1e-3*grid[loadOnMap]['cumPower'][l]
+                sh.loc[idx, f'cumulated power L{l+1} [kW]'] = 1e-3*grid[loadOnMap]['cum_power'][l]
 
         # even if load is on map, but not on input spreadsheets, and has a parent (eg, nodes)
         if (any(idx)==False) and (len(grid[loadOnMap]['parent'])>0):
             tmpDict = {'Project': loadOnMap, 'power [W]':0, 'current [A]': 0, 'phase':'NA'}
             for l in range(3):
-                tmpDict[f'cumulated power L{l+1} [kW]'] = 1e-3*grid[loadOnMap]['cumPower'][l]
+                tmpDict[f'cumulated power L{l+1} [kW]'] = 1e-3*grid[loadOnMap]['cum_power'][l]
 
             sh = sh.append(pd.DataFrame(tmpDict,index=[0]))
 
