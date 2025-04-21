@@ -50,8 +50,8 @@ def write_spreadsheet(grid: dict, sh):
     sh = sh.sort_values('Project')
 
     # separate "norg" and "others" tab
-    norgLoads = []
-    otherLoads = []
+    norg_loads = []
+    other_loads = []
     for idx, loadOnSheet in enumerate(sh['Project']):
         isOnMap = [loadOnMap for loadOnMap in grid.keys() if loadOnMap in loadOnSheet.lower()]
 
@@ -67,15 +67,15 @@ def write_spreadsheet(grid: dict, sh):
         if (loadOnMap!=None) and (grid[loadOnMap]['parent']!=None):
             cable_layer = grid[loadOnMap]['cable']['layer'] 
             if "norg" in cable_layer:
-                norgLoads.append(idx)
+                norg_loads.append(idx)
 
-    otherLoads = [i for j, i in enumerate(range(len(sh))) if j not in norgLoads]
-    df_norg = sh.iloc[norgLoads, :]
-    df_others = sh.iloc[otherLoads, :]
+    other_loads = [i for j, i in enumerate(range(len(sh))) if j not in norg_loads]
+    df_norg = sh.iloc[norg_loads, :]
+    df_others = sh.iloc[other_loads, :]
 
     if verbose:
-        print(f'norg loads: {norgLoads}')
-        print(f'otherLoads: {otherLoads}')
+        print(f'norg loads: {norg_loads}')
+        print(f'other_loads: {other_loads}')
         with pd.option_context('display.max_rows', None, 'display.max_columns', None):  # more options can be specified also
             print(sh)
             print('splitted:')

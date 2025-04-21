@@ -45,16 +45,16 @@ def inspect_cable_layers(project, cables_layers_list, cables_dict):
                     b = f"{current_str}A (plugs&sockets: {cableDict['plugsAndsockets']}A) \n"
                     current_overloads += f"{a:60} {b}"
 
-        nCablesInLayer = cable_idx+1
+        n_cables_in_layer = cable_idx+1
         if "1phase" in cable_layer_name:
             tot1P += totLayer
-            n1P += nCablesInLayer
+            n1P += n_cables_in_layer
 
         elif "3phases" in cable_layer_name:
             tot3P += totLayer
-            n3P += nCablesInLayer
+            n3P += n_cables_in_layer
 
-        print(f'\t total length of {cable_layer_name}: {totLayer:.0f} meters - {nCablesInLayer} cables')
+        print(f'\t total length of {cable_layer_name}: {totLayer:.0f} meters - {n_cables_in_layer} cables')
 
     print(f'\t total length of 1P cables: {tot1P:.0f} meters (inventory: {inventory_1P}m) - {n1P} cables')
     print(f'\t total length of 3P cables: {tot3P:.0f} meters (inventory: {inventory_3P}m) - {n3P} cables')

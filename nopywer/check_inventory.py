@@ -94,17 +94,17 @@ def choose_cables_in_inventory(project_path: str, cables_dict: dict, sh_name: st
 
             # get compatible cables 
             if '3phases' in cable_layer_name:
-                nPhases = 3
+                n_phases = 3
             
             elif '1phase' in cable_layer_name:
-                nPhases = 1
+                n_phases = 1
 
             else:
                 raise Exception(f'unable to find out nuymber of phases of layer {cable_layer_name}')
             
-            if verbose>=2: print(f" n phases: {nPhases}")
+            if verbose>=2: print(f" n phases: {n_phases}")
             
-            compatible_rows = (df['number of phases'] == nPhases) \
+            compatible_rows = (df['number of phases'] == n_phases) \
                              & (df['plugs&sockets [A]']==cable['plugsAndsockets']) \
                              & (df['section [mm2]']==cable['area'])
             
