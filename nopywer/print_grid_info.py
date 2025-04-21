@@ -2,7 +2,7 @@ import json
 import numpy as np 
 from .get_constant_parameters import get_constant_parameters
 
-def print_grid_info(grid, cables_dict, phaseBalance, has_no_phase, dlist):    
+def print_grid_info(grid, cables_dict, phase_balance, has_no_phase, dlist):    
 
     CONSTANTS = get_constant_parameters()
     V0 = CONSTANTS['V0']
@@ -14,24 +14,24 @@ def print_grid_info(grid, cables_dict, phaseBalance, has_no_phase, dlist):
           + f"/ {np.round(grid['generator']['cum_power']/PF/V0)}A")
 
     # --- print vdrop for each load, sorted by deepness
-    if phaseBalance>5:
+    if phase_balance>5:
         flag = ' <<<<<<<<<<'
     else:
         flag = ''
-    print(f"phase balance: {phaseBalance.round(1)} % {flag}")
+    print(f"phase balance: {phase_balance.round(1)} % {flag}")
 
     for deep in range(len(dlist)):
         print(f"\t deepness {deep}")
         for load in dlist[deep]:
-            pwrPerPhase = np.round(1e-3*grid[load]['cum_power'],1).tolist()
-            pwrTotal = 1e-3*np.sum(grid[load]['cum_power'])
+            pwr_per_phase = np.round(1e-3*grid[load]['cum_power'],1).tolist()
+            pwr_total = 1e-3*np.sum(grid[load]['cum_power'])
             vdrop = grid[load]['vdrop_percent']
             if vdrop>5:
                 flag = ' <<<<<<<<<<'
             else:
                 flag = ''
             
-            print(f"\t\t {load:20} cum_power={pwrPerPhase}kW, total {pwrTotal:5.1f}kW, vdrop {vdrop:.1f}% {flag} ")
+            print(f"\t\t {load:20} cum_power={pwr_per_phase}kW, total {pwr_total:5.1f}kW, vdrop {vdrop:.1f}% {flag} ")
             
 
     # --- 

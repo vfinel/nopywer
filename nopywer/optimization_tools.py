@@ -27,8 +27,8 @@ def phase_assignment_greedy(grid: dict):
 		print(f'{key}: {value:.0f}W, phase {assigned_phase}')
 
 	print(f'\ntotal on phases: {phases}')
-	phaseBalance = 100*np.std(grid['generator']['cum_power']/np.mean(grid['generator']['cum_power']))
-	print(f'balance : {phaseBalance:.1f}%')
+	phase_balance = 100*np.std(grid['generator']['cum_power']/np.mean(grid['generator']['cum_power']))
+	print(f'balance : {phase_balance:.1f}%')
 
 	return loads
 		

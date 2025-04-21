@@ -65,7 +65,7 @@ def run_analysis(qgs_project: QgsProject, project_folder: str, param: dict) -> t
     # compute cumulated current
     grid, cables_dict = npw.cumulate_current(grid, cables_dict, dlist, V0, PF)
 
-    phaseBalance = 100 * np.std(
+    phase_balance = 100 * np.std(
         grid["generator"]["cum_power"] / np.mean(grid["generator"]["cum_power"])
     )
 
@@ -79,7 +79,7 @@ def run_analysis(qgs_project: QgsProject, project_folder: str, param: dict) -> t
     npw.choose_cables_in_inventory(project_folder, cables_dict, param["inventory"])
     npw.choose_distros_in_inventory(project_folder, grid, param["inventory"])
 
-    npw.print_grid_info(grid, cables_dict, phaseBalance, has_no_phase, dlist)
+    npw.print_grid_info(grid, cables_dict, phase_balance, has_no_phase, dlist)
 
     if updateStuff:
         npw.update1PhaseLayers(grid, cables_dict, qgs_project)

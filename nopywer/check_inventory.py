@@ -148,11 +148,11 @@ def parse_distro_req(req: str) -> tuple[str, float]:
     ''' parse map's distro requirement based on the input argument 'req' 
     'req' should look like: '3P 125A', '1P 16.0', ...
     '''
-    phaseType = req[:2] 
-    assert ((phaseType=='3P') or (phaseType=='1P'))
+    phase_type = req[:2] 
+    assert ((phase_type=='3P') or (phase_type=='1P'))
     result = re.search('P(.*)A', req)
     current_rating = float(result.group(1))
-    return phaseType, current_rating
+    return phase_type, current_rating
 
 
 def choose_distros_in_inventory(project_path: str, grid: dict, sh_name: str) -> None: 

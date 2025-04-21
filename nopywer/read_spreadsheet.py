@@ -55,11 +55,11 @@ def read_spreadsheet(project_path: str, grid: dict, cables_dict: dict, sparam: d
                 if pwr>0:
                     # --- parse phase info                 
                     if isinstance(phase, int):
-                        phaseParsed = phase
+                        phase_parsed = phase
 
                     elif isinstance(phase, str):
                         if len(phase)==1:
-                            phaseParsed = phase
+                            phase_parsed = phase
                             if (phase=='X'):                                   
                                 has_no_phase.append(nameOnSheet)
 
@@ -67,7 +67,7 @@ def read_spreadsheet(project_path: str, grid: dict, cables_dict: dict, sparam: d
                                 pass
 
                         else: # len(phase)>1
-                            phaseParsed = list(map(int, phase.split(','))) # conv to a list of int
+                            phase_parsed = list(map(int, phase.split(','))) # conv to a list of int
 
                     elif phase==float('nan'):
                         has_no_phase.append(nameOnSheet)
@@ -77,21 +77,21 @@ def read_spreadsheet(project_path: str, grid: dict, cables_dict: dict, sparam: d
                         raise ValueError(f'{nameOnSheet} has a wrong phase assigned: {phase}')
                     
                     # --- store phase info in cableDict and grid
-                    grid[load]['phase'] = phaseParsed
+                    grid[load]['phase'] = phase_parsed
                     if grid[load]['cable'] != None: 
                         cable_layer = grid[load]['cable']['layer']
                         cable_idx = grid[load]['cable']['idx']
-                        cables_dict[cable_layer][cable_idx]['phase'] = phaseParsed
+                        cables_dict[cable_layer][cable_idx]['phase'] = phase_parsed
                         #grid[load]['cable'].update(cables_dict[cable2parent['layer']][cable2parent['idx']]) # add info from cableDict
 
                     # --- deduce and store power info
-                    if isinstance(phaseParsed, int):
-                        grid[load]['power'][phaseParsed-1] += pwr
+                    if isinstance(phase_parsed, int):
+                        grid[load]['power'][phase_parsed-1] += pwr
                             
-                    elif isinstance(phaseParsed, list):
-                        grid[load]['power'][[p-1 for p in phaseParsed]] += pwr/len(phaseParsed)
+                    elif isinstance(phase_parsed, list):
+                        grid[load]['power'][[p-1 for p in phase_parsed]] += pwr/len(phase_parsed)
 
-                    elif isinstance(phaseParsed, str): # one-letter string
+                    elif isinstance(phase_parsed, str): # one-letter string
                         if phase=='T':
                             grid[load]['power'] += pwr/3
 
