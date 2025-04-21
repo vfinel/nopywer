@@ -72,7 +72,7 @@ def compute_cable_length_in_inventory():
     print(f'\t total 1p length: {len_1p:.0f}m')
 
 
-def choose_cables_in_inventory(project_path: str, cablesDict: dict, sh_name: str) -> None:
+def choose_cables_in_inventory(project_path: str, cables_dict: dict, sh_name: str) -> None:
     verbose = 1
     unmatched = []
     print('\nReading cables inventory')
@@ -83,11 +83,11 @@ def choose_cables_in_inventory(project_path: str, cablesDict: dict, sh_name: str
     
     if verbose>=3: print(f'\t {df}')
 
-    for cableLayerName in cablesDict.keys():
+    for cableLayerName in cables_dict.keys():
         if verbose: print(f'\n\t\t layer: {cableLayerName}')
         
         # sort cables. Decreasing order allows to make sure long cables are used for long dsitances, decreasing number of extensions
-        cableLayer = sorted(cablesDict[cableLayerName], key=lambda d: d['length'], reverse=True) # https://stackoverflow.com/questions/72899/how-to-sort-a-list-of-dictionaries-by-a-value-of-the-dictionary-in-python
+        cableLayer = sorted(cables_dict[cableLayerName], key=lambda d: d['length'], reverse=True) # https://stackoverflow.com/questions/72899/how-to-sort-a-list-of-dictionaries-by-a-value-of-the-dictionary-in-python
         
         for idx, cable in enumerate(cableLayer):
             if verbose>=2: print(f"\n\t\t\t taking care of cable {idx+1}/{len(cableLayer)}, length {cable['length']} m")
@@ -121,7 +121,7 @@ def choose_cables_in_inventory(project_path: str, cablesDict: dict, sh_name: str
                                 for i in range(qty)]
 
                 # find best combination 
-                target_sum = cable['length'] # note that slack was added from "extra_cable_length" parameters when computing cablesDict
+                target_sum = cable['length'] # note that slack was added from "extra_cable_length" parameters when computing cables_dict
                 comb = find_combinations(list_of_cables, target_sum)
                 if (comb==None) | verbose:
                     print(f"\t\t\t cable {cable['nodes']}: {comb}")

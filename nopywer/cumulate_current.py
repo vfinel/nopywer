@@ -1,6 +1,6 @@
 import numpy as np 
 
-def cumulate_current(grid, cablesDict, dlist, V0, PF):
+def cumulate_current(grid, cables_dict, dlist, V0, PF):
     verbose =  0
     if verbose: print('\ncumulate_current.py:')
 
@@ -20,8 +20,8 @@ def cumulate_current(grid, cablesDict, dlist, V0, PF):
             grid[load]['cumPower'] += grid[load]["power"] # ... at load 
             grid[parent]['cumPower'] += grid[load]["cumPower"] # ... and at parent
 
-            # add info to cablesDict 
-            cable = cablesDict[grid[load]['cable']['layer']][grid[load]['cable']['idx']]
+            # add info to cables_dict 
+            cable = cables_dict[grid[load]['cable']['layer']][grid[load]['cable']['idx']]
             cable['current'] = list(grid[load]['cumPower']/V0/PF) # todo: constant power or constant voltage ?
 
             if verbose: 
@@ -31,4 +31,4 @@ def cumulate_current(grid, cablesDict, dlist, V0, PF):
         load = 'generator'
         print(f"\t{load} cumulated power: {np.array2string(1e-3*grid[load]['cumPower'], precision=1, floatmode='fixed')}kW")
 
-    return grid, cablesDict
+    return grid, cables_dict

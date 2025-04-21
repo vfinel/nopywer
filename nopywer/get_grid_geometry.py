@@ -49,12 +49,12 @@
 #       - cumulated load = [ on the 3 phases ---> a list ?] 
 #       - etc.
 #
-# - cablesDict['cableLayerName'][cableIdx]  = dict() with the following keys:
+# - cables_dict['cableLayerName'][cableIdx]  = dict() with the following keys:
 #        - nodes: list(c). Each item of the list contains node(s) names connected to this cable
 #
 
 # imports
-import json # to do: print(json.dumps(cablesDict, sort_keys=True, indent=4))
+import json # to do: print(json.dumps(cables_dict, sort_keys=True, indent=4))
 from qgis.core import QgsDistanceArea, QgsUnitTypes, QgsVectorLayer, QgsFeature
 from .get_layer import get_layer
 from .get_coordinates import get_coordinates
@@ -70,7 +70,7 @@ cablesLayersList = param['cablesLayersList']
 
 thres = 5 # [meters] threshold to detect cable and load connections
 nodes_dictModel = ['_cable','parent','children','deepness','cable','power','phase','date', 'cumPower', 'distro']
-cablesDictModel = ['nodes','length','phase','area','current','r',"plugsAndsockets"]
+cables_dictModel = ['nodes','length','phase','area','current','r',"plugsAndsockets"]
 
 verbose = 0
 
@@ -96,12 +96,12 @@ def getLoadName(load: QgsFeature) -> str:
 def findConnections(project, loadLayersList, cablesLayersList, thres):
     verbose = 0 
     nodes_dict = {} 
-    cablesDict = {} 
+    cables_dict = {} 
 
     # --- fill cables dict with lengthes
     for cableLayerName in cablesLayersList:
         cableLayer = get_layer(project, cableLayerName)
-        cablesDict[cableLayerName] = [None]*len(cableLayer) # init "empty" (cable) list for this layer 
+        cables_dict[cableLayerName] = [None]*len(cableLayer) # init "empty" (cable) list for this layer 
 
         # --- mesure distance ---  https://gis.stackexchange.com/questions/347802/calculating-elipsoidal-length-of-line-in-pyqgis
         assert project.crs() == cableLayer.crs(), \
@@ -126,13 +126,13 @@ def findConnections(project, loadLayersList, cablesLayersList, thres):
             raise ValueError('distance units should be meters') 
 
         for cableIdx, cable in enumerate(cableLayer.getFeatures()):
-            cablesDict[cableLayerName][cableIdx] = dict.fromkeys(cablesDictModel) # init a dict to describe cable
-            cablesDict[cableLayerName][cableIdx]['nodes'] = [] # init empty list of nodes connected to this cable
+            cables_dict[cableLayerName][cableIdx] = dict.fromkeys(cables_dictModel) # init a dict to describe cable
+            cables_dict[cableLayerName][cableIdx]['nodes'] = [] # init empty list of nodes connected to this cable
             cableLength = qgsDist.measureLength(cable.geometry())
             assert cableLength>0, f"in layer '{cableLayer}', cable {cableIdx+1} has length = 0m. It should be deleted"
-            cablesDict[cableLayerName][cableIdx]["length"] = cableLength + param['extra_cable_length']
-            cablesDict[cableLayerName][cableIdx]["area"] = cable.attribute('area')
-            cablesDict[cableLayerName][cableIdx]["plugsAndsockets"] = cable.attribute(r'plugs&sockets')
+            cables_dict[cableLayerName][cableIdx]["length"] = cableLength + param['extra_cable_length']
+            cables_dict[cableLayerName][cableIdx]["area"] = cable.attribute('area')
+            cables_dict[cableLayerName][cableIdx]["plugsAndsockets"] = cable.attribute(r'plugs&sockets')
 
 
     # --- find connections 
@@ -152,8 +152,8 @@ def findConnections(project, loadLayersList, cablesLayersList, thres):
             
             # --- find which cable(s) are connected to that load
             try:
-                loadPos = get_coordinates(load)
-                nodes_dict[loadName]['coordinates'] = loadPos
+                load_pos = get_coordinates(load)
+                nodes_dict[loadName]['coordinates'] = load_pos
 
             except Exception as e:  #https://stackoverflow.com/questions/4990718/how-can-i-write-a-try-except-block-that-catches-all-exceptions/4992124#4992124
                 print(f'\t there is a problem with load "{loadName}" in "{loadLayerName}" layer:')
@@ -164,11 +164,11 @@ def findConnections(project, loadLayersList, cablesLayersList, thres):
             for cableLayerName in cablesLayersList:
                 cableLayer = get_layer(project, cableLayerName)
                 for cableIdx, cable in enumerate(cableLayer.getFeatures()):
-                    cablePos = get_coordinates(cable) # TODO: check correctness of distance ??
+                    cable_pos = get_coordinates(cable) # TODO: check correctness of distance ??
                     
                     elist = list() # elist = extremities list. one list for each cable. todo: use numpy array ?
-                    for extrem in cablePos: # compute distance load-extremities of the cable
-                        elist.append(qgsDist.measureLine(loadPos, extrem))
+                    for extrem in cable_pos: # compute distance load-extremities of the cable
+                        elist.append(qgsDist.measureLine(load_pos, extrem))
                         
                     dmin = min(elist)
                     if dmin<= thres: # we found a connection 
@@ -177,7 +177,7 @@ def findConnections(project, loadLayersList, cablesLayersList, thres):
                         if verbose: print(f'\t\t in cable layer "{cableLayerName}", cable {cable.id()} is connected to "{loadName}"')
                         
                         # update dicts
-                        cablesDict[cableLayerName][cableIdx]['nodes'].append(loadName)
+                        cables_dict[cableLayerName][cableIdx]['nodes'].append(loadName)
                         nodes_dict[loadName]['_cable'].append({"layer":cableLayerName,"idx":cableIdx})
 
                         
@@ -192,7 +192,7 @@ def findConnections(project, loadLayersList, cablesLayersList, thres):
                 # in the list of cables, test if one (or more) is closer than threshold 
                 # if not, throw an error 
             
-    return nodes_dict, cablesDict
+    return nodes_dict, cables_dict
 
 
 def computeDeepnessList(grid):
@@ -216,7 +216,7 @@ def computeDeepnessList(grid):
     return dlist
     
 
-def computeDistroRequirements(grid, cablesDict):
+def computeDistroRequirements(grid, cables_dict):
     ''' must be run after "inspect_cable_layer" '''
     verbose = 0
     print('\ncomputeDistroRequirements...')
@@ -227,7 +227,7 @@ def computeDistroRequirements(grid, cablesDict):
         # --- checking input... 
         if (grid[load]['parent']!=None) and (len(grid[load]['parent'])>0):
             cable2parent_ref = grid[load]['cable']
-            cable2parent = cablesDict[cable2parent_ref['layer']][cable2parent_ref['idx']]
+            cable2parent = cables_dict[cable2parent_ref['layer']][cable2parent_ref['idx']]
             if "3phases" in cable2parent_ref['layer']:
                 ph = "3P"
             elif "1phase" in cable2parent_ref['layer']:
@@ -247,7 +247,7 @@ def computeDistroRequirements(grid, cablesDict):
         distro['out'] = {}
         if grid[load]['children']!=None:
             cables2children_ref = [grid[load]['children'][child]['cable'] for child in grid[load]['children']]
-            cables2children = [ cablesDict[c['layer']][c['idx']] for c in cables2children_ref ]
+            cables2children = [ cables_dict[c['layer']][c['idx']] for c in cables2children_ref ]
             for idx, cable in enumerate(cables2children):
                 if "3phases" in cables2children_ref[idx]['layer']:
                     ph = "3P"
@@ -279,14 +279,14 @@ def get_grid_geometry(project):
     if verbose: print('get grid geometry: \nfindConnections')
 
     # 1. find connections between loads and cables (find what load is plugged into what cable, and vice-versa)
-    nodes_dict, cablesDict = findConnections(project, loadLayersList, cablesLayersList, thres)
+    nodes_dict, cables_dict = findConnections(project, loadLayersList, cablesLayersList, thres)
 
     # 2. find connections between nodes to get the "flow direction":
-    # Now, all cables that are connected to something are (supposed to be) stored in cablesDict. 
+    # Now, all cables that are connected to something are (supposed to be) stored in cables_dict. 
     # Let's loop over the nodes again, but this time, we will find to what node is connected each node
     # We'll start with "generator" node, get its children, then check its children's children, etc
     if verbose: print('\nget_children')
-    grid = get_children("generator", nodes_dict, cablesDict)
+    grid = get_children("generator", nodes_dict, cables_dict)
     grid = grid[0]
 
     # --- for each load, add "cable to daddy" information
@@ -296,15 +296,15 @@ def get_grid_geometry(project):
             if parent != None:
                 cable2parent = grid[parent]['children'][load]["cable"]
                 grid[load]['cable'] = cable2parent
-                #grid[load]['cable'].update(cablesDict[cable2parent['layer']][cable2parent['idx']]) # add info from cableDict
+                #grid[load]['cable'].update(cables_dict[cable2parent['layer']][cable2parent['idx']]) # add info from cableDict
      
     dlist = computeDeepnessList(grid)
 
     if 0:
         print('\n')
-        print(json.dumps(cablesDict, sort_keys=True, indent=4))
+        print(json.dumps(cables_dict, sort_keys=True, indent=4))
         print(json.dumps(nodes_dict, sort_keys=True, indent=4))
         print(json.dumps(grid, sort_keys=True, indent=4))
 
-    return cablesDict, grid, dlist
+    return cables_dict, grid, dlist
 

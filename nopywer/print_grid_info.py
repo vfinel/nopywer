@@ -2,7 +2,7 @@ import json
 import numpy as np 
 from .get_constant_parameters import get_constant_parameters
 
-def print_grid_info(grid, cablesDict, phaseBalance, hasNoPhase, dlist):    
+def print_grid_info(grid, cables_dict, phaseBalance, hasNoPhase, dlist):    
 
     CONSTANTS = get_constant_parameters()
     V0 = CONSTANTS['V0']
@@ -82,5 +82,5 @@ def print_grid_info(grid, cablesDict, phaseBalance, hasNoPhase, dlist):
     # --- print usng json (doesnt work if np arrays in dict)
     if 0:
         print('\n')
-        print(json.dumps(cablesDict, sort_keys=True, indent=4))
+        print(json.dumps(cables_dict, sort_keys=True, indent=4))
         print(json.dumps(grid, sort_keys=True, indent=4))

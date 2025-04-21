@@ -50,7 +50,7 @@ def run_analysis(qgs_project: QgsProject, project_folder: str, param: dict) -> t
     cablesLayersList = param["cablesLayersList"]
 
     # find grid geometry
-    cablesDict, grid, dlist = npw.get_grid_geometry(qgs_project)
+    cables_dict, grid, dlist = npw.get_grid_geometry(qgs_project)
 
     # spreadsheet: assign phases
     # --> user manually assign phases via the spreadsheet
@@ -58,42 +58,42 @@ def run_analysis(qgs_project: QgsProject, project_folder: str, param: dict) -> t
 
 
     # load spreadsheet (power usage + phase) and add it to "grid" dictionnary
-    grid, cablesDict, hasNoPhase = npw.read_spreadsheet(
-        project_folder, grid, cablesDict, param["spreadsheet"]
+    grid, cables_dict, hasNoPhase = npw.read_spreadsheet(
+        project_folder, grid, cables_dict, param["spreadsheet"]
     )
 
     # compute cumulated current
-    grid, cablesDict = npw.cumulate_current(grid, cablesDict, dlist, V0, PF)
+    grid, cables_dict = npw.cumulate_current(grid, cables_dict, dlist, V0, PF)
 
     phaseBalance = 100 * np.std(
         grid["generator"]["cumPower"] / np.mean(grid["generator"]["cumPower"])
     )
 
-    cablesDict = npw.inspect_cable_layers(qgs_project, cablesLayersList, cablesDict)
-    grid = npw.computeDistroRequirements(grid, cablesDict)
+    cables_dict = npw.inspect_cable_layers(qgs_project, cablesLayersList, cables_dict)
+    grid = npw.computeDistroRequirements(grid, cables_dict)
 
     print("\ncomputingVDrop...")
-    grid, cablesDict = npw.compute_voltage_drop(grid, cablesDict)
+    grid, cables_dict = npw.compute_voltage_drop(grid, cables_dict)
 
     print("\nchecking inventory:")
-    npw.choose_cables_in_inventory(project_folder, cablesDict, param["inventory"])
+    npw.choose_cables_in_inventory(project_folder, cables_dict, param["inventory"])
     npw.choose_distros_in_inventory(project_folder, grid, param["inventory"])
 
-    npw.print_grid_info(grid, cablesDict, phaseBalance, hasNoPhase, dlist)
+    npw.print_grid_info(grid, cables_dict, phaseBalance, hasNoPhase, dlist)
 
     if updateStuff:
-        npw.update1PhaseLayers(grid, cablesDict, qgs_project)
+        npw.update1PhaseLayers(grid, cables_dict, qgs_project)
         npw.updateLoadLayers(grid, param["loadLayersList"], qgs_project)
         # npw.write_spreadsheet(grid, sh)
 
-    return grid, cablesDict
+    return grid, cables_dict
 
 
 def main() -> tuple[dict, dict, str]:
     param = npw.get_user_parameters()
     
     qgs_project, project_folder, qgs, running_in_qgis = get_project(param)
-    grid, cablesDict = run_analysis(qgs_project, project_folder, param)
+    grid, cables_dict = run_analysis(qgs_project, project_folder, param)
     if not running_in_qgis:
         qgs.exitQgis()
 

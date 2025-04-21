@@ -1,5 +1,5 @@
 import os
-import json # print(json.dumps(cablesDict, sort_keys=True, indent=4))
+import json # print(json.dumps(cables_dict, sort_keys=True, indent=4))
 
 def get_children(node_name, grid, cables):
     debugPrint = 0
@@ -59,4 +59,4 @@ def get_children(node_name, grid, cables):
 
 if __name__ == "__main__":
 # test: 
-    grid, children_dict = get_children("generator", nodes_dict, cablesDict)
+    grid, children_dict = get_children("generator", nodes_dict, cables_dict)

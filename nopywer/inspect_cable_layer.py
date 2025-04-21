@@ -2,7 +2,7 @@ from qgis.core import QgsDistanceArea, QgsUnitTypes
 from .get_layer import get_layer
 
 
-def inspect_cable_layers(project, cablesLayersList, cablesDict):
+def inspect_cable_layers(project, cablesLayersList, cables_dict):
     print('\n inspect cable layer:')
     verbose = 0
     inventory_3P = 785 # todo: smarter thing
@@ -20,7 +20,7 @@ def inspect_cable_layers(project, cablesLayersList, cablesDict):
         totLayer = 0
 
         for cableIdx, cable in enumerate(cables):
-            cableDict = cablesDict[cableLayerName][cableIdx]
+            cableDict = cables_dict[cableLayerName][cableIdx]
 
             # --- get length 
             totLayer += cableDict["length"]
@@ -68,6 +68,6 @@ def inspect_cable_layers(project, cablesLayersList, cablesDict):
     else:
         print(f'\t no overloaded cables')
 
-    return cablesDict 
+    return cables_dict 
 
     

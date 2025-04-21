@@ -3,7 +3,7 @@ import numpy as np
 import os
 import copy 
 
-def read_spreadsheet(project_path: str, grid: dict, cablesDict: dict, sparam: dict) -> tuple[dict, dict, list]:
+def read_spreadsheet(project_path: str, grid: dict, cables_dict: dict, sparam: dict) -> tuple[dict, dict, list]:
     verbose = 0
     headers = {'name': 'Project',
             'phase': 'which phase(1, 2, 3, T, U or Y)',
@@ -81,8 +81,8 @@ def read_spreadsheet(project_path: str, grid: dict, cablesDict: dict, sparam: di
                     if grid[load]['cable'] != None: 
                         cableLayer = grid[load]['cable']['layer']
                         cableIdx = grid[load]['cable']['idx']
-                        cablesDict[cableLayer][cableIdx]['phase'] = phaseParsed
-                        #grid[load]['cable'].update(cablesDict[cable2parent['layer']][cable2parent['idx']]) # add info from cableDict
+                        cables_dict[cableLayer][cableIdx]['phase'] = phaseParsed
+                        #grid[load]['cable'].update(cables_dict[cable2parent['layer']][cable2parent['idx']]) # add info from cableDict
 
                     # --- deduce and store power info
                     if isinstance(phaseParsed, int):
@@ -129,4 +129,4 @@ def read_spreadsheet(project_path: str, grid: dict, cablesDict: dict, sparam: di
     print(f"\n\t on spreadsheet but missing on map: \n\t {missingOnMap}")
     print(f"\n list of loads on the spreadsheet that don't have a phase assigned: \n\t {hasNoPhase} \n ")
 
-    return grid, cablesDict, hasNoPhase
+    return grid, cables_dict, hasNoPhase
