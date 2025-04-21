@@ -1,14 +1,14 @@
 project_file: H:\Mon Drive\vico\map\map2024\qfield\_cloud.qgs
 
-cablesLayersList:
+cables_layers_list:
 - norg_3phases_63A_2024
 - norg_3phases_32A_2024
 - norg_1phase_2024
 
-loadLayersList:
+loads_layers_list:
 - norg_nodes_2024
 
-spreadsheet:
+phase_balance_spreadsheet:
   name: Power 2024 map balance.ods
   sheet: All
   skiprows: 0
@@ -19,5 +19,8 @@ extra_cable_length: 10
 
 grid_src: compute
 
+update:
+  qgis_layers: False
+  phase_balance_spreadsheet: False 
 
 

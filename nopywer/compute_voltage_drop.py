@@ -14,7 +14,7 @@ vdrop_coef = 1 #np.sqrt(3) # todo: change coef for 1-phase vs 3-phase https://dr
 verbose = 0
 
 
-def computeVDrop(grid: dict, cablesDict: dict,load=None):
+def compute_voltage_drop(grid: dict, cables_dict: dict,load=None):
     # load is supposed to be a string
     verbose = 0
     if verbose: print(f'\n\t propagating vdrop to {load}')
@@ -26,25 +26,25 @@ def computeVDrop(grid: dict, cablesDict: dict,load=None):
         
     else: # compute vdrop at load 
         parent = grid[load]['parent']
-        cable = cablesDict[grid[load]['cable']['layer']][grid[load]['cable']['idx']]
+        cable = cables_dict[grid[load]['cable']['layer']][grid[load]['cable']['idx']]
         
         cable['vdrop_volts'] = vdrop_coef*cable['r']*np.max(cable['current']) 
         grid[load]['voltage'] = grid[parent]['voltage'] - cable['vdrop_volts']
         grid[load]['vdrop_percent'] = 100*(V0-grid[load]['voltage'])/vdrop_ref
 
         if verbose:
-            print(f"\t\t cable: length {cable['length']:.0f}m, area: {cableArea:.1f}mm²")
+            print(f"\t\t cable: length {cable['length']:.0f}m, area: {cable_area:.1f}mm²")
             print(f"\t\t grid[parent]['voltage']: {grid[parent]['voltage']:.0f}V")
             print(f"\t\t grid[load]['voltage']: {grid[load]['voltage']:.0f}V")
             print(f"\t\t grid[load]['vdrop_percent']: {grid[load]['vdrop_percent']:.1f}%")
         
         
         if grid[load]['vdrop_percent']>th_percent:
-            print(f"\t /!\ vdrop of {grid[load]['vdrop_percent']:.1f} percent at {load}")
+            print(f"\t /!\\ vdrop of {grid[load]['vdrop_percent']:.1f} percent at {load}")
 
     # recursive call
     children = grid[load]['children'].keys()
     for child in children:
-        [grid, cablesDict] = computeVDrop(grid, cablesDict, child)
+        [grid, cables_dict] = compute_voltage_drop(grid, cables_dict, child)
 
-    return grid, cablesDict
+    return grid, cables_dict

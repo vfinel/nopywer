@@ -1,4 +1,4 @@
-def getLayer(project, layer_name: str):
+def get_layer(project, layer_name: str):
 
     # from https://gis.stackexchange.com/questions/136861/getting-layer-by-name-in-pyqgis/136879#136879
     layers = project.mapLayersByName(layer_name)
