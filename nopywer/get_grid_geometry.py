@@ -136,11 +136,11 @@ def findConnections(project, loadLayersList, cablesLayersList, thres):
 
 
     # --- find connections 
-    for loadLayerName in loadLayersList:
-        load_layer = get_layer(project, loadLayerName)
+    for load_layer_name in loadLayersList:
+        load_layer = get_layer(project, load_layer_name)
         if verbose: print(f"loads layer = {load_layer}")
         field = 'name'
-        assert field in load_layer.fields().names(), f'layer "{loadLayerName}" does not have a field "{field}"'
+        assert field in load_layer.fields().names(), f'layer "{load_layer_name}" does not have a field "{field}"'
         
         for load in load_layer.getFeatures():
             loadName = get_load_name(load)
@@ -156,7 +156,7 @@ def findConnections(project, loadLayersList, cablesLayersList, thres):
                 nodes_dict[loadName]['coordinates'] = load_pos
 
             except Exception as e:  #https://stackoverflow.com/questions/4990718/how-can-i-write-a-try-except-block-that-catches-all-exceptions/4992124#4992124
-                print(f'\t there is a problem with load "{loadName}" in "{loadLayerName}" layer:')
+                print(f'\t there is a problem with load "{loadName}" in "{load_layer_name}" layer:')
                 logging.error(traceback.format_exc()) # Logs the error appropriately. 
                 
             

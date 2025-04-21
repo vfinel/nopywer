@@ -47,8 +47,8 @@ def update1PhaseLayers(grid: dict, cables: dict, project: QgsProject):
 def updateLoadLayers(grid: dict, loadLayersList: list, project: QgsProject):
     # write nodes' power and cumPower (=attributes) for each nodes (=feature) of load layer
     print('\nupdating load layers with power usage and cumulated power...')
-    for loadLayerName in loadLayersList:
-        layer = get_layer(project, loadLayerName)
+    for load_layer_name in loadLayersList:
+        layer = get_layer(project, load_layer_name)
         if layer.isEditable()==False:
             with edit(layer):
                 for load in list(layer.getFeatures()):
@@ -56,12 +56,12 @@ def updateLoadLayers(grid: dict, loadLayersList: list, project: QgsProject):
                     
                     if loadName in grid.keys():
                         field = 'power'
-                        assert field in load.fields().names(), f'layer "{loadLayerName} does not have a field "{field}"'
+                        assert field in load.fields().names(), f'layer "{load_layer_name} does not have a field "{field}"'
                         load.setAttribute(field, f"{1e-3*grid[loadName]['power'].sum()}")
                         
                         field = 'cumPower'
                         if type(grid[loadName][field])!=type(None): # this can be False if load is not connected
-                            assert field in load.fields().names(), f'layer "{loadLayerName}" does not have a field "{field}"'
+                            assert field in load.fields().names(), f'layer "{load_layer_name}" does not have a field "{field}"'
                             load.setAttribute(field, f"{1e-3*sum(grid[loadName]['cumPower'])}")
                         
                         layer.updateFeature(load)
