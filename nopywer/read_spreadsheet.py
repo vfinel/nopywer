@@ -10,7 +10,7 @@ def read_spreadsheet(project_path: str, grid: dict, cables_dict: dict, sparam: d
             'power': 'worstcase power [W]'}
 
     print('\nReading spreadsheet')
-    #TODO: one sheet per "norg / power swap / art", loop on sheets, build dict of all loadsOnSheet ---> avoid manual editing of .ods
+    #TODO: one sheet per "norg / power swap / art", loop on sheets, build dict of all loads_on_sheet ---> avoid manual editing of .ods
     sh = pd.read_excel(os.path.join(project_path, sparam['name']), 
                        sheet_name=sparam['sheet'], 
                        skiprows=sparam['skiprows'], 
@@ -19,28 +19,28 @@ def read_spreadsheet(project_path: str, grid: dict, cables_dict: dict, sparam: d
     for key in headers.values():
         assert key in sh.keys(), f'key "{key}" is not on the spreadsheet. The following keys were found: {sh.keys()}'
 
-    loadsOnMap = list(grid.keys())
-    loadsOnSheet = list(sh[headers['name']])
-    missingOnSheet = [] # list of loads on the map but not on the spreadsheet 
-    missingOnMap = []   # list of loads on the spreadsheet but not on the map
+    loads_on_map = list(grid.keys())
+    loads_on_sheet = list(sh[headers['name']])
+    missing_on_sheet = [] # list of loads on the map but not on the spreadsheet 
+    missing_on_map = []   # list of loads on the spreadsheet but not on the map
     has_no_phase =[]
 
-    # clean loadsOnSheet in case of it contains NaN
+    # clean loads_on_sheet in case of it contains NaN
     # (happens if all columns of the sheet don't have the same length)
     # TODO: can probably do it nicely with panda dataframe
-    for idx, load in reversed(list(enumerate(loadsOnSheet))):
-        if isinstance(loadsOnSheet[idx],str)==0:
-            loadsOnSheet.pop(idx)
+    for idx, load in reversed(list(enumerate(loads_on_sheet))):
+        if isinstance(loads_on_sheet[idx],str)==0:
+            loads_on_sheet.pop(idx)
 
     # loop through loads on the map and find corresponding info on the spreadsheet
-    for load in loadsOnMap:
+    for load in loads_on_map:
         grid[load]['power'] = np.array([0.0]*3)
         
         # find idx of the row in the spreadsheet
         idx = []
         name_on_map = load.lower().strip()
 
-        for row,x in enumerate(loadsOnSheet):
+        for row,x in enumerate(loads_on_sheet):
             name_on_sheet = x.lower().strip()
             is_on_map = (name_on_map in name_on_sheet) and not (name_on_map=='generator')
 
@@ -114,19 +114,19 @@ def read_spreadsheet(project_path: str, grid: dict, cables_dict: dict, sparam: d
         #           from {grid[load]['date']['from']} to {grid[load]['date']['to']}")
 
         if (len(idx)==0) and (load!='generator'): # load exists on the map but not on the spreadsheet
-            missingOnSheet.append(name_on_map)
+            missing_on_sheet.append(name_on_map)
 
 
     # sanity check: loop on spreadsheet to check if some are projects not on the map 
-    for idxOnSheet, name_on_sheet in enumerate(loadsOnSheet):
-        idxOnMap = [idx for idx,name_on_map in enumerate(loadsOnMap) if (name_on_map in name_on_sheet.lower())]
-        if len(idxOnMap) == 0:
-            missingOnMap.append(name_on_sheet)
+    for idx_on_sheet, name_on_sheet in enumerate(loads_on_sheet):
+        idx_on_map = [idx for idx,name_on_map in enumerate(loads_on_map) if (name_on_map in name_on_sheet.lower())]
+        if len(idx_on_map) == 0:
+            missing_on_map.append(name_on_sheet)
 
 
     print('\n!!! you should not go any further if some loads on the map are not on spreadsheet:')
-    print(f"\t on map but missing on spreadsheet: \n\t {missingOnSheet}") # will make compute_voltage_drop to crash because those don't have cable lengthes
-    print(f"\n\t on spreadsheet but missing on map: \n\t {missingOnMap}")
+    print(f"\t on map but missing on spreadsheet: \n\t {missing_on_sheet}") # will make compute_voltage_drop to crash because those don't have cable lengthes
+    print(f"\n\t on spreadsheet but missing on map: \n\t {missing_on_map}")
     print(f"\n list of loads on the spreadsheet that don't have a phase assigned: \n\t {has_no_phase} \n ")
 
     return grid, cables_dict, has_no_phase
