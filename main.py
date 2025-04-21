@@ -46,7 +46,7 @@ def run_analysis(qgs_project: QgsProject, project_folder: str, param: dict) -> t
     PF = CONSTANTS["PF"]
 
     # user parameters
-    updateStuff = 0 # TODO: move to get_user_parameters()    
+    update_sutff = 0 # TODO: move to get_user_parameters()    
     cables_layers_list = param["cables_layers_list"]
 
     # find grid geometry
@@ -81,7 +81,7 @@ def run_analysis(qgs_project: QgsProject, project_folder: str, param: dict) -> t
 
     npw.print_grid_info(grid, cables_dict, phase_balance, has_no_phase, dlist)
 
-    if updateStuff:
+    if update_sutff:
         npw.update_1phase_layers(grid, cables_dict, qgs_project)
         npw.update_load_layers(grid, param["loads_layers_list"], qgs_project)
         # npw.write_spreadsheet(grid, sh)
