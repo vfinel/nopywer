@@ -76,13 +76,13 @@ def read_spreadsheet(project_path: str, grid: dict, cables_dict: dict, sparam: d
                         print(grid[load])
                         raise ValueError(f'{name_on_sheet} has a wrong phase assigned: {phase}')
                     
-                    # --- store phase info in cableDict and grid
+                    # --- store phase info in cable_dict and grid
                     grid[load]['phase'] = phase_parsed
                     if grid[load]['cable'] != None: 
                         cable_layer = grid[load]['cable']['layer']
                         cable_idx = grid[load]['cable']['idx']
                         cables_dict[cable_layer][cable_idx]['phase'] = phase_parsed
-                        #grid[load]['cable'].update(cables_dict[cable2parent['layer']][cable2parent['idx']]) # add info from cableDict
+                        #grid[load]['cable'].update(cables_dict[cable2parent['layer']][cable2parent['idx']]) # add info from cable_dict
 
                     # --- deduce and store power info
                     if isinstance(phase_parsed, int):

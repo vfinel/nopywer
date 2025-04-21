@@ -33,14 +33,14 @@ def compute_voltage_drop(grid: dict, cables_dict: dict,load=None):
         grid[load]['vdrop_percent'] = 100*(V0-grid[load]['voltage'])/vdrop_ref
 
         if verbose:
-            print(f"\t\t cable: length {cable['length']:.0f}m, area: {cableArea:.1f}mm²")
+            print(f"\t\t cable: length {cable['length']:.0f}m, area: {cable_area:.1f}mm²")
             print(f"\t\t grid[parent]['voltage']: {grid[parent]['voltage']:.0f}V")
             print(f"\t\t grid[load]['voltage']: {grid[load]['voltage']:.0f}V")
             print(f"\t\t grid[load]['vdrop_percent']: {grid[load]['vdrop_percent']:.1f}%")
         
         
         if grid[load]['vdrop_percent']>th_percent:
-            print(f"\t /!\ vdrop of {grid[load]['vdrop_percent']:.1f} percent at {load}")
+            print(f"\t /!\\ vdrop of {grid[load]['vdrop_percent']:.1f} percent at {load}")
 
     # recursive call
     children = grid[load]['children'].keys()

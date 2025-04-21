@@ -296,7 +296,7 @@ def get_grid_geometry(project):
             if parent != None:
                 cable2parent = grid[parent]['children'][load]["cable"]
                 grid[load]['cable'] = cable2parent
-                #grid[load]['cable'].update(cables_dict[cable2parent['layer']][cable2parent['idx']]) # add info from cableDict
+                #grid[load]['cable'].update(cables_dict[cable2parent['layer']][cable2parent['idx']]) # add info from cable_dict
      
     dlist = compute_deepness_list(grid)
 

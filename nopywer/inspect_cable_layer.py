@@ -20,12 +20,12 @@ def inspect_cable_layers(project, cables_layers_list, cables_dict):
         totLayer = 0
 
         for cable_idx, cable in enumerate(cables):
-            cableDict = cables_dict[cable_layer_name][cable_idx]
+            cable_dict = cables_dict[cable_layer_name][cable_idx]
 
             # --- get length 
-            totLayer += cableDict["length"]
-            msg = f'\t\tcable layer {cable_layer_name} idx {cable_idx} has length {cableDict["length"]:.1f}m'
-            if cableDict["length"] < 5:
+            totLayer += cable_dict["length"]
+            msg = f'\t\tcable layer {cable_layer_name} idx {cable_idx} has length {cable_dict["length"]:.1f}m'
+            if cable_dict["length"] < 5:
                 raise ValueError(msg)
             
             elif verbose:
@@ -35,14 +35,14 @@ def inspect_cable_layers(project, cables_layers_list, cables_dict):
             cable_info = {"layer": cable_layer_name, "idx": cable_idx}
 
             # --- compute resistance of cable 
-            cableDict['r'] = rho*cableDict['length']/cableDict['area']
+            cable_dict['r'] = rho*cable_dict['length']/cable_dict['area']
             
             # --- check current 
-            if (cableDict['current']!=None) and (cableDict['plugsAndsockets']!=None):
-                if max(cableDict['current']) >= 0.9*(cableDict['plugsAndsockets']):
-                    current_str = [ '%2.0f' % elem for elem in cableDict['current'] ]
-                    a = f"\t /!\ cable {cableDict['nodes']} overload:"
-                    b = f"{current_str}A (plugs&sockets: {cableDict['plugsAndsockets']}A) \n"
+            if (cable_dict['current']!=None) and (cable_dict['plugsAndsockets']!=None):
+                if max(cable_dict['current']) >= 0.9*(cable_dict['plugsAndsockets']):
+                    current_str = [ '%2.0f' % elem for elem in cable_dict['current'] ]
+                    a = f"\t /!\\ cable {cable_dict['nodes']} overload:"
+                    b = f"{current_str}A (plugs&sockets: {cable_dict['plugsAndsockets']}A) \n"
                     current_overloads += f"{a:60} {b}"
 
         n_cables_in_layer = cable_idx+1
