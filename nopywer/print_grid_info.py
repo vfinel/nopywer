@@ -2,7 +2,7 @@ import json
 import numpy as np 
 from .get_constant_parameters import get_constant_parameters
 
-def print_grid_info(grid, cables_dict, phaseBalance, hasNoPhase, dlist):    
+def print_grid_info(grid, cables_dict, phaseBalance, has_no_phase, dlist):    
 
     CONSTANTS = get_constant_parameters()
     V0 = CONSTANTS['V0']
@@ -42,7 +42,7 @@ def print_grid_info(grid, cables_dict, phaseBalance, hasNoPhase, dlist):
         if (grid[load]['_cable'] == []) and not (grid[load]=='generator') and needsPower:
             print(f'\t{load}')
 
-    print(f"\nlist of loads on the spreadsheet that don't have a phase assigned: \n\t{hasNoPhase} \n ")
+    print(f"\nlist of loads on the spreadsheet that don't have a phase assigned: \n\t{has_no_phase} \n ")
 
     # --- compute and print loads on red and yellow grids 
     print(f'total power on other grids: ')

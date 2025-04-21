@@ -93,7 +93,7 @@ def get_load_name(load: QgsFeature) -> str:
     return loadName 
 
 
-def findConnections(project, loadLayersList, cables_layers_list, thres):
+def find_connections(project, loadLayersList, cables_layers_list, thres):
     verbose = 0 
     nodes_dict = {} 
     cables_dict = {} 
@@ -276,10 +276,10 @@ def compute_distro_requirements(grid, cables_dict):
 
 def get_grid_geometry(project):
     verbose = 0
-    if verbose: print('get grid geometry: \nfindConnections')
+    if verbose: print('get grid geometry: \nfind_connections')
 
     # 1. find connections between loads and cables (find what load is plugged into what cable, and vice-versa)
-    nodes_dict, cables_dict = findConnections(project, loadLayersList, cables_layers_list, thres)
+    nodes_dict, cables_dict = find_connections(project, loadLayersList, cables_layers_list, thres)
 
     # 2. find connections between nodes to get the "flow direction":
     # Now, all cables that are connected to something are (supposed to be) stored in cables_dict. 

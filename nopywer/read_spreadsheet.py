@@ -23,7 +23,7 @@ def read_spreadsheet(project_path: str, grid: dict, cables_dict: dict, sparam: d
     loadsOnSheet = list(sh[headers['name']])
     missingOnSheet = [] # list of loads on the map but not on the spreadsheet 
     missingOnMap = []   # list of loads on the spreadsheet but not on the map
-    hasNoPhase =[]
+    has_no_phase =[]
 
     # clean loadsOnSheet in case of it contains NaN
     # (happens if all columns of the sheet don't have the same length)
@@ -61,7 +61,7 @@ def read_spreadsheet(project_path: str, grid: dict, cables_dict: dict, sparam: d
                         if len(phase)==1:
                             phaseParsed = phase
                             if (phase=='X'):                                   
-                                hasNoPhase.append(nameOnSheet)
+                                has_no_phase.append(nameOnSheet)
 
                             else:
                                 pass
@@ -70,7 +70,7 @@ def read_spreadsheet(project_path: str, grid: dict, cables_dict: dict, sparam: d
                             phaseParsed = list(map(int, phase.split(','))) # conv to a list of int
 
                     elif phase==float('nan'):
-                        hasNoPhase.append(nameOnSheet)
+                        has_no_phase.append(nameOnSheet)
 
                     else:
                         print(grid[load])
@@ -127,6 +127,6 @@ def read_spreadsheet(project_path: str, grid: dict, cables_dict: dict, sparam: d
     print('\n!!! you should not go any further if some loads on the map are not on spreadsheet:')
     print(f"\t on map but missing on spreadsheet: \n\t {missingOnSheet}") # will make compute_voltage_drop to crash because those don't have cable lengthes
     print(f"\n\t on spreadsheet but missing on map: \n\t {missingOnMap}")
-    print(f"\n list of loads on the spreadsheet that don't have a phase assigned: \n\t {hasNoPhase} \n ")
+    print(f"\n list of loads on the spreadsheet that don't have a phase assigned: \n\t {has_no_phase} \n ")
 
-    return grid, cables_dict, hasNoPhase
+    return grid, cables_dict, has_no_phase

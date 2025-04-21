@@ -58,7 +58,7 @@ def run_analysis(qgs_project: QgsProject, project_folder: str, param: dict) -> t
 
 
     # load spreadsheet (power usage + phase) and add it to "grid" dictionnary
-    grid, cables_dict, hasNoPhase = npw.read_spreadsheet(
+    grid, cables_dict, has_no_phase = npw.read_spreadsheet(
         project_folder, grid, cables_dict, param["spreadsheet"]
     )
 
@@ -79,7 +79,7 @@ def run_analysis(qgs_project: QgsProject, project_folder: str, param: dict) -> t
     npw.choose_cables_in_inventory(project_folder, cables_dict, param["inventory"])
     npw.choose_distros_in_inventory(project_folder, grid, param["inventory"])
 
-    npw.print_grid_info(grid, cables_dict, phaseBalance, hasNoPhase, dlist)
+    npw.print_grid_info(grid, cables_dict, phaseBalance, has_no_phase, dlist)
 
     if updateStuff:
         npw.update1PhaseLayers(grid, cables_dict, qgs_project)
