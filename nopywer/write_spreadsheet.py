@@ -1,7 +1,7 @@
 import numpy as np 
 import pandas as pd 
 
-def writeSpreadsheet(grid: dict, sh):
+def write_spreadsheet(grid: dict, sh):
     '''
     - build 2 pd dataFrames (norg vs art), with:
         - the input spreadsheet (to have all loads sharing one loc)
@@ -13,7 +13,7 @@ def writeSpreadsheet(grid: dict, sh):
             - add nodes without loads (eg malfarenode)
     '''
 
-    print('writeSpreadsheet...')
+    print('write_spreadsheet...')
 
     verbose = 0
     # start from the input spreadsheet, and...

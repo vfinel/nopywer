@@ -84,7 +84,7 @@ def run_analysis(qgs_project: QgsProject, project_folder: str, param: dict) -> t
     if updateStuff:
         npw.update1PhaseLayers(grid, cablesDict, qgs_project)
         npw.updateLoadLayers(grid, param["loadLayersList"], qgs_project)
-        # npw.writeSpreadsheet(grid, sh)
+        # npw.write_spreadsheet(grid, sh)
 
     return grid, cablesDict
 
