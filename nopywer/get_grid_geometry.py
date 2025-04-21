@@ -56,7 +56,7 @@
 # imports
 import json # to do: print(json.dumps(cablesDict, sort_keys=True, indent=4))
 from qgis.core import QgsDistanceArea, QgsUnitTypes, QgsVectorLayer, QgsFeature
-from .getLayer import getLayer
+from .get_layer import get_layer
 from .get_coordinates import get_coordinates
 from .get_children import get_children
 from .get_user_parameters import get_user_parameters
@@ -100,7 +100,7 @@ def findConnections(project, loadLayersList, cablesLayersList, thres):
 
     # --- fill cables dict with lengthes
     for cableLayerName in cablesLayersList:
-        cableLayer = getLayer(project, cableLayerName)
+        cableLayer = get_layer(project, cableLayerName)
         cablesDict[cableLayerName] = [None]*len(cableLayer) # init "empty" (cable) list for this layer 
 
         # --- mesure distance ---  https://gis.stackexchange.com/questions/347802/calculating-elipsoidal-length-of-line-in-pyqgis
@@ -137,7 +137,7 @@ def findConnections(project, loadLayersList, cablesLayersList, thres):
 
     # --- find connections 
     for loadLayerName in loadLayersList:
-        load_layer = getLayer(project, loadLayerName)
+        load_layer = get_layer(project, loadLayerName)
         if verbose: print(f"loads layer = {load_layer}")
         field = 'name'
         assert field in load_layer.fields().names(), f'layer "{loadLayerName}" does not have a field "{field}"'
@@ -162,7 +162,7 @@ def findConnections(project, loadLayersList, cablesLayersList, thres):
             
             is_load_connected = False
             for cableLayerName in cablesLayersList:
-                cableLayer = getLayer(project, cableLayerName)
+                cableLayer = get_layer(project, cableLayerName)
                 for cableIdx, cable in enumerate(cableLayer.getFeatures()):
                     cablePos = get_coordinates(cable) # TODO: check correctness of distance ??
                     

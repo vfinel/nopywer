@@ -1,5 +1,5 @@
 from qgis.core import edit, QgsProject
-from .getLayer import getLayer
+from .get_layer import get_layer
 from .get_grid_geometry import getLoadName
 
 #based on https://gis.stackexchange.com/questions/428973/writing-list-as-attribute-field-in-pyqgis
@@ -14,7 +14,7 @@ def update1PhaseLayers(grid: dict, cables: dict, project: QgsProject):
     for cableLayerName in cables.keys():
         if "1phase" in cableLayerName:
             if verbose: print(f'\t cable layer {cableLayerName}')
-            cableLayer = getLayer(project, cableLayerName)
+            cableLayer = get_layer(project, cableLayerName)
             if cableLayer.isEditable()==False:
                 with edit(cableLayer):
                     for i,cable in enumerate(list(cableLayer.getFeatures())):
@@ -48,7 +48,7 @@ def updateLoadLayers(grid: dict, loadLayersList: list, project: QgsProject):
     # write nodes' power and cumPower (=attributes) for each nodes (=feature) of load layer
     print('\nupdating load layers with power usage and cumulated power...')
     for loadLayerName in loadLayersList:
-        layer = getLayer(project, loadLayerName)
+        layer = get_layer(project, loadLayerName)
         if layer.isEditable()==False:
             with edit(layer):
                 for load in list(layer.getFeatures()):

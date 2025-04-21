@@ -1,5 +1,5 @@
 from qgis.core import QgsDistanceArea, QgsUnitTypes
-from .getLayer import getLayer
+from .get_layer import get_layer
 
 
 def inspectCableLayers(project, cablesLayersList, cablesDict):
@@ -15,7 +15,7 @@ def inspectCableLayers(project, cablesLayersList, cablesDict):
     currentOverloads = ''
 
     for cableLayerName in cablesLayersList:
-        cableLayer = getLayer(project, cableLayerName)
+        cableLayer = get_layer(project, cableLayerName)
         cables = cableLayer.getFeatures() # is an interator, so needs to be reset after each load
         totLayer = 0
 
