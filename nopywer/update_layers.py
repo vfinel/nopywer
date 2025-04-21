@@ -14,10 +14,10 @@ def update1PhaseLayers(grid: dict, cables: dict, project: QgsProject):
     for cable_layer_name in cables.keys():
         if "1phase" in cable_layer_name:
             if verbose: print(f'\t cable layer {cable_layer_name}')
-            cableLayer = get_layer(project, cable_layer_name)
-            if cableLayer.isEditable()==False:
-                with edit(cableLayer):
-                    for i,cable in enumerate(list(cableLayer.getFeatures())):
+            cable_layer = get_layer(project, cable_layer_name)
+            if cable_layer.isEditable()==False:
+                with edit(cable_layer):
+                    for i,cable in enumerate(list(cable_layer.getFeatures())):
                         if cables[cable_layer_name][i]['current'] != None: # don't update not connecte cables
                             phase = cables[cable_layer_name][i]['phase']                        
                             if phase==None:
@@ -29,7 +29,7 @@ def update1PhaseLayers(grid: dict, cables: dict, project: QgsProject):
 
                             cable.setAttribute('phase', f'{phase}')
                             try:
-                                cableLayer.updateFeature(cable)
+                                cable_layer.updateFeature(cable)
 
                             except ValueError as err:
                                 print(f'problem found in {cable_layer_name} while updating cable idx {i} with phase info "{phase}":')

@@ -47,7 +47,7 @@ def run_analysis(qgs_project: QgsProject, project_folder: str, param: dict) -> t
 
     # user parameters
     updateStuff = 0 # TODO: move to get_user_parameters()    
-    cablesLayersList = param["cablesLayersList"]
+    cables_layers_list = param["cables_layers_list"]
 
     # find grid geometry
     cables_dict, grid, dlist = npw.get_grid_geometry(qgs_project)
@@ -69,7 +69,7 @@ def run_analysis(qgs_project: QgsProject, project_folder: str, param: dict) -> t
         grid["generator"]["cumPower"] / np.mean(grid["generator"]["cumPower"])
     )
 
-    cables_dict = npw.inspect_cable_layers(qgs_project, cablesLayersList, cables_dict)
+    cables_dict = npw.inspect_cable_layers(qgs_project, cables_layers_list, cables_dict)
     grid = npw.computeDistroRequirements(grid, cables_dict)
 
     print("\ncomputingVDrop...")

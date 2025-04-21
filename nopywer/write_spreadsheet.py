@@ -65,8 +65,8 @@ def write_spreadsheet(grid: dict, sh):
             loadOnMap = None
 
         if (loadOnMap!=None) and (grid[loadOnMap]['parent']!=None):
-            cableLayer = grid[loadOnMap]['cable']['layer'] 
-            if "norg" in cableLayer:
+            cable_layer = grid[loadOnMap]['cable']['layer'] 
+            if "norg" in cable_layer:
                 norgLoads.append(idx)
 
     otherLoads = [i for j, i in enumerate(range(len(sh))) if j not in norgLoads]

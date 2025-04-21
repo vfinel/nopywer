@@ -87,10 +87,10 @@ def choose_cables_in_inventory(project_path: str, cables_dict: dict, sh_name: st
         if verbose: print(f'\n\t\t layer: {cable_layer_name}')
         
         # sort cables. Decreasing order allows to make sure long cables are used for long dsitances, decreasing number of extensions
-        cableLayer = sorted(cables_dict[cable_layer_name], key=lambda d: d['length'], reverse=True) # https://stackoverflow.com/questions/72899/how-to-sort-a-list-of-dictionaries-by-a-value-of-the-dictionary-in-python
+        cable_layer = sorted(cables_dict[cable_layer_name], key=lambda d: d['length'], reverse=True) # https://stackoverflow.com/questions/72899/how-to-sort-a-list-of-dictionaries-by-a-value-of-the-dictionary-in-python
         
-        for idx, cable in enumerate(cableLayer):
-            if verbose>=2: print(f"\n\t\t\t taking care of cable {idx+1}/{len(cableLayer)}, length {cable['length']} m")
+        for idx, cable in enumerate(cable_layer):
+            if verbose>=2: print(f"\n\t\t\t taking care of cable {idx+1}/{len(cable_layer)}, length {cable['length']} m")
 
             # get compatible cables 
             if '3phases' in cable_layer_name:

@@ -79,9 +79,9 @@ def read_spreadsheet(project_path: str, grid: dict, cables_dict: dict, sparam: d
                     # --- store phase info in cableDict and grid
                     grid[load]['phase'] = phaseParsed
                     if grid[load]['cable'] != None: 
-                        cableLayer = grid[load]['cable']['layer']
-                        cableIdx = grid[load]['cable']['idx']
-                        cables_dict[cableLayer][cableIdx]['phase'] = phaseParsed
+                        cable_layer = grid[load]['cable']['layer']
+                        cable_idx = grid[load]['cable']['idx']
+                        cables_dict[cable_layer][cable_idx]['phase'] = phaseParsed
                         #grid[load]['cable'].update(cables_dict[cable2parent['layer']][cable2parent['idx']]) # add info from cableDict
 
                     # --- deduce and store power info

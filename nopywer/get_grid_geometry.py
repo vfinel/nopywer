@@ -49,7 +49,7 @@
 #       - cumulated load = [ on the 3 phases ---> a list ?] 
 #       - etc.
 #
-# - cables_dict['cable_layer_name'][cableIdx]  = dict() with the following keys:
+# - cables_dict['cable_layer_name'][cable_idx]  = dict() with the following keys:
 #        - nodes: list(c). Each item of the list contains node(s) names connected to this cable
 #
 
@@ -66,7 +66,7 @@ import logging
 # user settings
 param = get_user_parameters()
 loadLayersList = param['loadLayersList']
-cablesLayersList = param['cablesLayersList']
+cables_layers_list = param['cables_layers_list']
 
 thres = 5 # [meters] threshold to detect cable and load connections
 nodes_dictModel = ['_cable','parent','children','deepness','cable','power','phase','date', 'cumPower', 'distro']
@@ -93,22 +93,22 @@ def get_load_name(load: QgsFeature) -> str:
     return loadName 
 
 
-def findConnections(project, loadLayersList, cablesLayersList, thres):
+def findConnections(project, loadLayersList, cables_layers_list, thres):
     verbose = 0 
     nodes_dict = {} 
     cables_dict = {} 
 
     # --- fill cables dict with lengthes
-    for cable_layer_name in cablesLayersList:
-        cableLayer = get_layer(project, cable_layer_name)
-        cables_dict[cable_layer_name] = [None]*len(cableLayer) # init "empty" (cable) list for this layer 
+    for cable_layer_name in cables_layers_list:
+        cable_layer = get_layer(project, cable_layer_name)
+        cables_dict[cable_layer_name] = [None]*len(cable_layer) # init "empty" (cable) list for this layer 
 
         # --- mesure distance ---  https://gis.stackexchange.com/questions/347802/calculating-elipsoidal-length-of-line-in-pyqgis
-        assert project.crs() == cableLayer.crs(), \
-               f"project CRS ({project.crs()}) does not match layer {cable_layer_name}'s CRS ({cableLayer.crs()}), stg is weird... "
+        assert project.crs() == cable_layer.crs(), \
+               f"project CRS ({project.crs()}) does not match layer {cable_layer_name}'s CRS ({cable_layer.crs()}), stg is weird... "
         
         qgsDist = QgsDistanceArea() # https://qgis.org/pyqgis/3.22/core/QgsDistanceArea.html
-        qgsDist.setSourceCrs(cableLayer.crs(), project.transformContext()) # https://gis.stackexchange.com/questions/57745/how-to-get-crs-of-a-raster-layer-in-pyqgis
+        qgsDist.setSourceCrs(cable_layer.crs(), project.transformContext()) # https://gis.stackexchange.com/questions/57745/how-to-get-crs-of-a-raster-layer-in-pyqgis
         
         # on ellipsoids: 
         #   - set global settings on qgis: https://gis.stackexchange.com/questions/341997/how-to-set-global-setting-ellipsoid-in-qgis
@@ -125,14 +125,14 @@ def findConnections(project, loadLayersList, cablesLayersList, thres):
             print(f'in layer "{cable_layer_name}", qgsDist.lengthUnits()): {QgsUnitTypes.toString(qgsDist.lengthUnits())}')
             raise ValueError('distance units should be meters') 
 
-        for cableIdx, cable in enumerate(cableLayer.getFeatures()):
-            cables_dict[cable_layer_name][cableIdx] = dict.fromkeys(cables_dictModel) # init a dict to describe cable
-            cables_dict[cable_layer_name][cableIdx]['nodes'] = [] # init empty list of nodes connected to this cable
-            cableLength = qgsDist.measureLength(cable.geometry())
-            assert cableLength>0, f"in layer '{cableLayer}', cable {cableIdx+1} has length = 0m. It should be deleted"
-            cables_dict[cable_layer_name][cableIdx]["length"] = cableLength + param['extra_cable_length']
-            cables_dict[cable_layer_name][cableIdx]["area"] = cable.attribute('area')
-            cables_dict[cable_layer_name][cableIdx]["plugsAndsockets"] = cable.attribute(r'plugs&sockets')
+        for cable_idx, cable in enumerate(cable_layer.getFeatures()):
+            cables_dict[cable_layer_name][cable_idx] = dict.fromkeys(cables_dictModel) # init a dict to describe cable
+            cables_dict[cable_layer_name][cable_idx]['nodes'] = [] # init empty list of nodes connected to this cable
+            cable_length = qgsDist.measureLength(cable.geometry())
+            assert cable_length>0, f"in layer '{cable_layer}', cable {cable_idx+1} has length = 0m. It should be deleted"
+            cables_dict[cable_layer_name][cable_idx]["length"] = cable_length + param['extra_cable_length']
+            cables_dict[cable_layer_name][cable_idx]["area"] = cable.attribute('area')
+            cables_dict[cable_layer_name][cable_idx]["plugsAndsockets"] = cable.attribute(r'plugs&sockets')
 
 
     # --- find connections 
@@ -161,9 +161,9 @@ def findConnections(project, loadLayersList, cablesLayersList, thres):
                 
             
             is_load_connected = False
-            for cable_layer_name in cablesLayersList:
-                cableLayer = get_layer(project, cable_layer_name)
-                for cableIdx, cable in enumerate(cableLayer.getFeatures()):
+            for cable_layer_name in cables_layers_list:
+                cable_layer = get_layer(project, cable_layer_name)
+                for cable_idx, cable in enumerate(cable_layer.getFeatures()):
                     cable_pos = get_coordinates(cable) # TODO: check correctness of distance ??
                     
                     elist = list() # elist = extremities list. one list for each cable. todo: use numpy array ?
@@ -177,8 +177,8 @@ def findConnections(project, loadLayersList, cablesLayersList, thres):
                         if verbose: print(f'\t\t in cable layer "{cable_layer_name}", cable {cable.id()} is connected to "{loadName}"')
                         
                         # update dicts
-                        cables_dict[cable_layer_name][cableIdx]['nodes'].append(loadName)
-                        nodes_dict[loadName]['_cable'].append({"layer":cable_layer_name,"idx":cableIdx})
+                        cables_dict[cable_layer_name][cable_idx]['nodes'].append(loadName)
+                        nodes_dict[loadName]['_cable'].append({"layer":cable_layer_name,"idx":cable_idx})
 
                         
             if verbose:
@@ -279,7 +279,7 @@ def get_grid_geometry(project):
     if verbose: print('get grid geometry: \nfindConnections')
 
     # 1. find connections between loads and cables (find what load is plugged into what cable, and vice-versa)
-    nodes_dict, cables_dict = findConnections(project, loadLayersList, cablesLayersList, thres)
+    nodes_dict, cables_dict = findConnections(project, loadLayersList, cables_layers_list, thres)
 
     # 2. find connections between nodes to get the "flow direction":
     # Now, all cables that are connected to something are (supposed to be) stored in cables_dict. 

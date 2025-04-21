@@ -2,7 +2,7 @@ from qgis.core import QgsDistanceArea, QgsUnitTypes
 from .get_layer import get_layer
 
 
-def inspect_cable_layers(project, cablesLayersList, cables_dict):
+def inspect_cable_layers(project, cables_layers_list, cables_dict):
     print('\n inspect cable layer:')
     verbose = 0
     inventory_3P = 785 # todo: smarter thing
@@ -14,17 +14,17 @@ def inspect_cable_layers(project, cablesLayersList, cables_dict):
     n3P = 0     # total number of 3P cables
     currentOverloads = ''
 
-    for cable_layer_name in cablesLayersList:
-        cableLayer = get_layer(project, cable_layer_name)
-        cables = cableLayer.getFeatures() # is an interator, so needs to be reset after each load
+    for cable_layer_name in cables_layers_list:
+        cable_layer = get_layer(project, cable_layer_name)
+        cables = cable_layer.getFeatures() # is an interator, so needs to be reset after each load
         totLayer = 0
 
-        for cableIdx, cable in enumerate(cables):
-            cableDict = cables_dict[cable_layer_name][cableIdx]
+        for cable_idx, cable in enumerate(cables):
+            cableDict = cables_dict[cable_layer_name][cable_idx]
 
             # --- get length 
             totLayer += cableDict["length"]
-            msg = f'\t\tcable layer {cable_layer_name} idx {cableIdx} has length {cableDict["length"]:.1f}m'
+            msg = f'\t\tcable layer {cable_layer_name} idx {cable_idx} has length {cableDict["length"]:.1f}m'
             if cableDict["length"] < 5:
                 raise ValueError(msg)
             
@@ -32,7 +32,7 @@ def inspect_cable_layers(project, cablesLayersList, cables_dict):
                 print(msg)
 
             # --- get cable area and plugs&sockets type 
-            cableInfo = {"layer": cable_layer_name, "idx": cableIdx}
+            cable_info = {"layer": cable_layer_name, "idx": cable_idx}
 
             # --- compute resistance of cable 
             cableDict['r'] = rho*cableDict['length']/cableDict['area']
@@ -45,7 +45,7 @@ def inspect_cable_layers(project, cablesLayersList, cables_dict):
                     b = f"{currentStr}A (plugs&sockets: {cableDict['plugsAndsockets']}A) \n"
                     currentOverloads += f"{a:60} {b}"
 
-        nCablesInLayer = cableIdx+1
+        nCablesInLayer = cable_idx+1
         if "1phase" in cable_layer_name:
             tot1P += totLayer
             n1P += nCablesInLayer
