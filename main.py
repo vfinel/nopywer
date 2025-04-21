@@ -58,7 +58,7 @@ def run_analysis(qgs_project: QgsProject, project_folder: str, param: dict) -> t
 
 
     # load spreadsheet (power usage + phase) and add it to "grid" dictionnary
-    grid, cablesDict, hasNoPhase = npw.readSpreadsheet(
+    grid, cablesDict, hasNoPhase = npw.read_spreadsheet(
         project_folder, grid, cablesDict, param["spreadsheet"]
     )
 

@@ -18,7 +18,7 @@ def writeSpreadsheet(grid: dict, sh):
     verbose = 0
     # start from the input spreadsheet, and...
     # ... drop unnmamed cols https://stackoverflow.com/questions/43983622/remove-unnamed-columns-in-pandas-dataframe
-    sh = sh.loc[:, ~sh.columns.str.contains('^Unnamed')] # TODO: move in readSpreadsheet ?
+    sh = sh.loc[:, ~sh.columns.str.contains('^Unnamed')] # TODO: move in read_spreadsheet ?
 
     # ... drop useless cols, and rename others
     sh = sh.drop(columns=['Arrive', 'Depart', 'daytime power [W]', 'nighttime power [W]'])

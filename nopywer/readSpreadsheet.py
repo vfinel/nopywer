@@ -3,7 +3,7 @@ import numpy as np
 import os
 import copy 
 
-def readSpreadsheet(project_path: str, grid: dict, cablesDict: dict, sparam: dict) -> tuple[dict, dict, list]:
+def read_spreadsheet(project_path: str, grid: dict, cablesDict: dict, sparam: dict) -> tuple[dict, dict, list]:
     verbose = 0
     headers = {'name': 'Project',
             'phase': 'which phase(1, 2, 3, T, U or Y)',
