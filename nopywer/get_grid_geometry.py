@@ -274,7 +274,7 @@ def computeDistroRequirements(grid, cablesDict):
     return grid
 
 
-def getGridGeometry(project):
+def get_grid_geometry(project):
     verbose = 0
     if verbose: print('get grid geometry: \nfindConnections')
 

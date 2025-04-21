@@ -1,6 +1,6 @@
 from qgis.core import edit, QgsProject
 from .getLayer import getLayer
-from .getGridGeometry import getLoadName
+from .get_grid_geometry import getLoadName
 
 #based on https://gis.stackexchange.com/questions/428973/writing-list-as-attribute-field-in-pyqgis
 

@@ -50,7 +50,7 @@ def run_analysis(qgs_project: QgsProject, project_folder: str, param: dict) -> t
     cablesLayersList = param["cablesLayersList"]
 
     # find grid geometry
-    cablesDict, grid, dlist = npw.getGridGeometry(qgs_project)
+    cablesDict, grid, dlist = npw.get_grid_geometry(qgs_project)
 
     # spreadsheet: assign phases
     # --> user manually assign phases via the spreadsheet
