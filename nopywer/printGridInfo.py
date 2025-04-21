@@ -2,7 +2,7 @@ import json
 import numpy as np 
 from .get_constant_parameters import get_constant_parameters
 
-def printGridInfo(grid, cablesDict, phaseBalance, hasNoPhase, dlist):    
+def print_grid_info(grid, cablesDict, phaseBalance, hasNoPhase, dlist):    
 
     CONSTANTS = get_constant_parameters()
     V0 = CONSTANTS['V0']

@@ -9,6 +9,6 @@ from .inspect_cable_layer import inspect_cable_layers
 from .get_user_parameters import get_user_parameters
 from .get_constant_parameters import get_constant_parameters
 from .compute_voltage_drop import compute_voltage_drop
-from .printGridInfo import printGridInfo
+from .print_grid_info import print_grid_info
 from .updateLayers import update1PhaseLayers, updateLoadLayers
 from .writeSpreadsheet import writeSpreadsheet

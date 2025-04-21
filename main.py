@@ -79,7 +79,7 @@ def run_analysis(qgs_project: QgsProject, project_folder: str, param: dict) -> t
     npw.choose_cables_in_inventory(project_folder, cablesDict, param["inventory"])
     npw.choose_distros_in_inventory(project_folder, grid, param["inventory"])
 
-    npw.printGridInfo(grid, cablesDict, phaseBalance, hasNoPhase, dlist)
+    npw.print_grid_info(grid, cablesDict, phaseBalance, hasNoPhase, dlist)
 
     if updateStuff:
         npw.update1PhaseLayers(grid, cablesDict, qgs_project)
