@@ -3,7 +3,7 @@ from .optimization_tools import phase_assignment_greedy, find_optimal_layout, qg
 from .check_inventory import choose_cables_in_inventory, choose_distros_in_inventory
 from .cumulate_current import cumulate_current
 from .draw_layer import draw_point_layer, draw_cable_layer
-from .get_grid_geometry import get_grid_geometry, computeDistroRequirements
+from .get_grid_geometry import get_grid_geometry, compute_distro_requirements
 from .read_spreadsheet import read_spreadsheet
 from .inspect_cable_layer import inspect_cable_layers
 from .get_user_parameters import get_user_parameters

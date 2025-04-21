@@ -195,7 +195,7 @@ def findConnections(project, loadLayersList, cables_layers_list, thres):
     return nodes_dict, cables_dict
 
 
-def computeDeepnessList(grid):
+def compute_deepness_list(grid):
     # --- sort loads by deepness
     dmax = 0
     for load in grid.keys(): # find max deepness
@@ -216,10 +216,10 @@ def computeDeepnessList(grid):
     return dlist
     
 
-def computeDistroRequirements(grid, cables_dict):
+def compute_distro_requirements(grid, cables_dict):
     ''' must be run after "inspect_cable_layer" '''
     verbose = 0
-    print('\ncomputeDistroRequirements...')
+    print('\ncompute_distro_requirements...')
     for load in grid.keys():
         distro = dict.fromkeys(['in','out'])
         if verbose: print(f"\n\t\t {load}:")
@@ -298,7 +298,7 @@ def get_grid_geometry(project):
                 grid[load]['cable'] = cable2parent
                 #grid[load]['cable'].update(cables_dict[cable2parent['layer']][cable2parent['idx']]) # add info from cableDict
      
-    dlist = computeDeepnessList(grid)
+    dlist = compute_deepness_list(grid)
 
     if 0:
         print('\n')

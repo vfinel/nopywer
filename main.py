@@ -70,7 +70,7 @@ def run_analysis(qgs_project: QgsProject, project_folder: str, param: dict) -> t
     )
 
     cables_dict = npw.inspect_cable_layers(qgs_project, cables_layers_list, cables_dict)
-    grid = npw.computeDistroRequirements(grid, cables_dict)
+    grid = npw.compute_distro_requirements(grid, cables_dict)
 
     print("\ncomputingVDrop...")
     grid, cables_dict = npw.compute_voltage_drop(grid, cables_dict)

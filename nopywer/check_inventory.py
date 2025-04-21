@@ -104,11 +104,11 @@ def choose_cables_in_inventory(project_path: str, cables_dict: dict, sh_name: st
             
             if verbose>=2: print(f" n phases: {nPhases}")
             
-            compatibleRows = (df['number of phases'] == nPhases) \
+            compatible_rows = (df['number of phases'] == nPhases) \
                              & (df['plugs&sockets [A]']==cable['plugsAndsockets']) \
                              & (df['section [mm2]']==cable['area'])
             
-            compatible_df = df[ compatibleRows ]
+            compatible_df = df[ compatible_rows ]
             if verbose>=2: print(f"\t\t\t compatible cables dataframe: \n {compatible_df}")
 
             comb = None
@@ -130,9 +130,9 @@ def choose_cables_in_inventory(project_path: str, cables_dict: dict, sh_name: st
                 if comb!=None:
                     found = True 
                     for c in comb:
-                        df.loc[compatibleRows & (df['length [m]']==c), 'quantity'] -= 1
+                        df.loc[compatible_rows & (df['length [m]']==c), 'quantity'] -= 1
                         if verbose>=2:
-                            print(f"\t\t\t qty of {c}m remaining: {df.loc[compatibleRows & (df['length [m]']==c), 'quantity'].values}")
+                            print(f"\t\t\t qty of {c}m remaining: {df.loc[compatible_rows & (df['length [m]']==c), 'quantity'].values}")
 
             if comb==None:
                 unmatched.append(cable)
