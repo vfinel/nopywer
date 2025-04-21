@@ -83,24 +83,24 @@ def choose_cables_in_inventory(project_path: str, cables_dict: dict, sh_name: st
     
     if verbose>=3: print(f'\t {df}')
 
-    for cableLayerName in cables_dict.keys():
-        if verbose: print(f'\n\t\t layer: {cableLayerName}')
+    for cable_layer_name in cables_dict.keys():
+        if verbose: print(f'\n\t\t layer: {cable_layer_name}')
         
         # sort cables. Decreasing order allows to make sure long cables are used for long dsitances, decreasing number of extensions
-        cableLayer = sorted(cables_dict[cableLayerName], key=lambda d: d['length'], reverse=True) # https://stackoverflow.com/questions/72899/how-to-sort-a-list-of-dictionaries-by-a-value-of-the-dictionary-in-python
+        cableLayer = sorted(cables_dict[cable_layer_name], key=lambda d: d['length'], reverse=True) # https://stackoverflow.com/questions/72899/how-to-sort-a-list-of-dictionaries-by-a-value-of-the-dictionary-in-python
         
         for idx, cable in enumerate(cableLayer):
             if verbose>=2: print(f"\n\t\t\t taking care of cable {idx+1}/{len(cableLayer)}, length {cable['length']} m")
 
             # get compatible cables 
-            if '3phases' in cableLayerName:
+            if '3phases' in cable_layer_name:
                 nPhases = 3
             
-            elif '1phase' in cableLayerName:
+            elif '1phase' in cable_layer_name:
                 nPhases = 1
 
             else:
-                raise Exception(f'unable to find out nuymber of phases of layer {cableLayerName}')
+                raise Exception(f'unable to find out nuymber of phases of layer {cable_layer_name}')
             
             if verbose>=2: print(f" n phases: {nPhases}")
             

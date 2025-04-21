@@ -49,7 +49,7 @@
 #       - cumulated load = [ on the 3 phases ---> a list ?] 
 #       - etc.
 #
-# - cables_dict['cableLayerName'][cableIdx]  = dict() with the following keys:
+# - cables_dict['cable_layer_name'][cableIdx]  = dict() with the following keys:
 #        - nodes: list(c). Each item of the list contains node(s) names connected to this cable
 #
 
@@ -75,7 +75,7 @@ cables_dictModel = ['nodes','length','phase','area','current','r',"plugsAndsocke
 verbose = 0
 
 
-def getLoadName(load: QgsFeature) -> str:
+def get_load_name(load: QgsFeature) -> str:
     verbose = 0
 
     loadName = load.attribute('name')
@@ -99,13 +99,13 @@ def findConnections(project, loadLayersList, cablesLayersList, thres):
     cables_dict = {} 
 
     # --- fill cables dict with lengthes
-    for cableLayerName in cablesLayersList:
-        cableLayer = get_layer(project, cableLayerName)
-        cables_dict[cableLayerName] = [None]*len(cableLayer) # init "empty" (cable) list for this layer 
+    for cable_layer_name in cablesLayersList:
+        cableLayer = get_layer(project, cable_layer_name)
+        cables_dict[cable_layer_name] = [None]*len(cableLayer) # init "empty" (cable) list for this layer 
 
         # --- mesure distance ---  https://gis.stackexchange.com/questions/347802/calculating-elipsoidal-length-of-line-in-pyqgis
         assert project.crs() == cableLayer.crs(), \
-               f"project CRS ({project.crs()}) does not match layer {cableLayerName}'s CRS ({cableLayer.crs()}), stg is weird... "
+               f"project CRS ({project.crs()}) does not match layer {cable_layer_name}'s CRS ({cableLayer.crs()}), stg is weird... "
         
         qgsDist = QgsDistanceArea() # https://qgis.org/pyqgis/3.22/core/QgsDistanceArea.html
         qgsDist.setSourceCrs(cableLayer.crs(), project.transformContext()) # https://gis.stackexchange.com/questions/57745/how-to-get-crs-of-a-raster-layer-in-pyqgis
@@ -122,17 +122,17 @@ def findConnections(project, loadLayersList, cablesLayersList, thres):
         # https://gis.stackexchange.com/questions/341455/how-to-display-the-correct-unit-of-measure-in-pyqgis
         units_in_meters = QgsUnitTypes.toString(qgsDist.lengthUnits())=='meters'
         if not units_in_meters: 
-            print(f'in layer "{cableLayerName}", qgsDist.lengthUnits()): {QgsUnitTypes.toString(qgsDist.lengthUnits())}')
+            print(f'in layer "{cable_layer_name}", qgsDist.lengthUnits()): {QgsUnitTypes.toString(qgsDist.lengthUnits())}')
             raise ValueError('distance units should be meters') 
 
         for cableIdx, cable in enumerate(cableLayer.getFeatures()):
-            cables_dict[cableLayerName][cableIdx] = dict.fromkeys(cables_dictModel) # init a dict to describe cable
-            cables_dict[cableLayerName][cableIdx]['nodes'] = [] # init empty list of nodes connected to this cable
+            cables_dict[cable_layer_name][cableIdx] = dict.fromkeys(cables_dictModel) # init a dict to describe cable
+            cables_dict[cable_layer_name][cableIdx]['nodes'] = [] # init empty list of nodes connected to this cable
             cableLength = qgsDist.measureLength(cable.geometry())
             assert cableLength>0, f"in layer '{cableLayer}', cable {cableIdx+1} has length = 0m. It should be deleted"
-            cables_dict[cableLayerName][cableIdx]["length"] = cableLength + param['extra_cable_length']
-            cables_dict[cableLayerName][cableIdx]["area"] = cable.attribute('area')
-            cables_dict[cableLayerName][cableIdx]["plugsAndsockets"] = cable.attribute(r'plugs&sockets')
+            cables_dict[cable_layer_name][cableIdx]["length"] = cableLength + param['extra_cable_length']
+            cables_dict[cable_layer_name][cableIdx]["area"] = cable.attribute('area')
+            cables_dict[cable_layer_name][cableIdx]["plugsAndsockets"] = cable.attribute(r'plugs&sockets')
 
 
     # --- find connections 
@@ -143,7 +143,7 @@ def findConnections(project, loadLayersList, cablesLayersList, thres):
         assert field in load_layer.fields().names(), f'layer "{loadLayerName}" does not have a field "{field}"'
         
         for load in load_layer.getFeatures():
-            loadName = getLoadName(load)
+            loadName = get_load_name(load)
             if verbose: print(f'\t load {loadName}')
 
             # init a dict for that node
@@ -161,8 +161,8 @@ def findConnections(project, loadLayersList, cablesLayersList, thres):
                 
             
             is_load_connected = False
-            for cableLayerName in cablesLayersList:
-                cableLayer = get_layer(project, cableLayerName)
+            for cable_layer_name in cablesLayersList:
+                cableLayer = get_layer(project, cable_layer_name)
                 for cableIdx, cable in enumerate(cableLayer.getFeatures()):
                     cable_pos = get_coordinates(cable) # TODO: check correctness of distance ??
                     
@@ -174,11 +174,11 @@ def findConnections(project, loadLayersList, cablesLayersList, thres):
                     if dmin<= thres: # we found a connection 
                         # TODO: would be better to do the test outside cable loop (see below)
                         is_load_connected = True
-                        if verbose: print(f'\t\t in cable layer "{cableLayerName}", cable {cable.id()} is connected to "{loadName}"')
+                        if verbose: print(f'\t\t in cable layer "{cable_layer_name}", cable {cable.id()} is connected to "{loadName}"')
                         
                         # update dicts
-                        cables_dict[cableLayerName][cableIdx]['nodes'].append(loadName)
-                        nodes_dict[loadName]['_cable'].append({"layer":cableLayerName,"idx":cableIdx})
+                        cables_dict[cable_layer_name][cableIdx]['nodes'].append(loadName)
+                        nodes_dict[loadName]['_cable'].append({"layer":cable_layer_name,"idx":cableIdx})
 
                         
             if verbose:

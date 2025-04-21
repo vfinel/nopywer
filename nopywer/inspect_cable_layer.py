@@ -14,17 +14,17 @@ def inspect_cable_layers(project, cablesLayersList, cables_dict):
     n3P = 0     # total number of 3P cables
     currentOverloads = ''
 
-    for cableLayerName in cablesLayersList:
-        cableLayer = get_layer(project, cableLayerName)
+    for cable_layer_name in cablesLayersList:
+        cableLayer = get_layer(project, cable_layer_name)
         cables = cableLayer.getFeatures() # is an interator, so needs to be reset after each load
         totLayer = 0
 
         for cableIdx, cable in enumerate(cables):
-            cableDict = cables_dict[cableLayerName][cableIdx]
+            cableDict = cables_dict[cable_layer_name][cableIdx]
 
             # --- get length 
             totLayer += cableDict["length"]
-            msg = f'\t\tcable layer {cableLayerName} idx {cableIdx} has length {cableDict["length"]:.1f}m'
+            msg = f'\t\tcable layer {cable_layer_name} idx {cableIdx} has length {cableDict["length"]:.1f}m'
             if cableDict["length"] < 5:
                 raise ValueError(msg)
             
@@ -32,7 +32,7 @@ def inspect_cable_layers(project, cablesLayersList, cables_dict):
                 print(msg)
 
             # --- get cable area and plugs&sockets type 
-            cableInfo = {"layer": cableLayerName, "idx": cableIdx}
+            cableInfo = {"layer": cable_layer_name, "idx": cableIdx}
 
             # --- compute resistance of cable 
             cableDict['r'] = rho*cableDict['length']/cableDict['area']
@@ -46,15 +46,15 @@ def inspect_cable_layers(project, cablesLayersList, cables_dict):
                     currentOverloads += f"{a:60} {b}"
 
         nCablesInLayer = cableIdx+1
-        if "1phase" in cableLayerName:
+        if "1phase" in cable_layer_name:
             tot1P += totLayer
             n1P += nCablesInLayer
 
-        elif "3phases" in cableLayerName:
+        elif "3phases" in cable_layer_name:
             tot3P += totLayer
             n3P += nCablesInLayer
 
-        print(f'\t total length of {cableLayerName}: {totLayer:.0f} meters - {nCablesInLayer} cables')
+        print(f'\t total length of {cable_layer_name}: {totLayer:.0f} meters - {nCablesInLayer} cables')
 
     print(f'\t total length of 1P cables: {tot1P:.0f} meters (inventory: {inventory_1P}m) - {n1P} cables')
     print(f'\t total length of 3P cables: {tot3P:.0f} meters (inventory: {inventory_3P}m) - {n3P} cables')
