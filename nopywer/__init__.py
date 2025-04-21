@@ -8,7 +8,7 @@ from .readSpreadsheet import readSpreadsheet
 from .inspectCableLayer import inspectCableLayers
 from .get_user_parameters import get_user_parameters
 from .get_constant_parameters import get_constant_parameters
-from .computeVDrop import computeVDrop
+from .compute_voltage_drop import compute_voltage_drop
 from .printGridInfo import printGridInfo
 from .updateLayers import update1PhaseLayers, updateLoadLayers
 from .writeSpreadsheet import writeSpreadsheet

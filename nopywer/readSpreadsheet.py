@@ -125,7 +125,7 @@ def readSpreadsheet(project_path: str, grid: dict, cablesDict: dict, sparam: dic
 
 
     print('\n!!! you should not go any further if some loads on the map are not on spreadsheet:')
-    print(f"\t on map but missing on spreadsheet: \n\t {missingOnSheet}") # will make computeVDrop to crash because those don't have cable lengthes
+    print(f"\t on map but missing on spreadsheet: \n\t {missingOnSheet}") # will make compute_voltage_drop to crash because those don't have cable lengthes
     print(f"\n\t on spreadsheet but missing on map: \n\t {missingOnMap}")
     print(f"\n list of loads on the spreadsheet that don't have a phase assigned: \n\t {hasNoPhase} \n ")
 

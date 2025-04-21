@@ -14,7 +14,7 @@ vdrop_coef = 1 #np.sqrt(3) # todo: change coef for 1-phase vs 3-phase https://dr
 verbose = 0
 
 
-def computeVDrop(grid: dict, cablesDict: dict,load=None):
+def compute_voltage_drop(grid: dict, cablesDict: dict,load=None):
     # load is supposed to be a string
     verbose = 0
     if verbose: print(f'\n\t propagating vdrop to {load}')
@@ -45,6 +45,6 @@ def computeVDrop(grid: dict, cablesDict: dict,load=None):
     # recursive call
     children = grid[load]['children'].keys()
     for child in children:
-        [grid, cablesDict] = computeVDrop(grid, cablesDict, child)
+        [grid, cablesDict] = compute_voltage_drop(grid, cablesDict, child)
 
     return grid, cablesDict

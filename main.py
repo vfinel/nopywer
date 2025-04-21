@@ -73,7 +73,7 @@ def run_analysis(qgs_project: QgsProject, project_folder: str, param: dict) -> t
     grid = npw.computeDistroRequirements(grid, cablesDict)
 
     print("\ncomputingVDrop...")
-    grid, cablesDict = npw.computeVDrop(grid, cablesDict)
+    grid, cablesDict = npw.compute_voltage_drop(grid, cablesDict)
 
     print("\nchecking inventory:")
     npw.choose_cables_in_inventory(project_folder, cablesDict, param["inventory"])
