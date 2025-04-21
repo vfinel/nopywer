@@ -1,6 +1,6 @@
 from qgis.core import QgsWkbTypes
 
-def getCoordinates(feature):
+def get_coordinates(feature):
     # this function returns geo-coordinates of a feature
     #
     # Code based on:

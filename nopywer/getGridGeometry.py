@@ -57,7 +57,7 @@
 import json # to do: print(json.dumps(cablesDict, sort_keys=True, indent=4))
 from qgis.core import QgsDistanceArea, QgsUnitTypes, QgsVectorLayer, QgsFeature
 from .getLayer import getLayer
-from .getCoordinates import getCoordinates
+from .get_coordinates import get_coordinates
 from .get_children import get_children
 from .get_user_parameters import get_user_parameters
 import traceback
@@ -152,7 +152,7 @@ def findConnections(project, loadLayersList, cablesLayersList, thres):
             
             # --- find which cable(s) are connected to that load
             try:
-                loadPos = getCoordinates(load)
+                loadPos = get_coordinates(load)
                 nodesDict[loadName]['coordinates'] = loadPos
 
             except Exception as e:  #https://stackoverflow.com/questions/4990718/how-can-i-write-a-try-except-block-that-catches-all-exceptions/4992124#4992124
@@ -164,7 +164,7 @@ def findConnections(project, loadLayersList, cablesLayersList, thres):
             for cableLayerName in cablesLayersList:
                 cableLayer = getLayer(project, cableLayerName)
                 for cableIdx, cable in enumerate(cableLayer.getFeatures()):
-                    cablePos = getCoordinates(cable) # TODO: check correctness of distance ??
+                    cablePos = get_coordinates(cable) # TODO: check correctness of distance ??
                     
                     elist = list() # elist = extremities list. one list for each cable. todo: use numpy array ?
                     for extrem in cablePos: # compute distance load-extremities of the cable
