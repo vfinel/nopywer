@@ -65,7 +65,7 @@ import logging
 
 # user settings
 param = get_user_parameters()
-loadLayersList = param['loadLayersList']
+loads_layers_list = param['loads_layers_list']
 cables_layers_list = param['cables_layers_list']
 
 thres = 5 # [meters] threshold to detect cable and load connections
@@ -78,22 +78,22 @@ verbose = 0
 def get_load_name(load: QgsFeature) -> str:
     verbose = 0
 
-    loadName = load.attribute('name')
-    assert isinstance(loadName, str), 'this should be a string containing the name of the load'
+    load_name = load.attribute('name')
+    assert isinstance(load_name, str), 'this should be a string containing the name of the load'
 
-    loadName = loadName.lower() 
-    loadName = loadName.replace('\n',' ') # in case of some names on the map have a \n
-    loadName = loadName.replace('  ', ' ') # avoid double blanks
+    load_name = load_name.lower() 
+    load_name = load_name.replace('\n',' ') # in case of some names on the map have a \n
+    load_name = load_name.replace('  ', ' ') # avoid double blanks
 
     if verbose: 
         attrs = load.attributes() # attrs is a list. It contains all the attribute values of this feature
         print("\n\t load's ID: ", load.id())
         print("\t load's attributes: ", attrs)
 
-    return loadName 
+    return load_name 
 
 
-def find_connections(project, loadLayersList, cables_layers_list, thres):
+def find_connections(project, loads_layers_list, cables_layers_list, thres):
     verbose = 0 
     nodes_dict = {} 
     cables_dict = {} 
@@ -136,27 +136,27 @@ def find_connections(project, loadLayersList, cables_layers_list, thres):
 
 
     # --- find connections 
-    for load_layer_name in loadLayersList:
+    for load_layer_name in loads_layers_list:
         load_layer = get_layer(project, load_layer_name)
         if verbose: print(f"loads layer = {load_layer}")
         field = 'name'
         assert field in load_layer.fields().names(), f'layer "{load_layer_name}" does not have a field "{field}"'
         
         for load in load_layer.getFeatures():
-            loadName = get_load_name(load)
-            if verbose: print(f'\t load {loadName}')
+            load_name = get_load_name(load)
+            if verbose: print(f'\t load {load_name}')
 
             # init a dict for that node
-            nodes_dict[loadName] = dict.fromkeys(nodes_dictModel) 
-            nodes_dict[loadName]['_cable'] = []
+            nodes_dict[load_name] = dict.fromkeys(nodes_dictModel) 
+            nodes_dict[load_name]['_cable'] = []
             
             # --- find which cable(s) are connected to that load
             try:
                 load_pos = get_coordinates(load)
-                nodes_dict[loadName]['coordinates'] = load_pos
+                nodes_dict[load_name]['coordinates'] = load_pos
 
             except Exception as e:  #https://stackoverflow.com/questions/4990718/how-can-i-write-a-try-except-block-that-catches-all-exceptions/4992124#4992124
-                print(f'\t there is a problem with load "{loadName}" in "{load_layer_name}" layer:')
+                print(f'\t there is a problem with load "{load_name}" in "{load_layer_name}" layer:')
                 logging.error(traceback.format_exc()) # Logs the error appropriately. 
                 
             
@@ -174,19 +174,19 @@ def find_connections(project, loadLayersList, cables_layers_list, thres):
                     if dmin<= thres: # we found a connection 
                         # TODO: would be better to do the test outside cable loop (see below)
                         is_load_connected = True
-                        if verbose: print(f'\t\t in cable layer "{cable_layer_name}", cable {cable.id()} is connected to "{loadName}"')
+                        if verbose: print(f'\t\t in cable layer "{cable_layer_name}", cable {cable.id()} is connected to "{load_name}"')
                         
                         # update dicts
-                        cables_dict[cable_layer_name][cable_idx]['nodes'].append(loadName)
-                        nodes_dict[loadName]['_cable'].append({"layer":cable_layer_name,"idx":cable_idx})
+                        cables_dict[cable_layer_name][cable_idx]['nodes'].append(load_name)
+                        nodes_dict[load_name]['_cable'].append({"layer":cable_layer_name,"idx":cable_idx})
 
                         
             if verbose:
                 if is_load_connected==0:
-                    print(f'\t{loadName} is NOT connected')
+                    print(f'\t{load_name} is NOT connected')
 
                 else:
-                    print(f'\t{loadName} is connected')
+                    print(f'\t{load_name} is connected')
 
                 # TODO here: 
                 # in the list of cables, test if one (or more) is closer than threshold 
@@ -279,7 +279,7 @@ def get_grid_geometry(project):
     if verbose: print('get grid geometry: \nfind_connections')
 
     # 1. find connections between loads and cables (find what load is plugged into what cable, and vice-versa)
-    nodes_dict, cables_dict = find_connections(project, loadLayersList, cables_layers_list, thres)
+    nodes_dict, cables_dict = find_connections(project, loads_layers_list, cables_layers_list, thres)
 
     # 2. find connections between nodes to get the "flow direction":
     # Now, all cables that are connected to something are (supposed to be) stored in cables_dict. 

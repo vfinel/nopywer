@@ -44,30 +44,30 @@ def update1PhaseLayers(grid: dict, cables: dict, project: QgsProject):
     return None
 
 
-def updateLoadLayers(grid: dict, loadLayersList: list, project: QgsProject):
+def updateLoadLayers(grid: dict, loads_layers_list: list, project: QgsProject):
     # write nodes' power and cum_power (=attributes) for each nodes (=feature) of load layer
     print('\nupdating load layers with power usage and cumulated power...')
-    for load_layer_name in loadLayersList:
+    for load_layer_name in loads_layers_list:
         layer = get_layer(project, load_layer_name)
         if layer.isEditable()==False:
             with edit(layer):
                 for load in list(layer.getFeatures()):
-                    loadName = get_load_name(load)
+                    load_name = get_load_name(load)
                     
-                    if loadName in grid.keys():
+                    if load_name in grid.keys():
                         field = 'power'
                         assert field in load.fields().names(), f'layer "{load_layer_name} does not have a field "{field}"'
-                        load.setAttribute(field, f"{1e-3*grid[loadName]['power'].sum()}")
+                        load.setAttribute(field, f"{1e-3*grid[load_name]['power'].sum()}")
                         
                         field = 'cum_power'
-                        if type(grid[loadName][field])!=type(None): # this can be False if load is not connected
+                        if type(grid[load_name][field])!=type(None): # this can be False if load is not connected
                             assert field in load.fields().names(), f'layer "{load_layer_name}" does not have a field "{field}"'
-                            load.setAttribute(field, f"{1e-3*sum(grid[loadName]['cum_power'])}")
+                            load.setAttribute(field, f"{1e-3*sum(grid[load_name]['cum_power'])}")
                         
                         layer.updateFeature(load)
             
         else:
-            raise ValueError(f'Layer "{loadName}" cannot be edited by nopywer '\
+            raise ValueError(f'Layer "{load_name}" cannot be edited by nopywer '\
                                 'because it is already in edit mode in QGIS. Please untoggle edit mode.')
             
     return None

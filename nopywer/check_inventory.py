@@ -178,11 +178,11 @@ def choose_distros_in_inventory(project_path: str, grid: dict, sh_name: str) -> 
     # get names of 'outputs' cols assuming they are in the "output - xxxx" format
     output_cols_head = set([col.split('-')[0][:-1] for col in df.head() if 'output' in col])
 
-    for loadName, load in grid.items():
+    for load_name, load in grid.items():
         distro = load['distro']
         if (distro['in']!=None) and (distro['out']!={}):
             if verbose:
-                print(f"\n{loadName} needs a distro with {distro}")
+                print(f"\n{load_name} needs a distro with {distro}")
 
             score_cols = ['in: ' + distro['in']] + ['out: ' + req for req in distro['out'].keys()] + ['has it all']
             scoreboard = pd.DataFrame(None, index=df.index, columns=score_cols) 
@@ -228,7 +228,7 @@ def choose_distros_in_inventory(project_path: str, grid: dict, sh_name: str) -> 
             if len(candidates)==0:
                 prt = '\t could not find a good distro :( '
                 choice = None 
-                unmatched.append(loadName)
+                unmatched.append(load_name)
 
             elif len(candidates)==1:
                 prt = '\t could find the perfect type of distro'
@@ -256,7 +256,7 @@ def choose_distros_in_inventory(project_path: str, grid: dict, sh_name: str) -> 
             choice = None 
 
         # TODO: update grid with chosen distro ?
-        # grid[loadName]['distro_chosen'] = df.loc[choice, :] 
+        # grid[load_name]['distro_chosen'] = df.loc[choice, :] 
     print(f'\ncould not find distros for the following loads: {unmatched}')
                     
     return None 

@@ -5,7 +5,7 @@ cables_layers_list:
 - norg_3phases_32A_2024
 - norg_1phase_2024
 
-loadLayersList:
+loads_layers_list:
 - norg_nodes_2024
 
 spreadsheet:
