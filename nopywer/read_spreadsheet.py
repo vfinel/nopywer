@@ -38,19 +38,19 @@ def read_spreadsheet(project_path: str, grid: dict, cables_dict: dict, sparam: d
         
         # find idx of the row in the spreadsheet
         idx = []
-        nameOnMap = load.lower().strip()
+        name_on_map = load.lower().strip()
 
         for row,x in enumerate(loadsOnSheet):
-            nameOnSheet = x.lower().strip()
-            isOnMap = (nameOnMap in nameOnSheet) and not (nameOnMap=='generator')
+            name_on_sheet = x.lower().strip()
+            is_on_map = (name_on_map in name_on_sheet) and not (name_on_map=='generator')
 
-            if isOnMap:
+            if is_on_map:
                 idx.append(row)
                 phase = sh[headers['phase']][row]
                 pwr = np.double(sh[headers['power']][row]) 
-                assert pwr!=np.nan, f'load {nameOnSheet} has no power indicated'
+                assert pwr!=np.nan, f'load {name_on_sheet} has no power indicated'
                 if verbose: 
-                    print(f"\t'{nameOnSheet}' draws {pwr}W on phase {phase} ('{load}' on the map)")
+                    print(f"\t'{name_on_sheet}' draws {pwr}W on phase {phase} ('{load}' on the map)")
     
                 if pwr>0:
                     # --- parse phase info                 
@@ -61,7 +61,7 @@ def read_spreadsheet(project_path: str, grid: dict, cables_dict: dict, sparam: d
                         if len(phase)==1:
                             phase_parsed = phase
                             if (phase=='X'):                                   
-                                has_no_phase.append(nameOnSheet)
+                                has_no_phase.append(name_on_sheet)
 
                             else:
                                 pass
@@ -70,11 +70,11 @@ def read_spreadsheet(project_path: str, grid: dict, cables_dict: dict, sparam: d
                             phase_parsed = list(map(int, phase.split(','))) # conv to a list of int
 
                     elif phase==float('nan'):
-                        has_no_phase.append(nameOnSheet)
+                        has_no_phase.append(name_on_sheet)
 
                     else:
                         print(grid[load])
-                        raise ValueError(f'{nameOnSheet} has a wrong phase assigned: {phase}')
+                        raise ValueError(f'{name_on_sheet} has a wrong phase assigned: {phase}')
                     
                     # --- store phase info in cableDict and grid
                     grid[load]['phase'] = phase_parsed
@@ -108,20 +108,20 @@ def read_spreadsheet(project_path: str, grid: dict, cables_dict: dict, sparam: d
                     del grid[load]
 
                 else:
-                    raise ValueError(f'Unable to read "{nameOnSheet}" power usage')
+                    raise ValueError(f'Unable to read "{name_on_sheet}" power usage')
                 
         # print(f"\t {load} draws {grid[load]['power']/1e3:.1f}kW on phase {grid[load]['phase']} \
         #           from {grid[load]['date']['from']} to {grid[load]['date']['to']}")
 
         if (len(idx)==0) and (load!='generator'): # load exists on the map but not on the spreadsheet
-            missingOnSheet.append(nameOnMap)
+            missingOnSheet.append(name_on_map)
 
 
     # sanity check: loop on spreadsheet to check if some are projects not on the map 
-    for idxOnSheet, nameOnSheet in enumerate(loadsOnSheet):
-        idxOnMap = [idx for idx,nameOnMap in enumerate(loadsOnMap) if (nameOnMap in nameOnSheet.lower())]
+    for idxOnSheet, name_on_sheet in enumerate(loadsOnSheet):
+        idxOnMap = [idx for idx,name_on_map in enumerate(loadsOnMap) if (name_on_map in name_on_sheet.lower())]
         if len(idxOnMap) == 0:
-            missingOnMap.append(nameOnSheet)
+            missingOnMap.append(name_on_sheet)
 
 
     print('\n!!! you should not go any further if some loads on the map are not on spreadsheet:')

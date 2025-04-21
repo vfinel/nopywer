@@ -205,13 +205,13 @@ def choose_distros_in_inventory(project_path: str, grid: dict, sh_name: str) -> 
 
                 # loop on the type of outputs the distros have in the inventory that could match(3P or 1P?)
                 inventory_col_to_check = [col for col in output_cols_head if ph_out in col]         
-                for availableOuput in inventory_col_to_check:
+                for available_ouput in inventory_col_to_check:
                     if verbose>=2:
-                        print(f"\t\t looking in the '{availableOuput}' column...")
+                        print(f"\t\t looking in the '{available_ouput}' column...")
                     
                     # find out which distro(s) have the needed type of output 
-                    has_output_rating = (df[f'{availableOuput} - current [A]'] == c_out) 
-                    has_output_qty = df.loc[:, f'{availableOuput} - quantity'] >= qty
+                    has_output_rating = (df[f'{available_ouput} - current [A]'] == c_out) 
+                    has_output_qty = df.loc[:, f'{available_ouput} - quantity'] >= qty
                     has_output[desc] = has_output[desc] | (has_output_rating & has_output_qty)
                     scoreboard.loc[:, score_cols[no]] = has_output[desc] # update score for this output
                     if verbose>=3:

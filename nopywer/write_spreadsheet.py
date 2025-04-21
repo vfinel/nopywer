@@ -30,18 +30,18 @@ def write_spreadsheet(grid: dict, sh):
     for l in range(3):
         sh[f'cumulated power L{l+1} [kW]'] = 'NA' # init columns
 
-    for loadOnMap in grid.keys():
+    for load_on_map in grid.keys():
         # cum_power from grid dict...
-        idx = [loadOnMap in nameOnSheet.lower() for nameOnSheet in sh['Project']]
-        if isinstance(grid[loadOnMap]['cum_power'], np.ndarray):
+        idx = [load_on_map in name_on_sheet.lower() for name_on_sheet in sh['Project']]
+        if isinstance(grid[load_on_map]['cum_power'], np.ndarray):
             for l in range(3):
-                sh.loc[idx, f'cumulated power L{l+1} [kW]'] = 1e-3*grid[loadOnMap]['cum_power'][l]
+                sh.loc[idx, f'cumulated power L{l+1} [kW]'] = 1e-3*grid[load_on_map]['cum_power'][l]
 
         # even if load is on map, but not on input spreadsheets, and has a parent (eg, nodes)
-        if (any(idx)==False) and (len(grid[loadOnMap]['parent'])>0):
-            tmp_dict = {'Project': loadOnMap, 'power [W]':0, 'current [A]': 0, 'phase':'NA'}
+        if (any(idx)==False) and (len(grid[load_on_map]['parent'])>0):
+            tmp_dict = {'Project': load_on_map, 'power [W]':0, 'current [A]': 0, 'phase':'NA'}
             for l in range(3):
-                tmp_dict[f'cumulated power L{l+1} [kW]'] = 1e-3*grid[loadOnMap]['cum_power'][l]
+                tmp_dict[f'cumulated power L{l+1} [kW]'] = 1e-3*grid[load_on_map]['cum_power'][l]
 
             sh = sh.append(pd.DataFrame(tmp_dict,index=[0]))
 
@@ -52,20 +52,20 @@ def write_spreadsheet(grid: dict, sh):
     # separate "norg" and "others" tab
     norg_loads = []
     other_loads = []
-    for idx, loadOnSheet in enumerate(sh['Project']):
-        isOnMap = [loadOnMap for loadOnMap in grid.keys() if loadOnMap in loadOnSheet.lower()]
+    for idx, load_on_sheet in enumerate(sh['Project']):
+        is_on_map = [load_on_map for load_on_map in grid.keys() if load_on_map in load_on_sheet.lower()]
 
-        if len(isOnMap)==1:
-            loadOnMap = isOnMap[0]
+        if len(is_on_map)==1:
+            load_on_map = is_on_map[0]
 
-        elif len(isOnMap)>1:
-            loadOnMap = [name for name in isOnMap if name==loadOnSheet][0]
+        elif len(is_on_map)>1:
+            load_on_map = [name for name in is_on_map if name==load_on_sheet][0]
 
         else:
-            loadOnMap = None
+            load_on_map = None
 
-        if (loadOnMap!=None) and (grid[loadOnMap]['parent']!=None):
-            cable_layer = grid[loadOnMap]['cable']['layer'] 
+        if (load_on_map!=None) and (grid[load_on_map]['parent']!=None):
+            cable_layer = grid[load_on_map]['cable']['layer'] 
             if "norg" in cable_layer:
                 norg_loads.append(idx)
 
