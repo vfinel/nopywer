@@ -217,7 +217,7 @@ def computeDeepnessList(grid):
     
 
 def computeDistroRequirements(grid, cablesDict):
-    ''' must be run after "inspectCableLayer" '''
+    ''' must be run after "inspect_cable_layer" '''
     verbose = 0
     print('\ncomputeDistroRequirements...')
     for load in grid.keys():
@@ -236,7 +236,7 @@ def computeDistroRequirements(grid, cablesDict):
                 print("\t\t\t can't figure out if this cable is 3P or 1P")
 
             if cable2parent['plugsAndsockets']==None:
-                raise ValueError(f"cable2parent['plugsAndsockets'] is None, run inspectCableLayer?")
+                raise ValueError(f"cable2parent['plugsAndsockets'] is None, run inspect_cable_layer?")
             else:
                 distro['in'] = f"{ph} {cable2parent['plugsAndsockets']}A"
 

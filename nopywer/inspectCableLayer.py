@@ -2,7 +2,7 @@ from qgis.core import QgsDistanceArea, QgsUnitTypes
 from .get_layer import get_layer
 
 
-def inspectCableLayers(project, cablesLayersList, cablesDict):
+def inspect_cable_layers(project, cablesLayersList, cablesDict):
     print('\n inspect cable layer:')
     verbose = 0
     inventory_3P = 785 # todo: smarter thing

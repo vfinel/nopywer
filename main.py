@@ -69,7 +69,7 @@ def run_analysis(qgs_project: QgsProject, project_folder: str, param: dict) -> t
         grid["generator"]["cumPower"] / np.mean(grid["generator"]["cumPower"])
     )
 
-    cablesDict = npw.inspectCableLayers(qgs_project, cablesLayersList, cablesDict)
+    cablesDict = npw.inspect_cable_layers(qgs_project, cablesLayersList, cablesDict)
     grid = npw.computeDistroRequirements(grid, cablesDict)
 
     print("\ncomputingVDrop...")

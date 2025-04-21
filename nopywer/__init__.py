@@ -5,7 +5,7 @@ from .cumulate_current import cumulate_current
 from .draw_layer import draw_point_layer, draw_cable_layer
 from .get_grid_geometry import get_grid_geometry, computeDistroRequirements
 from .readSpreadsheet import readSpreadsheet
-from .inspectCableLayer import inspectCableLayers
+from .inspect_cable_layer import inspect_cable_layers
 from .get_user_parameters import get_user_parameters
 from .get_constant_parameters import get_constant_parameters
 from .compute_voltage_drop import compute_voltage_drop
