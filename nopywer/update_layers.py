@@ -5,7 +5,7 @@ from .get_grid_geometry import get_load_name
 #based on https://gis.stackexchange.com/questions/428973/writing-list-as-attribute-field-in-pyqgis
 
 
-def update1PhaseLayers(grid: dict, cables: dict, project: QgsProject):
+def update_1phase_layers(grid: dict, cables: dict, project: QgsProject):
     verbose = 0
     
     print('\nupdating 1-phase layers with phase label...')
@@ -44,7 +44,7 @@ def update1PhaseLayers(grid: dict, cables: dict, project: QgsProject):
     return None
 
 
-def updateLoadLayers(grid: dict, loads_layers_list: list, project: QgsProject):
+def update_load_layers(grid: dict, loads_layers_list: list, project: QgsProject):
     # write nodes' power and cum_power (=attributes) for each nodes (=feature) of load layer
     print('\nupdating load layers with power usage and cumulated power...')
     for load_layer_name in loads_layers_list:

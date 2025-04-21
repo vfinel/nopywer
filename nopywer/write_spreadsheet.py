@@ -39,11 +39,11 @@ def write_spreadsheet(grid: dict, sh):
 
         # even if load is on map, but not on input spreadsheets, and has a parent (eg, nodes)
         if (any(idx)==False) and (len(grid[loadOnMap]['parent'])>0):
-            tmpDict = {'Project': loadOnMap, 'power [W]':0, 'current [A]': 0, 'phase':'NA'}
+            tmp_dict = {'Project': loadOnMap, 'power [W]':0, 'current [A]': 0, 'phase':'NA'}
             for l in range(3):
-                tmpDict[f'cumulated power L{l+1} [kW]'] = 1e-3*grid[loadOnMap]['cum_power'][l]
+                tmp_dict[f'cumulated power L{l+1} [kW]'] = 1e-3*grid[loadOnMap]['cum_power'][l]
 
-            sh = sh.append(pd.DataFrame(tmpDict,index=[0]))
+            sh = sh.append(pd.DataFrame(tmp_dict,index=[0]))
 
     # convert all names to lower case and sort alphabetically 
     sh['Project'] = [str(i).lower() for i in sh['Project']]  

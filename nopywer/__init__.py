@@ -10,5 +10,5 @@ from .get_user_parameters import get_user_parameters
 from .get_constant_parameters import get_constant_parameters
 from .compute_voltage_drop import compute_voltage_drop
 from .print_grid_info import print_grid_info
-from .update_layers import update1PhaseLayers, updateLoadLayers
+from .update_layers import update_1phase_layers, update_load_layers
 from .write_spreadsheet import write_spreadsheet
