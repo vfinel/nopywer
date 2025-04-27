@@ -14,9 +14,10 @@ vdrop_coef = 1  # np.sqrt(3) # todo: change coef for 1-phase vs 3-phase https://
 verbose = 0
 
 
-def compute_voltage_drop(grid: dict, cables_dict: dict, load=None):
+def compute_voltage_drop(
+    grid: dict, cables_dict: dict, load=None, verbose: bool = True
+):
     # load is supposed to be a string
-    verbose = 0
     if verbose:
         print(f"\n\t propagating vdrop to {load}")
 
@@ -43,7 +44,7 @@ def compute_voltage_drop(grid: dict, cables_dict: dict, load=None):
                 f"\t\t grid[load]['vdrop_percent']: {grid[load]['vdrop_percent']:.1f}%"
             )
 
-        if grid[load]["vdrop_percent"] > th_percent:
+        if (grid[load]["vdrop_percent"] > th_percent) and verbose:
             print(
                 f"\t /!\\ vdrop of {grid[load]['vdrop_percent']:.1f} percent at {load}"
             )
