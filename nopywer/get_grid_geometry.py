@@ -118,7 +118,9 @@ def get_load_name(load: QgsFeature) -> str:
     return load_name
 
 
-def find_connections(project, loads_layers_list, cables_layers_list, thres):
+def find_connections(
+    project, loads_layers_list, cables_layers_list, thres
+) -> tuple[dict, dict]:
     verbose = 0
     nodes_dict = {}
     cables_dict = {}
@@ -126,21 +128,19 @@ def find_connections(project, loads_layers_list, cables_layers_list, thres):
     # --- fill cables dict with lengthes
     for cable_layer_name in cables_layers_list:
         cable_layer = get_layer(project, cable_layer_name)
-        cables_dict[cable_layer_name] = [None] * len(
-            cable_layer
-        )  # init "empty" (cable) list for this layer
+        # init "empty" (cable) list for this layer
+        cables_dict[cable_layer_name] = [None] * len(cable_layer)
 
         # --- mesure distance ---  https://gis.stackexchange.com/questions/347802/calculating-elipsoidal-length-of-line-in-pyqgis
         assert project.crs() == cable_layer.crs(), (
             f"project CRS ({project.crs()}) does not match layer {cable_layer_name}'s CRS ({cable_layer.crs()}), stg is weird... "
         )
 
-        qgsDist = (
-            QgsDistanceArea()
-        )  # https://qgis.org/pyqgis/3.22/core/QgsDistanceArea.html
-        qgsDist.setSourceCrs(
-            cable_layer.crs(), project.transformContext()
-        )  # https://gis.stackexchange.com/questions/57745/how-to-get-crs-of-a-raster-layer-in-pyqgis
+        # https://qgis.org/pyqgis/3.22/core/QgsDistanceArea.html
+        qgsDist = QgsDistanceArea()
+
+        # https://gis.stackexchange.com/questions/57745/how-to-get-crs-of-a-raster-layer-in-pyqgis
+        qgsDist.setSourceCrs(cable_layer.crs(), project.transformContext())
 
         # on ellipsoids:
         #   - set global settings on qgis: https://gis.stackexchange.com/questions/341997/how-to-set-global-setting-ellipsoid-in-qgis
@@ -160,12 +160,12 @@ def find_connections(project, loads_layers_list, cables_layers_list, thres):
             raise ValueError("distance units should be meters")
 
         for cable_idx, cable in enumerate(cable_layer.getFeatures()):
-            cables_dict[cable_layer_name][cable_idx] = dict.fromkeys(
-                cables_dictModel
-            )  # init a dict to describe cable
-            cables_dict[cable_layer_name][cable_idx][
-                "nodes"
-            ] = []  # init empty list of nodes connected to this cable
+            # init a dict to describe cable
+            cables_dict[cable_layer_name][cable_idx] = dict.fromkeys(cables_dictModel)
+
+            # init empty list of nodes connected to this cable
+            cables_dict[cable_layer_name][cable_idx]["nodes"] = []
+
             cable_length = qgsDist.measureLength(cable.geometry())
             assert cable_length > 0, (
                 f"in layer '{cable_layer}', cable {cable_idx + 1} has length = 0m. It should be deleted"
@@ -202,7 +202,7 @@ def find_connections(project, loads_layers_list, cables_layers_list, thres):
                 load_pos = get_coordinates(load)
                 nodes_dict[load_name]["coordinates"] = load_pos
 
-            except Exception:  # https://stackoverflow.com/questions/4990718/how-can-i-write-a-try-except-block-that-catches-all-exceptions/4992124#4992124
+            except Exception as e:  # https://stackoverflow.com/questions/4990718/how-can-i-write-a-try-except-block-that-catches-all-exceptions/4992124#4992124
                 print(
                     f'\t there is a problem with load "{load_name}" in "{load_layer_name}" layer:'
                 )
@@ -253,7 +253,7 @@ def find_connections(project, loads_layers_list, cables_layers_list, thres):
     return nodes_dict, cables_dict
 
 
-def compute_deepness_list(grid):
+def compute_deepness_list(grid: dict) -> list:
     # --- sort loads by deepness
     dmax = 0
     for load in grid.keys():  # find max deepness
@@ -274,8 +274,12 @@ def compute_deepness_list(grid):
     return dlist
 
 
-def compute_distro_requirements(grid, cables_dict):
-    """must be run after "inspect_cable_layer" """
+def compute_distro_requirements(grid: dict, cables_dict: dict) -> dict:
+    """
+    This function adds a 'distro' dict for each load in grid.
+    Each 'distro' grid has 'in' and 'out' keys.
+    This code must be run after "inspect_cable_layer".
+    """
     verbose = 0
     print("\ncompute_distro_requirements...")
     for load in grid.keys():
@@ -298,7 +302,7 @@ def compute_distro_requirements(grid, cables_dict):
 
             if cable2parent["plugsAndsockets"] == None:
                 raise ValueError(
-                    "cable2parent['plugsAndsockets'] is None, run inspect_cable_layer?"
+                    f"cable2parent['plugsAndsockets'] is None, run inspect_cable_layer?"
                 )
             else:
                 distro["in"] = f"{ph} {cable2parent['plugsAndsockets']}A"
@@ -335,7 +339,7 @@ def compute_distro_requirements(grid, cables_dict):
 
         if verbose:
             print(f"\t\t\t in: {distro['in']}")
-            print("\t\t\t out: ")
+            print(f"\t\t\t out: ")
             for desc in distro["out"].keys():
                 print(f"\t\t\t\t {desc}: {distro['out'][desc]}")
 

@@ -8,9 +8,15 @@ from qgis.core import QgsDistanceArea
 from nopywer.minimum_spanning_tree2 import minimum_spanning_tree
 
 
+<<<<<<< HEAD
 def phase_assignment_greedy(grid: dict):
     """
     each item has the foloowing:
+=======
+def phase_assignment_greedy(grid: dict) -> dict:
+    """
+    each item has the following:
+>>>>>>> f49dee3 (format text with ruff)
     - 'power' (or 'cum_power')
             - name
             - ....
