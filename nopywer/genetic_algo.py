@@ -4,15 +4,16 @@ import matplotlib.pyplot as plt
 import networkx as nx
 
 from optimization_tools import phase_assignment_greedy
+from nopywer.get_grid_geometry import compute_deepness_list
+import nopywer as npw
+
 
 def calculate_fitness(grid, genome):
     """Calculates the fitness of a genome (lower voltage drop is better)."""
-    total_voltage_drop = 0
-    # (Placeholder - replace with actual voltage drop calculation)
-    # This would require accessing the grid structure and calculating
-    # the voltage drop along each edge in the genome.
-    # For now, just return a random value as a placeholder.
-    return random.random()  # Replace with actual calculation
+    # vdrop = analyze_power_grid
+    total_voltage_drop = random.random()  #
+
+    return total_voltage_drop
 
 
 def selection(population, fitness_scores, num_parents):
@@ -184,17 +185,53 @@ def plot_graph(G):
 
 
 def build_nopywer_grid(G: nx.DiGraph) -> tuple[dict, dict, list]:
+    """build variables expected by nopywer tools"""
+
+    # TODO: dirty assumption: all cables are in the same layer
+    cable_layer_name = "norg_3phases_63A_2024"
+    cable_r = 0.16
+    cables = {cable_layer_name: []}
+
     grid = {}
     for key, val in nx.get_node_attributes(G, "power").items():
-        grid[key] = {"power": val, "cum_power": 0}
+        cables[cable_layer_name].append({"r": cable_r, "current": 0})
 
-    cables = {}
-    dlist = []
+        parent = list(G._pred[key])
+        if len(parent) == 0:
+            parent = ""
+        elif len(parent) == 1:
+            parent = parent[0]
+        else:
+            raise ValueError("why this nodes has two parents?!")
+
+        grid[key] = {
+            "power": val,
+            "cum_power": 0,
+            "parent": parent,
+            "children": G._succ[key],
+            "cable": {
+                "layer": cable_layer_name,
+                "idx": len(cables[cable_layer_name]) - 1,
+            },
+            "deepness": 0,
+        }
+
+        # get deepness of that node
+        deepness = 0
+        parent = list(G._pred[key].keys())
+        while len(parent) > 0:
+            deepness += 1
+            parent = list(G._pred[parent[0]].keys())
+
+        grid[key]["deepness"] = deepness
+
+    dlist = compute_deepness_list(grid)
 
     return grid, cables, dlist
 
 
 def assign_phases(G: nx.DiGraph) -> dict:
+    # TODO: build a graph G ready to be imported in pandapower
     grid, _, _ = build_nopywer_grid(G)
     phases = phase_assignment_greedy(grid)
     return phases
@@ -209,12 +246,13 @@ def analyze_power_grid(G: nx.DiGraph) -> None:
     # cables_dict = npw.inspect_cable_layers(qgs_project, cables_layers_list, cables_dict)
     # grid = npw.compute_distro_requirements(grid, cables_dict)
 
-    grid, cables = npw.compute_voltage_drop(grid, cables)
+    grid, cables = npw.compute_voltage_drop(grid, cables, verbose=False)
 
     return None
 
 
 if __name__ == "__main__":
+    """ genetic algo parameters """
     population_size = 10
     num_generations = 100
     mutation_rate = 0.01
@@ -224,8 +262,16 @@ if __name__ == "__main__":
     plot_graph(population[0])
 
     """ build power grid from graph """
-    assign_phases(population[0])
-    # define grid, cable_dict, dlist
+    CONSTANTS = npw.get_constant_parameters()
+    V0 = CONSTANTS["V0"]
+    PF = CONSTANTS["PF"]
+    assign_phases(
+        population[0]
+    )  # TODO: get back updated grid with 'power' distribution
+    # or the updated graph G
+
+    # analyze graph in terms of power grids (TEST)
+    # will be used in compute_loss
     analyze_power_grid(population[0])  # to test
 
     # print("evolution ongoing...")
