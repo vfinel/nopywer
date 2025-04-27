@@ -3,6 +3,7 @@ import random
 import matplotlib.pyplot as plt
 import networkx as nx
 
+from optimization_tools import phase_assignment_greedy
 
 def calculate_fitness(grid, genome):
     """Calculates the fitness of a genome (lower voltage drop is better)."""
@@ -111,7 +112,7 @@ def load_graph():
     G = nx.DiGraph()
 
     for key, val in nodes.items():
-        G.add_node(key, position=(val["x"], val["y"]))
+        G.add_node(key, position=(val["x"], val["y"]), power=val["power"], cum_power=0)
 
     # this build a fully connected graph
     for e in edges:
@@ -127,6 +128,7 @@ def generate_initial_population(G, population_size):
     arb = nx.minimum_spanning_arborescence(G, attr="length")
     # arb = nx.DiGraph(nx.random_spanning_tree(G, weight=None))
     nx.set_node_attributes(arb, nx.get_node_attributes(G, "position"), "position")
+    nx.set_node_attributes(arb, nx.get_node_attributes(G, "power"), "power")
 
     # set generator to be the source
     arb = arborescence_from_generator(arb)
@@ -138,6 +140,8 @@ def generate_initial_population(G, population_size):
     population = []
     for g in arb_iterator:
         nx.set_node_attributes(g, nx.get_node_attributes(G, "position"), "position")
+        nx.set_node_attributes(g, nx.get_node_attributes(G, "power"), "power")
+
         g = arborescence_from_generator(g)
         # plot_graph(g)
         assert is_valid_grid(g), "g is not a valid grid"
@@ -179,6 +183,37 @@ def plot_graph(G):
     return None
 
 
+def build_nopywer_grid(G: nx.DiGraph) -> tuple[dict, dict, list]:
+    grid = {}
+    for key, val in nx.get_node_attributes(G, "power").items():
+        grid[key] = {"power": val, "cum_power": 0}
+
+    cables = {}
+    dlist = []
+
+    return grid, cables, dlist
+
+
+def assign_phases(G: nx.DiGraph) -> dict:
+    grid, _, _ = build_nopywer_grid(G)
+    phases = phase_assignment_greedy(grid)
+    return phases
+
+
+def analyze_power_grid(G: nx.DiGraph) -> None:
+    grid, cables, dlist = build_nopywer_grid(G)
+
+    # compute cumulated current
+    grid, cables = npw.cumulate_current(grid, cables, dlist, V0, PF)
+
+    # cables_dict = npw.inspect_cable_layers(qgs_project, cables_layers_list, cables_dict)
+    # grid = npw.compute_distro_requirements(grid, cables_dict)
+
+    grid, cables = npw.compute_voltage_drop(grid, cables)
+
+    return None
+
+
 if __name__ == "__main__":
     population_size = 10
     num_generations = 100
@@ -187,6 +222,11 @@ if __name__ == "__main__":
     G = load_graph()
     population = generate_initial_population(G, population_size)
     plot_graph(population[0])
+
+    """ build power grid from graph """
+    assign_phases(population[0])
+    # define grid, cable_dict, dlist
+    analyze_power_grid(population[0])  # to test
 
     # print("evolution ongoing...")
     # best_genome = run_genetic_algorithm(
