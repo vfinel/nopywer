@@ -8,7 +8,7 @@ from qgis.core import QgsDistanceArea
 from nopywer.minimum_spanning_tree2 import minimum_spanning_tree
 
 
-def phase_assignment_greedy(grid: dict, verbose: bool = False) -> dict:
+def phase_assignment_greedy(grid: dict, verbose: bool = False) -> tuple[dict, dict]:
     """
     each item has the following:
     - 'power' (or 'cum_power')
@@ -16,7 +16,11 @@ def phase_assignment_greedy(grid: dict, verbose: bool = False) -> dict:
             - ....
     """
     total_phases_dict = [{"total_load": 0}, {"total_load": 0}, {"total_load": 0}]
-
+    phases = {}
+    # the greedy algo consist of
+    # - sort the loads by decreasing power usage
+    # - for all loads, starting from the most power hungry one,
+    # -     assign it the least loaded phase
     loads_unsorted = {key: value["power"].sum() for key, value in grid.items()}
     loads = dict(sorted(loads_unsorted.items(), key=lambda x: x[1], reverse=True))
     for key, value in loads.items():
@@ -24,19 +28,26 @@ def phase_assignment_greedy(grid: dict, verbose: bool = False) -> dict:
             range(len(total_phases_dict)),
             key=lambda i: total_phases_dict[i]["total_load"],
         )
-        # grid[key]['assigned_phase'] = assigned_phase
+
         total_phases_dict[assigned_phase]["total_load"] += value
-        # TODO  grid[key]['power'] = [x, x, x] according to phase
+
+        # update 'grid' and 'phases' dictionnaries
+        phases[key] = assigned_phase
+        power_by_phase = np.zeros((1, 3))
+        power_by_phase[0, assigned_phase] = value
+        grid[key]["power"] = power_by_phase
+        grid[key]["assigned_phase"] = assigned_phase
+
         if verbose:
             print(f"{key}: {value:.0f}W, phase {assigned_phase}")
 
-    total_phases_list = [p["total_load"] for p in total_phases_dict]
-    print(f"\ntotal on phases: {total_phases_list}")
-
+    # compute phase balance
+    total_phases_list = [float(p["total_load"]) for p in total_phases_dict]
     phase_balance = 100 * np.std(total_phases_list) / np.mean(total_phases_list)
+    print(f"total on phases: {[round(1e-3 * p, 1) for p in total_phases_list]} kW")
     print(f"balance : {phase_balance:.1f}%")
 
-    return loads
+    return phases, grid
 
 
 def qgis2list(grid):

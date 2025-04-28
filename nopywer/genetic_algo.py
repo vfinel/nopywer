@@ -233,7 +233,7 @@ def build_nopywer_grid(G: nx.DiGraph) -> tuple[dict, dict, list]:
 def assign_phases(G: nx.DiGraph) -> dict:
     # TODO: build a graph G ready to be imported in pandapower
     grid, _, _ = build_nopywer_grid(G)
-    phases = phase_assignment_greedy(grid)
+    phases, _ = phase_assignment_greedy(grid)
     return phases
 
 
