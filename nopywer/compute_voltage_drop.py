@@ -52,6 +52,6 @@ def compute_voltage_drop(
     # recursive call
     children = grid[load]["children"].keys()
     for child in children:
-        [grid, cables_dict] = compute_voltage_drop(grid, cables_dict, child)
+        [grid, cables_dict] = compute_voltage_drop(grid, cables_dict, child, verbose)
 
     return grid, cables_dict
