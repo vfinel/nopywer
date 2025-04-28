@@ -8,27 +8,32 @@ from qgis.core import QgsDistanceArea
 from nopywer.minimum_spanning_tree2 import minimum_spanning_tree
 
 
-def phase_assignment_greedy(grid: dict) -> dict:
+def phase_assignment_greedy(grid: dict, verbose: bool = False) -> dict:
     """
     each item has the following:
     - 'power' (or 'cum_power')
             - name
             - ....
     """
-    phases = [{"total_load": 0}, {"total_load": 0}, {"total_load": 0}]
+    total_phases_dict = [{"total_load": 0}, {"total_load": 0}, {"total_load": 0}]
 
     loads_unsorted = {key: value["power"].sum() for key, value in grid.items()}
     loads = dict(sorted(loads_unsorted.items(), key=lambda x: x[1], reverse=True))
     for key, value in loads.items():
-        assigned_phase = min(range(len(phases)), key=lambda i: phases[i]["total_load"])
+        assigned_phase = min(
+            range(len(total_phases_dict)),
+            key=lambda i: total_phases_dict[i]["total_load"],
+        )
         # grid[key]['assigned_phase'] = assigned_phase
-        phases[assigned_phase]["total_load"] += value
-        print(f"{key}: {value:.0f}W, phase {assigned_phase}")
+        total_phases_dict[assigned_phase]["total_load"] += value
+        # TODO  grid[key]['power'] = [x, x, x] according to phase
+        if verbose:
+            print(f"{key}: {value:.0f}W, phase {assigned_phase}")
 
-    print(f"\ntotal on phases: {phases}")
-    phase_balance = 100 * np.std(
-        grid["generator"]["cum_power"] / np.mean(grid["generator"]["cum_power"])
-    )
+    total_phases_list = [p["total_load"] for p in total_phases_dict]
+    print(f"\ntotal on phases: {total_phases_list}")
+
+    phase_balance = 100 * np.std(total_phases_list) / np.mean(total_phases_list)
     print(f"balance : {phase_balance:.1f}%")
 
     return loads
