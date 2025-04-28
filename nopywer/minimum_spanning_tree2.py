@@ -2,6 +2,7 @@ from pulp import LpProblem, lpSum, LpMinimize, LpVariable, LpInteger, LpStatus, 
 import itertools
 # https://github.com/AlexBrou/Minimum-Spanning-Tree-with-Linear-Programming/blob/master/main.py
 
+
 def get_combinations(xs):
     returner = []
     for L in range(2, len(xs) + 1):
@@ -11,7 +12,6 @@ def get_combinations(xs):
 
 
 def minimum_spanning_tree(edges_with_cost):
-
     prob = LpProblem(
         "Shortest Path between 2 points with Linear Programming", LpMinimize
     )
@@ -30,7 +30,7 @@ def minimum_spanning_tree(edges_with_cost):
 
     # this array stores the names of the nodes
     nodes_names = []
-    print('defining variables...')
+    print("defining variables...")
     for s, e, c in edges_with_cost:
         # now we update the nodes_names array
         if s not in nodes_names:
@@ -53,7 +53,7 @@ def minimum_spanning_tree(edges_with_cost):
             vars_starting_with[s] = [vars_and_coords]
 
     # CONSTRAINTS
-    print('defining constraints...')
+    print("defining constraints...")
     # if N is the number of nodes, then we must have N-1 edges active
     n_active_edges = len(nodes_names) - 1
     prob += lpSum(all_vars) == n_active_edges
@@ -82,7 +82,7 @@ def minimum_spanning_tree(edges_with_cost):
     prob += lpSum(costs_to_sum)
 
     # solve and return results
-    print('solving...')
+    print("solving...")
     prob.solve()
 
     if LpStatus[prob.status] == "Optimal":

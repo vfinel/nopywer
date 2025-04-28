@@ -1,4 +1,4 @@
-print('lets go')
+print("lets go")
 from qgis.core import QgsProject
 
 layer = QgsProject.instance().mapLayersByName("1phase")[0]
@@ -8,19 +8,19 @@ layer = QgsProject.instance().mapLayersByName("1phase")[0]
 iface.setActiveLayer(layer)
 
 if gPnt.wkbType() == QgsWkbTypes.Point:
-  print(gPnt.wkbType())
-  # output: 1 for Point
+    print(gPnt.wkbType())
+    # output: 1 for Point
 
 if gLine.wkbType() == QgsWkbTypes.LineString:
-  print(gLine.wkbType())
-  # output: 2 for LineString
+    print(gLine.wkbType())
+    # output: 2 for LineString
 
 if gPolygon.wkbType() == QgsWkbTypes.Polygon:
-  print(gPolygon.wkbType())
+    print(gPolygon.wkbType())
 
-  # output: 3 for Polygon
-  
+    # output: 3 for Polygon
+
 ## Point layer
-#for f in layer.getFeatures():
+# for f in layer.getFeatures():
 #    geom = f.geometry()
 #    print ('%f, %f' % (geom.asPoint().y(), geom.asPoint().x()))
