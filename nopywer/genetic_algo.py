@@ -122,7 +122,7 @@ def load_graph():
     return G
 
 
-def generate_initial_population(G, population_size):
+def generate_initial_population(G: nx.DiGraph, population_size: int) -> list:
     """build initial population to start with"""
 
     """build a minimum spanning arborescence to start with"""
@@ -230,14 +230,15 @@ def build_nopywer_grid(G: nx.DiGraph) -> tuple[dict, dict, list]:
     return grid, cables, dlist
 
 
-def assign_phases(G: nx.DiGraph) -> dict:
+def assign_phases(G: nx.DiGraph) -> tuple[dict, nx.DiGraph]:
     # TODO: build a graph G ready to be imported in pandapower
     grid, _, _ = build_nopywer_grid(G)
     phases, _ = phase_assignment_greedy(grid)
     return phases
 
 
-def analyze_power_grid(G: nx.DiGraph) -> None:
+
+def analyze_power_grid(G: nx.DiGraph) -> float:
     grid, cables, dlist = build_nopywer_grid(G)
 
     # compute cumulated current
