@@ -2,18 +2,26 @@ import pickle
 import random
 import matplotlib.pyplot as plt
 import networkx as nx
+import numpy as np
 
 from optimization_tools import phase_assignment_greedy
 from nopywer.get_grid_geometry import compute_deepness_list
 import nopywer as npw
 
 
-def calculate_fitness(grid, genome):
+def calculate_fitness(G: nx.DiGraph, genome):
     """Calculates the fitness of a genome (lower voltage drop is better)."""
-    # vdrop = analyze_power_grid
-    total_voltage_drop = random.random()  #
 
-    return total_voltage_drop
+    # grid, _, _ = build_nopywer_grid(G)
+    vdrop = analyze_power_grid(G)
+    # vdrop = random.random()  #
+
+    # total_length = G.edge.length, or something like this...
+    # i think fitness needs to increase !! not decrease
+
+    # fitness = [1/voltage_drop, 1/length]
+
+    return vdrop
 
 
 def selection(population, fitness_scores, num_parents):
@@ -234,8 +242,9 @@ def assign_phases(G: nx.DiGraph) -> tuple[dict, nx.DiGraph]:
     # TODO: build a graph G ready to be imported in pandapower
     grid, _, _ = build_nopywer_grid(G)
     phases, _ = phase_assignment_greedy(grid)
-    return phases
+    nx.set_node_attributes(G, phases, "phases")
 
+    return phases, G
 
 
 def analyze_power_grid(G: nx.DiGraph) -> float:
@@ -248,8 +257,10 @@ def analyze_power_grid(G: nx.DiGraph) -> float:
     # grid = npw.compute_distro_requirements(grid, cables_dict)
 
     grid, cables = npw.compute_voltage_drop(grid, cables, verbose=False)
+    voltage_drop = float(np.mean([load["vdrop_percent"] for _, load in grid.items()]))
+    print(f"mean voltage drop: {voltage_drop:.1f}%")
 
-    return None
+    return voltage_drop
 
 
 if __name__ == "__main__":
@@ -266,14 +277,14 @@ if __name__ == "__main__":
     CONSTANTS = npw.get_constant_parameters()
     V0 = CONSTANTS["V0"]
     PF = CONSTANTS["PF"]
-    assign_phases(
-        population[0]
-    )  # TODO: get back updated grid with 'power' distribution
+
+    # TODO: get back updated grid with 'power' distribution
     # or the updated graph G
+    _, population[0] = assign_phases(population[0])
 
     # analyze graph in terms of power grids (TEST)
     # will be used in compute_loss
-    analyze_power_grid(population[0])  # to test
+    vdrop = analyze_power_grid(population[0])  # to test
 
     # print("evolution ongoing...")
     # best_genome = run_genetic_algorithm(
