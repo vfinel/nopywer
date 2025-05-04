@@ -7,21 +7,79 @@ import numpy as np
 from optimization_tools import phase_assignment_greedy
 from nopywer.get_grid_geometry import compute_deepness_list
 import nopywer as npw
+import pygad
 
 
-def calculate_fitness(G: nx.DiGraph, genome):
-    """Calculates the fitness of a genome (lower voltage drop is better)."""
+def calculate_fitness(G: nx.DiGraph):
+    """
+    Calculates the fitness of a genome (lower voltage drop is better).
+       Fitness function should be a function to maximize
+    """
 
-    # grid, _, _ = build_nopywer_grid(G)
+    grid, _, _ = build_nopywer_grid(G)
     vdrop = analyze_power_grid(G)
-    # vdrop = random.random()  #
 
-    # total_length = G.edge.length, or something like this...
-    # i think fitness needs to increase !! not decrease
+    total_length = G.size(weight="length")
 
     # fitness = [1/voltage_drop, 1/length]
+    fitness = 1 / vdrop
+    return fitness
 
-    return vdrop
+
+def fitness_func_pyGAD(ga_instance: pygad.GA, solution: np.ndarray, solution_idx: int):
+    """compute fitness function for pyGAD GA.
+    It must accept 3 parameters.
+    See https://pygad.readthedocs.io/en/latest/pygad.html#steps-to-use-pygad
+    """
+    G = pygad_to_nx(solution, nodes_attributes)  # call to global var
+
+    # TODO: remove all geomes that are not valid ?
+    # or regenerate valid ones ?
+    # remove loops, get generator as source, remove double inputs (pick only one randomly)
+    if is_valid_grid(G):
+        fitness = calculate_fitness(G)
+
+    else:
+        fitness = 0
+
+    return fitness
+
+
+def nx_to_pygad(G: nx.DiGraph | list) -> np.ndarray | list:
+    if isinstance(G, list):
+        adjacency_mtx = []
+        for g in G:
+            mtx = nx.to_numpy_array(g)
+            adjacency_mtx.append(mtx.flatten())
+
+    else:
+        adjacency_mtx = nx.to_numpy_array(G)
+        adjacency_mtx.flatten()
+
+    return adjacency_mtx
+
+
+def pygad_to_nx(
+    adjency_vector: np.ndarray, nodes_attributes: dict, debug: bool = False
+) -> nx.DiGraph:
+    # this is dirty, works because adjency_mtx is a global var
+    shape = adjacency_mtx.shape
+    adjency_mtx = np.reshape(adjency_vector, shape)
+    G = nx.from_numpy_array(adjency_mtx, create_using=nx.DiGraph)
+
+    # need to add power info (nodes and edges)
+    # (to be able to compute vdrop for fitness_fct)
+    node_list = list(Gfc.nodes)  # call global variable
+    mapping = {i: node for i, node in enumerate(node_list)}
+    G = nx.relabel_nodes(G, mapping)
+    nx.set_node_attributes(G, nx.get_node_attributes(Gfc, "name"), "name")
+    nx.set_node_attributes(G, nx.get_node_attributes(Gfc, "position"), "position")
+    nx.set_node_attributes(G, nx.get_node_attributes(Gfc, "power"), "power")
+
+    if debug:
+        plot_graph(G)
+
+    return G
 
 
 def selection(population, fitness_scores, num_parents):
@@ -58,7 +116,7 @@ def run_genetic_algorithm(grid, population_size, num_generations, mutation_rate)
 
     for generation in range(num_generations):
         print(f"generation {generation}")
-        fitness_scores = [calculate_fitness(grid, genome) for genome in population]
+        fitness_scores = [calculate_fitness(genome) for genome in population]
         parents = selection(population, fitness_scores, population_size // 2)
         offspring = []
         while len(offspring) < population_size:
@@ -247,7 +305,7 @@ def assign_phases(G: nx.DiGraph) -> tuple[dict, nx.DiGraph]:
     return phases, G
 
 
-def analyze_power_grid(G: nx.DiGraph) -> float:
+def analyze_power_grid(G: nx.DiGraph, verbose: bool = False) -> float:
     grid, cables, dlist = build_nopywer_grid(G)
 
     # compute cumulated current
@@ -258,20 +316,29 @@ def analyze_power_grid(G: nx.DiGraph) -> float:
 
     grid, cables = npw.compute_voltage_drop(grid, cables, verbose=False)
     voltage_drop = float(np.mean([load["vdrop_percent"] for _, load in grid.items()]))
-    print(f"mean voltage drop: {voltage_drop:.1f}%")
+    if verbose:
+        print(f"mean voltage drop: {voltage_drop:.1f}%")
 
     return voltage_drop
 
 
-if __name__ == "__main__":
-    """ genetic algo parameters """
-    population_size = 10
-    num_generations = 100
-    mutation_rate = 0.01
+def on_gen(ga_instance):
+    print(
+        f"Generation: {ga_instance.generations_completed} "
+        + f"Fitness: {ga_instance.best_solution()[1]}"
+    )
 
+
+if __name__ == "__main__":
+    population_size = 20  # 200  # 10
+
+    """ graph initialization """
+    print("generate initial population")
     G = load_graph()
     population = generate_initial_population(G, population_size)
-    plot_graph(population[0])
+    # plot_graph(population[-1])
+    Gfc = G.copy()
+    nodes_attributes = G._node
 
     """ build power grid from graph """
     CONSTANTS = npw.get_constant_parameters()
@@ -283,10 +350,59 @@ if __name__ == "__main__":
     _, population[0] = assign_phases(population[0])
 
     # analyze graph in terms of power grids (TEST)
-    # will be used in compute_loss
-    vdrop = analyze_power_grid(population[0])  # to test
+    analyze_power_grid(population[0], verbose=True)  # to test
 
-    # print("evolution ongoing...")
+    # adjacency_mtx = nx.to_numpy_array(G)
+    adjacency_mtx = nx_to_pygad(G)
+
+    """ genetic algo parameters """
+    # TODO: tune mutatio (/ swapping behaviour ?)
+    num_generations = 50
+    num_parents_mating = 10
+
+    fitness_function = fitness_func_pyGAD
+
+    sol_per_pop = population_size  # 8 ?
+    num_genes = adjacency_mtx.size
+
+    init_range_low = 0
+    init_range_high = 1
+
+    parent_selection_type = "sss"
+    keep_parents = num_parents_mating  # 1
+
+    crossover_type = "single_point"
+
+    mutation_type = "random"
+    pygag_population = nx_to_pygad(population)
+
+    ga_instance = pygad.GA(
+        num_generations=num_generations,
+        num_parents_mating=num_parents_mating,
+        fitness_func=fitness_function,
+        sol_per_pop=sol_per_pop,
+        num_genes=num_genes,
+        gene_space=[0, 1],
+        initial_population=pygag_population,
+        parent_selection_type=parent_selection_type,
+        keep_parents=keep_parents,
+        crossover_type=crossover_type,
+        mutation_type=mutation_type,
+        on_generation=on_gen,
+    )
+
+    """ evolution """
+    print("evolution ongoing...")
+    ga_instance.run()
+
+    ga_instance.plot_fitness()
+    solution, solution_fitness, solution_idx = ga_instance.best_solution()
+    _ = pygad_to_nx(solution, nodes_attributes, debug=True)
+    # print(f"Parameters of the best solution : {solution}")
+    # print(f"Fitness value of the best solution = {solution_fitness}")
+    # print(f"Index of the best solution : {solution_idx}")
+    print(f"best vdrop: {1 / solution_fitness}")
+
     # best_genome = run_genetic_algorithm(
     #     grid, population_size, num_generations, mutation_rate
     # )
