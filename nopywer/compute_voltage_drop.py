@@ -35,7 +35,7 @@ def compute_voltage_drop(grid: dict, cables_dict: dict, load=None):
 
         if verbose:
             print(
-                f"\t\t cable: length {cable['length']:.0f}m, area: {cable_area:.1f}mm²"
+                f"\t\t cable: length {cable['length']:.0f}m, area: {cable['area']:.1f}mm²"
             )
             print(f"\t\t grid[parent]['voltage']: {grid[parent]['voltage']:.0f}V")
             print(f"\t\t grid[load]['voltage']: {grid[load]['voltage']:.0f}V")
