@@ -7,14 +7,22 @@ from qgis.core import QgsApplication, QgsProject
 import nopywer as npw
 
 
-def get_project(param: dict) -> tuple[QgsProject, str, qgis._core.QgsApplication, bool]:
-    """get QGIS qgs_project and project file, and QGS application instance"""
-    qgs_project = QgsProject.instance()
+def is_running_in_qgis():
+    """get QGS application instance"""
     qgs = QgsApplication.instance()
     running_in_qgis = qgs is not None
     print(f"running in QGIS = {running_in_qgis}")
+    return running_in_qgis
+
+
+def get_project(
+    param: dict, running_in_qgis: bool
+) -> tuple[QgsProject, str, qgis._core.QgsApplication]:
+    """get QGIS qgs_project and project file"""
+    qgs_project = QgsProject.instance()
     if running_in_qgis:
         project_file = qgs_project.absoluteFilePath()
+        qgs = QgsApplication.instance()
 
     else:
         project_file, qgs = load_qgis_project(param, qgs_project)
@@ -22,7 +30,7 @@ def get_project(param: dict) -> tuple[QgsProject, str, qgis._core.QgsApplication
     print(f"project filename: {qgs_project.fileName()}\n")
     project_folder = os.path.split(project_file)[0]
 
-    return qgs_project, project_folder, qgs, running_in_qgis
+    return qgs_project, project_folder, qgs
 
 
 def load_qgis_project(
@@ -54,7 +62,7 @@ def run_analysis(
     cables_layers_list = param["cables_layers_list"]
 
     # find grid geometry
-    cables_dict, grid, dlist = npw.get_grid_geometry(qgs_project)
+    cables_dict, grid, dlist = npw.get_grid_geometry(qgs_project, param)
 
     # spreadsheet: assign phases
     # --> user manually assign phases via the spreadsheet
@@ -94,10 +102,16 @@ def run_analysis(
     return grid, cables_dict
 
 
-def main() -> tuple[dict, dict, str]:
+def main() -> tuple[dict, dict, bool]:
+    running_in_qgis = is_running_in_qgis()
+    nopywer_folder = os.path.dirname(__file__)
+    print(f"nopywer_folder: {nopywer_folder}")
+    if running_in_qgis:
+        os.chdir(nopywer_folder)
+
     param = npw.get_user_parameters()
 
-    qgs_project, project_folder, qgs, running_in_qgis = get_project(param)
+    qgs_project, project_folder, qgs = get_project(param, running_in_qgis)
     grid, cables_dict = run_analysis(qgs_project, project_folder, param)
     if not running_in_qgis:
         qgs.exitQgis()
@@ -108,4 +122,4 @@ def main() -> tuple[dict, dict, str]:
 
 
 if (__name__ == "__main__") or (QgsApplication.instance() is not None):
-    main()
+    grid, qgs_project, running_in_qgis = main()

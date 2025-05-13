@@ -1,13 +1,14 @@
-# intro 
-This code analyses power grid draw on QGIS to compute current flowing through cables, 3-phases balance, and a rough estimation of voltage drop. 
+# nopywer
 
-This is not professional software, I am neither a professionnal electrician nor a python developer. This software does not comes with any waranties or whatsoever.
+Welcome to npywer source code. Visit the homepage of the project here: https://vfinel.github.io/nopywer/
 
-This project is under development. I am learning python along the way, the code is not very pythonic yet... 
+## Introduction
 
-Contributions welcome !
+This code analyses power grid gathered from QGIS to compute current flowing through cables, 3-phases balance, and voltage drop. 
 
-# setup
+Contributions are welcome and encouraged! Please see the [CONTRIBUTING.md](CONTRIBUTING.md) file for guidelines.
+
+## Setup
 
 
 ### Configuration to run nopywer outside QGIS 
@@ -25,10 +26,11 @@ You need to install some modules in the python environment used by QGIS. To do s
 For further details see https://landscapearchaeology.org/2018/installing-python-packages-in-qgis-3-for-windows/
 
 
-## how to set up your QGIS project
+### How to set up your QGIS project
 
-### configure QGIS 
+#### Configure QGIS 
 
+prerequisites: make sure that QGIS is configured in English.
 
 prerequisites: make sure that QGIS is configured in English.
 
@@ -47,7 +49,7 @@ This part of the documentation is incomplete. In a nutshell:
         - ```worstcase power [W]```: how many watts this loads needs 
     - should NOT contains any notes or comments on the cells 
 
-## how to setup nopywer parameters 
+### How to setup nopywer parameters 
 
 To download the code, click on the green ```<> Code``` button on the top-right corner of this page, and then click on "Download ZIP". Note that if you are familiar with git, it would be best to clone the repository to get updates easily. 
 
@@ -58,20 +60,7 @@ The file ```get_user_parameters.py``` contains some fields that can be edited:
 The file ```get_constant_parameters.py``` also contains some informations you might want to look at. 
 
 
-# usage 
-
-## type of layers you'll have
-- nodes : what it is 
-- phases: what it is (3P, 11, etc) 
-
-## work on your layers 
-- do not write power usage of your nodes in qgis  
-- do not assign phases on qgis
---> nopywer reads the spreadsheet and does that for you
-(the idea is to try to use very little qgis and more automated stuff as well spreadsheets)
-
-
-## run code 
+## Usage 
 - download the nopywer code on your computer 
 - open your qgis project 
 - open the python console by typing Ctrl+Alt+P (or clicking on Plugins -> Python Console)
@@ -88,7 +77,7 @@ The file ```get_constant_parameters.py``` also contains some informations you mi
 - That's it ! The code should run, show lots of info, and conclude by "end of script for now :)"
 
 
-# troubleshooting
+## Troubleshooting
 If you have errors, please reach out (please include of copy of complete message displayed in the console). 
 
 Here are some explanations on how to interpret nopywer's output:
@@ -101,5 +90,6 @@ Here are some explanations on how to interpret nopywer's output:
 - loads which have U or Y assigned appear on the 'loads not connected to a cable' list
 --> connect them to a cable layer that nopywer is actually checking
 
-
+## Disclaimer 
+While efforts have been made to ensure this project functionality, it is provided "as is" without any warranties.
 
