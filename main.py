@@ -54,7 +54,7 @@ def run_analysis(
     cables_layers_list = param["cables_layers_list"]
 
     # find grid geometry
-    cables_dict, grid, dlist = npw.get_grid_geometry(qgs_project)
+    cables_dict, grid, dlist = npw.get_grid_geometry(qgs_project, param)
 
     # spreadsheet: assign phases
     # --> user manually assign phases via the spreadsheet
