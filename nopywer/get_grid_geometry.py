@@ -59,14 +59,8 @@ from qgis.core import QgsDistanceArea, QgsUnitTypes, QgsFeature
 from .get_layer import get_layer
 from .get_coordinates import get_coordinates
 from .get_children import get_children
-from .get_user_parameters import get_user_parameters
 import traceback
 import logging
-
-# user settings
-param = get_user_parameters()
-loads_layers_list = param["loads_layers_list"]
-cables_layers_list = param["cables_layers_list"]
 
 thres = 5  # [meters] threshold to detect cable and load connections
 nodes_dictModel = [
@@ -118,7 +112,9 @@ def get_load_name(load: QgsFeature) -> str:
     return load_name
 
 
-def find_connections(project, loads_layers_list, cables_layers_list, thres):
+def find_connections(
+    project, loads_layers_list, cables_layers_list, extra_cable_length, thres
+) -> tuple[dict, dict]:
     verbose = 0
     nodes_dict = {}
     cables_dict = {}
@@ -171,7 +167,7 @@ def find_connections(project, loads_layers_list, cables_layers_list, thres):
                 f"in layer '{cable_layer}', cable {cable_idx + 1} has length = 0m. It should be deleted"
             )
             cables_dict[cable_layer_name][cable_idx]["length"] = (
-                cable_length + param["extra_cable_length"]
+                cable_length + extra_cable_length
             )
             cables_dict[cable_layer_name][cable_idx]["area"] = cable.attribute("area")
             cables_dict[cable_layer_name][cable_idx]["plugsAndsockets"] = (
@@ -342,14 +338,21 @@ def compute_distro_requirements(grid, cables_dict):
     return grid
 
 
-def get_grid_geometry(project):
+def get_grid_geometry(project, param: dict):
     verbose = 0
     if verbose:
         print("get grid geometry: \nfind_connections")
 
+    loads_layers_list = param["loads_layers_list"]
+    cables_layers_list = param["cables_layers_list"]
+
     # 1. find connections between loads and cables (find what load is plugged into what cable, and vice-versa)
     nodes_dict, cables_dict = find_connections(
-        project, loads_layers_list, cables_layers_list, thres
+        project,
+        loads_layers_list,
+        cables_layers_list,
+        param["extra_cable_length"],
+        thres,
     )
 
     # 2. find connections between nodes to get the "flow direction":
@@ -358,6 +361,7 @@ def get_grid_geometry(project):
     # We'll start with "generator" node, get its children, then check its children's children, etc
     if verbose:
         print("\nget_children")
+
     grid = get_children("generator", nodes_dict, cables_dict)
     grid = grid[0]
 
