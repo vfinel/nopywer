@@ -258,7 +258,7 @@ def plot_graph(G):
     # }
     # nx.draw_networkx_edge_labels(G, pos, edge_labels=labels)
 
-    plt.show()
+    # plt.show()
 
     return None
 
@@ -342,6 +342,28 @@ def on_gen(ga_instance):
     )
 
 
+def label_adjacency_mtx():
+    plt.xlabel("dest")
+    plt.ylabel("src")
+    plt.xticks(
+        range(len(nodes_list)),
+        nodes_list,
+        size="small",
+        rotation="vertical",
+    )
+
+    plt.yticks(  # TODO: how can i avoid copy pasting here ?
+        range(len(nodes_list)),
+        nodes_list,
+        size="small",
+        rotation="horizontal",
+    )
+
+    plt.grid()
+
+    return None
+
+
 if __name__ == "__main__":
     population_size = 20  # 200  # 10
 
@@ -358,6 +380,21 @@ if __name__ == "__main__":
     Gfc = G.copy()  # this is a shallow copy... not so interesting
     nodes_attributes = G._node
     adjacency_mtx = nx_to_pygad(G, nodes_list)
+
+    s = len(nodes_attributes)
+    for i, g in enumerate(population):
+        if True:
+            plt.figure(1)
+            plt.subplot(1, 2, 1)
+            plot_graph(g)
+            plt.title(f"pop {i}")
+
+            # plot adj matrix of that grid
+            plt.subplot(1, 2, 2)
+            grid = np.reshape(pop0_pygad[i], (s, s))
+            plt.imshow(grid)
+            label_adjacency_mtx()
+            plt.show()
 
     """ build power grid from graph """
     CONSTANTS = npw.get_constant_parameters()
