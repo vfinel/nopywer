@@ -1,8 +1,10 @@
+from os import listvolumes
 import pickle
 import random
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
+import copy
 
 from optimization_tools import phase_assignment_greedy
 from nopywer.get_grid_geometry import compute_deepness_list
@@ -31,7 +33,7 @@ def fitness_func_pyGAD(ga_instance: pygad.GA, solution: np.ndarray, solution_idx
     It must accept 3 parameters.
     See https://pygad.readthedocs.io/en/latest/pygad.html#steps-to-use-pygad
     """
-    G = pygad_to_nx(solution, nodes_attributes)  # call to global var
+    G = pygad_to_nx(solution, nodes_list, nodes_attributes)  # call to global var
 
     # TODO: remove all geomes that are not valid ?
     # or regenerate valid ones ?
@@ -45,27 +47,28 @@ def fitness_func_pyGAD(ga_instance: pygad.GA, solution: np.ndarray, solution_idx
     return fitness
 
 
-def nx_to_pygad(G: nx.DiGraph | list) -> np.ndarray | list:
+def nx_to_pygad(G: nx.DiGraph | list, nodes_list: list) -> np.ndarray | list:
     if isinstance(G, list):
         adjacency_mtx = []
         for g in G:
-            mtx = nx.to_numpy_array(g)
+            mtx = nx.to_numpy_array(g, nodelist=nodes_list)
             adjacency_mtx.append(mtx.flatten())
 
     else:
-        adjacency_mtx = nx.to_numpy_array(G)
+        adjacency_mtx = nx.to_numpy_array(G, nodelist=nodes_list)
         adjacency_mtx.flatten()
 
     return adjacency_mtx
 
 
 def pygad_to_nx(
-    adjency_vector: np.ndarray, nodes_attributes: dict, debug: bool = False
+    adjency_vector: np.ndarray, nodes_list, nodes_attributes: dict, debug: bool = False
 ) -> nx.DiGraph:
+    # TODO: verifier que pygad_to_nx(nx_to_pygad(G)) == G
     # this is dirty, works because adjency_mtx is a global var
     shape = adjacency_mtx.shape
     adjency_mtx = np.reshape(adjency_vector, shape)
-    G = nx.from_numpy_array(adjency_mtx, create_using=nx.DiGraph)
+    G = nx.from_numpy_array(adjency_mtx, nodelist=nodes_list, create_using=nx.DiGraph)
 
     # need to add power info (nodes and edges)
     # (to be able to compute vdrop for fitness_fct)
@@ -185,7 +188,17 @@ def load_graph():
     for e in edges:
         G.add_edge(e[0], e[1], length=e[2])
 
-    return G
+    # get nodes list
+    nodes_list = list(G.nodes())
+
+    # reorder it: place generator first
+    idx_generator = nodes_list.index("generator")
+    idx_reorder = list(range(len(nodes_list)))
+    idx_reorder.remove(idx_generator)
+    idx_reorder.insert(0, idx_generator)
+    nodes_list = [nodes_list[i] for i in idx_reorder]
+
+    return G, nodes_list
 
 
 def generate_initial_population(G: nx.DiGraph, population_size: int) -> list:
@@ -334,11 +347,17 @@ if __name__ == "__main__":
 
     """ graph initialization """
     print("generate initial population")
-    G = load_graph()
+    G, nodes_list = load_graph()
     population = generate_initial_population(G, population_size)
-    # plot_graph(population[-1])
-    Gfc = G.copy()
+
+    # create a copy
+    # TODO: reorg and clean...
+    # https://networkx.org/documentation/stable/reference/classes/generated/networkx.Graph.copy.html
+    # https://stackoverflow.com/questions/39555831/how-do-i-copy-but-not-deepcopy-a-networkx-graph
+    # https://stackoverflow.com/questions/73501589/how-to-share-nodes-between-graphs-in-networkx
+    Gfc = G.copy()  # this is a shallow copy... not so interesting
     nodes_attributes = G._node
+    adjacency_mtx = nx_to_pygad(G, nodes_list)
 
     """ build power grid from graph """
     CONSTANTS = npw.get_constant_parameters()
@@ -353,7 +372,6 @@ if __name__ == "__main__":
     analyze_power_grid(population[0], verbose=True)  # to test
 
     # adjacency_mtx = nx.to_numpy_array(G)
-    adjacency_mtx = nx_to_pygad(G)
 
     """ genetic algo parameters """
     # TODO: tune mutatio (/ swapping behaviour ?)
@@ -397,7 +415,7 @@ if __name__ == "__main__":
 
     ga_instance.plot_fitness()
     solution, solution_fitness, solution_idx = ga_instance.best_solution()
-    _ = pygad_to_nx(solution, nodes_attributes, debug=True)
+    _ = pygad_to_nx(solution, nodes_list, nodes_attributes, debug=True)
     # print(f"Parameters of the best solution : {solution}")
     # print(f"Fitness value of the best solution = {solution_fitness}")
     # print(f"Index of the best solution : {solution_idx}")
