@@ -102,15 +102,62 @@ def crossover(parent1, parent2):
     return offspring
 
 
-def mutation(genome, mutation_rate):
-    """Applies mutation to a genome."""
-    # (Placeholder - replace with a mutation algorithm)
-    # For now, just randomly swap two elements in the genome.
-    if len(genome) > 0 and (random.random() < mutation_rate):
-        index1 = random.randint(0, len(genome) - 1)
-        index2 = random.randint(0, len(genome) - 1)
-        genome[index1], genome[index2] = genome[index2], genome[index1]
-    return genome
+def mutation(population: list, ga_instance, plot: bool = True):
+    """
+    Apply mutation to a graph
+    https://gist.github.com/josephlewisjgl/16fad9765b826a5d59a35009c709ebbc#file-ga_mutation-py
+    """
+
+    s = int(len(population[0]) ** 0.5)
+    for idx, individual in enumerate(population):
+        # get adjacency matrix
+        grid = np.reshape(individual, (s, s))
+        # grid0 = grid.copy()  # to plot !! deepcopy ?!??!
+        grid0 = copy.deepcopy(grid)
+
+        # randomly selec a load, and connect it elsewhere
+        mutate = True
+        if mutate:
+            dest_idx = 1  # 1 = MoN
+            new_src = 3  # 3 = werhaus
+            dest_idx = random.randint(0, s - 1)
+            new_src = random.randint(0, s - 1)
+            grid[:, dest_idx] = np.zeros((1, s))  # reset
+            grid[new_src, dest_idx] = 1  # update
+            # TODO:
+            #   - check if grid is valid, otherwise, reject mutation ?
+            #   - do mutation but only with new_src that are close enough of the dest (eg, <150m)
+
+        # update grid
+        population[idx] = grid.flatten()
+
+        if plot:
+            plt.figure(3)
+            plt.clf()
+            plt.subplot(1, 3, 1)
+            plt.imshow(grid0)
+            plt.xlabel("dest")
+            plt.ylabel("src")
+            label_adjacency_mtx()
+            plt.title("original")
+
+            plt.subplot(1, 3, 2)
+            plt.imshow(grid)
+            plt.xlabel("dest")
+            plt.ylabel("src")
+            label_adjacency_mtx()
+            plt.title("mutation")
+
+            plt.subplot(1, 3, 3)
+            plt.imshow(grid - grid0)
+            plt.xlabel("dest")
+            plt.ylabel("src")
+            label_adjacency_mtx()
+            plt.title("diff")
+
+            plt.show()
+
+    return population
 
 
 def run_genetic_algorithm(grid, population_size, num_generations, mutation_rate):
@@ -381,10 +428,15 @@ if __name__ == "__main__":
     nodes_attributes = G._node
     adjacency_mtx = nx_to_pygad(G, nodes_list)
 
+    pop0_pygad = nx_to_pygad(population, nodes_list)
+    popm_pygad = mutation(pop0_pygad, None, plot=False)
+    popm_nx = [pygad_to_nx(p, nodes_list, nodes_attributes) for p in popm_pygad]
+
     s = len(nodes_attributes)
     for i, g in enumerate(population):
         if True:
             plt.figure(1)
+            plt.clf()
             plt.subplot(1, 2, 1)
             plot_graph(g)
             plt.title(f"pop {i}")
@@ -394,6 +446,14 @@ if __name__ == "__main__":
             grid = np.reshape(pop0_pygad[i], (s, s))
             plt.imshow(grid)
             label_adjacency_mtx()
+            plt.show()
+
+        if True:
+            # plot mutation exmple
+            plt.figure(2)
+            plt.clf()
+            plot_graph(popm_nx[i])
+            plt.title(f"pop {i}")
             plt.show()
 
     """ build power grid from graph """
@@ -429,7 +489,7 @@ if __name__ == "__main__":
     crossover_type = "single_point"
 
     mutation_type = "random"
-    pygag_population = nx_to_pygad(population)
+    pygag_population = popm_pygad
 
     ga_instance = pygad.GA(
         num_generations=num_generations,
