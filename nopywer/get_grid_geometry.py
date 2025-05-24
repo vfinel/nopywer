@@ -35,24 +35,11 @@ from qgis.core import QgsDistanceArea, QgsUnitTypes, QgsFeature
 from .get_layer import get_layer
 from .get_coordinates import get_coordinates
 from .get_children import get_children
-from .core_objects import Cable
+from .core_objects import Cable, Node
 import traceback
 import logging
 
-thres = 5  # [meters] threshold to detect cable and load connections
-nodes_dictModel = [
-    "_cable",
-    "parent",
-    "children",
-    "deepness",
-    "cable",
-    "power",
-    "phase",
-    "date",
-    "cum_power",
-    "distro",
-]
-
+thres = 5  # [meters] threshold to detect cable and load connection
 verbose = 0
 
 
@@ -80,15 +67,11 @@ def get_load_name(load: QgsFeature) -> str:
     return load_name
 
 
-def find_connections(
-    project, loads_layers_list, cables_layers_list, extra_cable_length, thres
-) -> tuple[dict, dict]:
-    verbose = 0
-    nodes_dict = {}
+def get_cables_info(project, cables_layers_list, extra_cable_length) -> dict:
+    """get cables info (layers' CRS and cables attributes"""
+
     cables_dict = {}
 
-    # --- get cables info (layers' CRS and cables attributes)
-    # TODO: make a function, to make find_connections() easier to read
     for cable_layer_name in cables_layers_list:
         cable_layer = get_layer(project, cable_layer_name)
         cables_dict[cable_layer_name] = [None] * len(cable_layer)
@@ -130,6 +113,9 @@ def find_connections(
                     area=cable_qgis.attribute("area"),
                     plugs_and_sockets=cable_qgis.attribute(r"plugs&sockets"),
                 )
+                cable_nopywer.coordinates = get_coordinates(cable_qgis)
+                cable_nopywer._layer_name = cable_layer_name
+                cable_nopywer._id = cable_idx
 
             except Exception as error:
                 raise ValueError(
@@ -138,11 +124,17 @@ def find_connections(
 
             cables_dict[cable_layer_name][cable_idx] = cable_nopywer
 
-    # --- find connections
+    return cables_dict
+
+
+def get_loads_info(project, loads_layers_list) -> dict:
+    """get loads info"""
+    nodes_dict = {}
     for load_layer_name in loads_layers_list:
         load_layer = get_layer(project, load_layer_name)
         if verbose:
             print(f"loads layer = {load_layer}")
+
         field = "name"
         assert field in load_layer.fields().names(), (
             f'layer "{load_layer_name}" does not have a field "{field}"'
@@ -153,14 +145,12 @@ def find_connections(
             if verbose:
                 print(f"\t load {load_name}")
 
-            # init a dict for that node
-            nodes_dict[load_name] = dict.fromkeys(nodes_dictModel)
-            nodes_dict[load_name]["_cable"] = []
+            # init a Node for that node
+            nodes_dict[load_name] = Node(name=load_name)
 
-            # --- find which cable(s) are connected to that load
             try:
                 load_pos = get_coordinates(load)
-                nodes_dict[load_name]["coordinates"] = load_pos
+                nodes_dict[load_name].coordinates = load_pos
 
             except Exception:  # https://stackoverflow.com/questions/4990718/how-can-i-write-a-try-except-block-that-catches-all-exceptions/4992124#4992124
                 print(
@@ -168,45 +158,50 @@ def find_connections(
                 )
                 logging.error(traceback.format_exc())  # Logs the error appropriately.
 
-            is_load_connected = False
-            for cable_layer_name in cables_layers_list:
-                cable_layer = get_layer(project, cable_layer_name)
-                for cable_idx, cable in enumerate(cable_layer.getFeatures()):
-                    cable_pos = get_coordinates(
-                        cable
-                    )  # TODO: check correctness of distance ??
+    return nodes_dict
 
-                    elist = list()  # elist = extremities list. one list for each cable. todo: use numpy array ?
-                    for (
-                        extrem
-                    ) in cable_pos:  # compute distance load-extremities of the cable
-                        elist.append(qgsDist.measureLine(load_pos, extrem))
 
-                    dmin = min(elist)
-                    if dmin <= thres:  # we found a connection
-                        # TODO: would be better to do the test outside cable loop (see below)
-                        is_load_connected = True
-                        if verbose:
-                            print(
-                                f'\t\t in cable layer "{cable_layer_name}", cable {cable.id()} is connected to "{load_name}"'
-                            )
+def is_load_connected(cable, load, qgsDist):
+    verbose = load.name == "generator"
 
-                        # update dicts
-                        cables_dict[cable_layer_name][cable_idx].nodes.append(load_name)
-                        nodes_dict[load_name]["_cable"].append(
-                            {"layer": cable_layer_name, "idx": cable_idx}
-                        )
+    # compute distance load-extremities of the cable and store it
+    # TODO: check correctness of distance ??
+    elist = [
+        qgsDist.measureLine(load.coordinates, extrem) for extrem in cable.coordinates
+    ]
 
-            if verbose:
-                if is_load_connected == 0:
-                    print(f"\t{load_name} is NOT connected")
+    dmin = min(elist)
+    is_load_connected = dmin <= thres
+    if is_load_connected and verbose:
+        print(
+            f'\t\t in cable layer "{cable._layer_name}", cable {cable._id} is connected to "{load.name}"'
+        )
 
-                else:
-                    print(f"\t{load_name} is connected")
+    return is_load_connected
 
-                # TODO here:
-                # in the list of cables, test if one (or more) is closer than threshold
-                # if not, throw an error
+
+def find_connections(
+    project, loads_layers_list, cables_layers_list, extra_cable_length, thres
+) -> tuple[dict, dict]:
+    verbose = 1
+    qgsDist = QgsDistanceArea()
+    cables_dict = get_cables_info(project, cables_layers_list, extra_cable_length)
+    nodes_dict = get_loads_info(project, loads_layers_list)
+
+    # find connections : for each node, loop through all cables until you find close enough to the load
+    for load in nodes_dict.values():
+        for cable_layer in cables_dict.values():
+            for cable in cable_layer:
+                if is_load_connected(cable, load, qgsDist):
+                    cables_dict[cable._layer_name][cable._id].nodes.append(load.name)
+                    load.cables.append({"layer": cable._layer_name, "idx": cable._id})
+
+        if verbose:
+            if is_load_connected == 0:
+                print(f"\t{load.name} is NOT connected")
+
+            else:
+                print(f"\t{load.name} is connected to {len(load.cables)} cable(s)")
 
     return nodes_dict, cables_dict
 
@@ -215,35 +210,31 @@ def compute_deepness_list(grid):
     # --- sort loads by deepness
     dmax = 0
     for load in grid.keys():  # find max deepness
-        deepness = grid[load]["deepness"]
-        if deepness != None:
-            dmax = max(dmax, grid[load]["deepness"])
+        deepness = grid[load].deepness
+        if deepness is not None:
+            dmax = max(dmax, grid[load].deepness)
 
     dlist = [None] * (dmax + 1)
     for load in grid.keys():
-        deepness = grid[load]["deepness"]
-        if deepness != None:
-            # print(f"load {load} has deepness {deepness} together with {dlist[deepness]}")
-            if dlist[deepness] == None:
+        deepness = grid[load].deepness
+        if deepness is not None:
+            if dlist[deepness] is None:
                 dlist[deepness] = []
-
             dlist[deepness].append(load)
-
     return dlist
 
 
 def compute_distro_requirements(grid, cables_dict):
-    """must be run after "inspect_cable_layer" """
+    """must be run after 'inspect_cable_layer'"""
     verbose = 0
     print("\ncompute_distro_requirements...")
-    for load in grid.keys():
-        distro = dict.fromkeys(["in", "out"])
+    for load in grid.values():
         if verbose:
-            print(f"\n\t\t {load}:")
+            print(f"\n\t\t {load.name}:")
 
         # --- checking input...
-        if (grid[load]["parent"] != None) and (len(grid[load]["parent"]) > 0):
-            cable2parent_ref = grid[load]["cable"]
+        if (load.parent is not None) and (len(load.parent) > 0):
+            cable2parent_ref = load.cable
             cable2parent = cables_dict[cable2parent_ref["layer"]][
                 cable2parent_ref["idx"]
             ]
@@ -254,22 +245,21 @@ def compute_distro_requirements(grid, cables_dict):
             else:
                 print("\t\t\t can't figure out if this cable is 3P or 1P")
 
-            if cable2parent.plugs_and_sockets == None:
+            if cable2parent.plugs_and_sockets is None:
                 raise ValueError(
                     "cable2parent.plugs_and_sockets is None, run inspect_cable_layer?"
                 )
             else:
-                distro["in"] = f"{ph} {cable2parent.plugs_and_sockets}A"
+                load.distro["in"] = f"{ph} {cable2parent.plugs_and_sockets}A"
 
         elif load == "generator":
-            distro["in"] = "3P 125A"
+            load.distro["in"] = "3P 125A"
 
         # --- checking output...
-        distro["out"] = {}
-        if grid[load]["children"] != None:
+        load.distro["out"] = {}
+        if load.children is not None:
             cables2children_ref = [
-                grid[load]["children"][child]["cable"]
-                for child in grid[load]["children"]
+                load.children[child]["cable"] for child in load.children
             ]
             cables2children = [
                 cables_dict[c["layer"]][c["idx"]] for c in cables2children_ref
@@ -284,18 +274,16 @@ def compute_distro_requirements(grid, cables_dict):
 
                 rating = f"{cable.plugs_and_sockets}A"
                 desc = f"{ph} {rating}"
-                if desc not in distro["out"]:
-                    distro["out"][desc] = 1
+                if desc not in load.distro["out"]:
+                    load.distro["out"][desc] = 1
                 else:
-                    distro["out"][desc] += 1
-
-        grid[load]["distro"] = distro
+                    load.distro["out"][desc] += 1
 
         if verbose:
-            print(f"\t\t\t in: {distro['in']}")
+            print(f"\t\t\t in: {load.distro['in']}")
             print("\t\t\t out: ")
-            for desc in distro["out"].keys():
-                print(f"\t\t\t\t {desc}: {distro['out'][desc]}")
+            for desc in load.distro["out"].keys():
+                print(f"\t\t\t\t {desc}: {load.distro['out'][desc]}")
 
     return grid
 
@@ -316,6 +304,9 @@ def get_grid_geometry(project, param: dict):
         param["extra_cable_length"],
         thres,
     )
+    assert len(nodes_dict["generator"].cables) == 7, (
+        f"generator should have 7 cables connected to it, but has {len(nodes_dict['generator'].cables)}"
+    )
 
     # 2. find connections between nodes to get the "flow direction":
     # Now, all cables that are connected to something are (supposed to be) stored in cables_dict.
@@ -330,11 +321,10 @@ def get_grid_geometry(project, param: dict):
     # --- for each load, add "cable to daddy" information
     for load in grid.keys():
         if load != "generator":
-            parent = grid[load]["parent"]
+            parent = grid[load].parent
             if parent != None:
-                cable2parent = grid[parent]["children"][load]["cable"]
-                grid[load]["cable"] = cable2parent
-                # grid[load]['cable'].update(cables_dict[cable2parent['layer']][cable2parent['idx']]) # add info from cable_dict
+                cable2parent = grid[parent].children[load]["cable"]
+                grid[load].cable = cable2parent
 
     dlist = compute_deepness_list(grid)
 

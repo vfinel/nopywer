@@ -226,7 +226,7 @@ def choose_distros_in_inventory(project_path: str, grid: dict, sh_name: str) -> 
     )
 
     for load_name, load in grid.items():
-        distro = load["distro"]
+        distro = load.distro
         if (distro["in"] != None) and (distro["out"] != {}):
             if verbose:
                 print(f"\n{load_name} needs a distro with {distro}")

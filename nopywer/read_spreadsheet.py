@@ -42,7 +42,7 @@ def read_spreadsheet(
 
     # loop through loads on the map and find corresponding info on the spreadsheet
     for load in loads_on_map:
-        grid[load]["power"] = np.array([0.0] * 3)
+        grid[load].power = np.array([0.0] * 3)
 
         # find idx of the row in the spreadsheet
         idx = []
@@ -93,28 +93,28 @@ def read_spreadsheet(
                         )
 
                     # --- store phase info in cable_dict and grid
-                    grid[load]["phase"] = phase_parsed
-                    if grid[load]["cable"] != None:
-                        cable_layer = grid[load]["cable"]["layer"]
-                        cable_idx = grid[load]["cable"]["idx"]
+                    grid[load].phase = phase_parsed
+                    if grid[load].cable != {}:
+                        cable_layer = grid[load].cable["layer"]
+                        cable_idx = grid[load].cable["idx"]
                         cables_dict[cable_layer][cable_idx].phase = phase_parsed
-                        # grid[load]['cable'].update(cables_dict[cable2parent['layer']][cable2parent['idx']]) # add info from cable_dict
+                        # grid[load].cable.update(cables_dict[cable2parent['layer']][cable2parent['idx']]) # add info from cable_dict
 
                     # --- deduce and store power info
                     if isinstance(phase_parsed, int):
-                        grid[load]["power"][phase_parsed - 1] += pwr
+                        grid[load].power[phase_parsed - 1] += pwr
 
                     elif isinstance(phase_parsed, list):
-                        grid[load]["power"][[p - 1 for p in phase_parsed]] += pwr / len(
+                        grid[load].power[[p - 1 for p in phase_parsed]] += pwr / len(
                             phase_parsed
                         )
 
                     elif isinstance(phase_parsed, str):  # one-letter string
                         if phase == "T":
-                            grid[load]["power"] += pwr / 3
+                            grid[load].power += pwr / 3
 
                         else:
-                            grid[load]["power"] = pwr
+                            grid[load].power = pwr
 
                     # store date info:
                     #   grid[load]['date'] = dict()
