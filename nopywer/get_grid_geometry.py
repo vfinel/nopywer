@@ -35,6 +35,7 @@ from qgis.core import QgsDistanceArea, QgsUnitTypes, QgsFeature
 from .get_layer import get_layer
 from .get_coordinates import get_coordinates
 from .get_children import get_children
+from .core_objects import Cable
 import traceback
 import logging
 
@@ -50,15 +51,6 @@ nodes_dictModel = [
     "date",
     "cum_power",
     "distro",
-]
-cables_dictModel = [
-    "nodes",
-    "length",
-    "phase",
-    "area",
-    "current",
-    "r",
-    "plugsAndsockets",
 ]
 
 verbose = 0
@@ -96,10 +88,12 @@ def find_connections(
     cables_dict = {}
 
     # --- get cables info (layers' CRS and cables attributes)
+    # TODO: make a function, to make find_connections() easier to read
     for cable_layer_name in cables_layers_list:
         cable_layer = get_layer(project, cable_layer_name)
         cables_dict[cable_layer_name] = [None] * len(cable_layer)
 
+        # --- check cable CRS to measure distances
         # tips to mesure distance https://gis.stackexchange.com/questions/347802/calculating-elipsoidal-length-of-line-in-pyqgis
         assert project.crs() == cable_layer.crs(), (
             f"project CRS ({project.crs()}) does not match layer {cable_layer_name}'s CRS ({cable_layer.crs()}), stg is weird... "
@@ -123,17 +117,26 @@ def find_connections(
             )
             raise ValueError("distance units should be meters")
 
-        for cable_idx, cable in enumerate(cable_layer.getFeatures()):
-            cable_dict = dict.fromkeys(cables_dictModel)
-            cable_dict["nodes"] = []
-            cable_length = qgsDist.measureLength(cable.geometry())
+        # --- get info from each cable of the current cable layer
+        for cable_idx, cable_qgis in enumerate(cable_layer.getFeatures()):
+            cable_length = qgsDist.measureLength(cable_qgis.geometry())
             assert cable_length > 0, (
-                f"in layer '{cable_layer}', cable {cable_idx + 1} has length = 0m. It should be deleted"
+                f"in layer '{cable_layer}', cable_qgis {cable_idx + 1} has length = 0m. It should be deleted"
             )
-            cable_dict["length"] = cable_length + extra_cable_length
-            cable_dict["area"] = cable.attribute("area")
-            cable_dict["plugsAndsockets"] = cable.attribute(r"plugs&sockets")
-            cables_dict[cable_layer_name][cable_idx] = cable_dict
+
+            try:
+                cable_nopywer = Cable(
+                    length=cable_length + extra_cable_length,
+                    area=cable_qgis.attribute("area"),
+                    plugs_and_sockets=cable_qgis.attribute(r"plugs&sockets"),
+                )
+
+            except Exception as error:
+                raise ValueError(
+                    f"There is a problem with the cable number {cable_idx + 1} of layer {cable_layer_name}: \n{repr(error)}"
+                )
+
+            cables_dict[cable_layer_name][cable_idx] = cable_nopywer
 
     # --- find connections
     for load_layer_name in loads_layers_list:
@@ -189,9 +192,7 @@ def find_connections(
                             )
 
                         # update dicts
-                        cables_dict[cable_layer_name][cable_idx]["nodes"].append(
-                            load_name
-                        )
+                        cables_dict[cable_layer_name][cable_idx].nodes.append(load_name)
                         nodes_dict[load_name]["_cable"].append(
                             {"layer": cable_layer_name, "idx": cable_idx}
                         )
@@ -253,12 +254,12 @@ def compute_distro_requirements(grid, cables_dict):
             else:
                 print("\t\t\t can't figure out if this cable is 3P or 1P")
 
-            if cable2parent["plugsAndsockets"] == None:
+            if cable2parent.plugs_and_sockets == None:
                 raise ValueError(
-                    "cable2parent['plugsAndsockets'] is None, run inspect_cable_layer?"
+                    "cable2parent.plugs_and_sockets is None, run inspect_cable_layer?"
                 )
             else:
-                distro["in"] = f"{ph} {cable2parent['plugsAndsockets']}A"
+                distro["in"] = f"{ph} {cable2parent.plugs_and_sockets}A"
 
         elif load == "generator":
             distro["in"] = "3P 125A"
@@ -281,7 +282,7 @@ def compute_distro_requirements(grid, cables_dict):
                 else:
                     print("\t\t\t can't figure out if this cable is 3P or 1P")
 
-                rating = f"{cable['plugsAndsockets']}A"
+                rating = f"{cable.plugs_and_sockets}A"
                 desc = f"{ph} {rating}"
                 if desc not in distro["out"]:
                     distro["out"][desc] = 1

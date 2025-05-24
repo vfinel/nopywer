@@ -27,7 +27,7 @@ def cumulate_current(grid, cables_dict, dlist, V0, PF):
             cable = cables_dict[grid[load]["cable"]["layer"]][
                 grid[load]["cable"]["idx"]
             ]
-            cable["current"] = list(
+            cable.current = list(
                 grid[load]["cum_power"] / V0 / PF
             )  # todo: constant power or constant voltage ?
 

@@ -29,14 +29,12 @@ def compute_voltage_drop(grid: dict, cables_dict: dict, load=None):
         parent = grid[load]["parent"]
         cable = cables_dict[grid[load]["cable"]["layer"]][grid[load]["cable"]["idx"]]
 
-        cable["vdrop_volts"] = vdrop_coef * cable["r"] * np.max(cable["current"])
-        grid[load]["voltage"] = grid[parent]["voltage"] - cable["vdrop_volts"]
+        cable.vdrop_volts = vdrop_coef * cable.r * np.max(cable.current)
+        grid[load]["voltage"] = grid[parent]["voltage"] - cable.vdrop_volts
         grid[load]["vdrop_percent"] = 100 * (V0 - grid[load]["voltage"]) / vdrop_ref
 
         if verbose:
-            print(
-                f"\t\t cable: length {cable['length']:.0f}m, area: {cable['area']:.1f}mm²"
-            )
+            print(f"\t\t cable: length {cable.length:.0f}m, area: {cable.area:.1f}mm²")
             print(f"\t\t grid[parent]['voltage']: {grid[parent]['voltage']:.0f}V")
             print(f"\t\t grid[load]['voltage']: {grid[load]['voltage']:.0f}V")
             print(

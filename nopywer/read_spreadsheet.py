@@ -97,7 +97,7 @@ def read_spreadsheet(
                     if grid[load]["cable"] != None:
                         cable_layer = grid[load]["cable"]["layer"]
                         cable_idx = grid[load]["cable"]["idx"]
-                        cables_dict[cable_layer][cable_idx]["phase"] = phase_parsed
+                        cables_dict[cable_layer][cable_idx].phase = phase_parsed
                         # grid[load]['cable'].update(cables_dict[cable2parent['layer']][cable2parent['idx']]) # add info from cable_dict
 
                     # --- deduce and store power info

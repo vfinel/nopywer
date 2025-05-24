@@ -106,7 +106,7 @@ def choose_cables_in_inventory(
 
         # sort cables. Decreasing order allows to make sure long cables are used for long dsitances, decreasing number of extensions
         cable_layer = sorted(
-            cables_dict[cable_layer_name], key=lambda d: d["length"], reverse=True
+            cables_dict[cable_layer_name], key=lambda d: d.length, reverse=True
         )  # https://stackoverflow.com/questions/72899/how-to-sort-a-list-of-dictionaries-by-a-value-of-the-dictionary-in-python
 
         for idx, cable in enumerate(cable_layer):
@@ -132,8 +132,8 @@ def choose_cables_in_inventory(
 
             compatible_rows = (
                 (df["number of phases"] == n_phases)
-                & (df["plugs&sockets [A]"] == cable["plugsAndsockets"])
-                & (df["section [mm2]"] == cable["area"])
+                & (df["plugs&sockets [A]"] == cable.plugs_and_sockets)
+                & (df["section [mm2]"] == cable.area)
             )
 
             compatible_df = df[compatible_rows]
@@ -156,12 +156,11 @@ def choose_cables_in_inventory(
                 ]
 
                 # find best combination
-                target_sum = cable[
-                    "length"
-                ]  # note that slack was added from "extra_cable_length" parameters when computing cables_dict
+                # note that slack was added from "extra_cable_length" parameters when computing cables_dict
+                target_sum = cable.length
                 comb = find_combinations(list_of_cables, target_sum)
                 if (comb == None) | verbose:
-                    print(f"\t\t\t cable {cable['nodes']}: {comb}")
+                    print(f"\t\t\t cable {cable.nodes}: {comb}")
 
                 # update inventory's panda dataframe (and list?)
                 if comb != None:
@@ -181,7 +180,7 @@ def choose_cables_in_inventory(
     print("\t unmatched cables: ")
     for unm in unmatched:
         print(
-            f"\t {unm['plugsAndsockets']}{'A':.<4} ({unm['length']:.0f}m) {'-'.join(unm['nodes'])} "
+            f"\t {unm.plugs_and_sockets}{'A':.<4} ({unm.length:.0f}m) {'-'.join(unm.nodes)} "
         )
 
     return None

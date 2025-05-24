@@ -16,7 +16,7 @@ def get_children(node_name, grid, cables):
     # --- find what node(=children) is connected to node_name
     for cable in grid[node_name]["_cable"]:  # cables connected to node_name
         # children = nodes connected to this cable (+parent, but we'll remove it later):
-        children = cables[cable["layer"]][cable["idx"]]["nodes"]
+        children = cables[cable["layer"]][cable["idx"]].nodes
         for child in children:
             if child != node_name:
                 children_dict[child] = dict()
