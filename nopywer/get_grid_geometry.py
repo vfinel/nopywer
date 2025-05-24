@@ -1,9 +1,6 @@
 # This code is intented to find which load is connected to which cable
 #
-# For now, we ll start the loop on loads: each loads must be attached to a cable
-# (/!\ in the 2022 map, not all cables were attached to a "real load" on the map")
-#
-# We'll use the class: QgsDistanceArea, and its methods:
+# It uses the class QgsDistanceArea and its methods:
 #   - measureLength (argin: geometry)
 #   - measureLine (args in : list of points)
 #
@@ -12,29 +9,8 @@
 #
 # Tutorial: "Santa claus is a workaholic and needs a summer break," in:
 # https://docs.qgis.org/3.22/en/docs/pyqgis_developer_cookbook/geometry.html
-
-# todo:
-#   - clean the map:
-#       - ok: add missing nodes: generator, werkhaus,, etc
-#       - make sure each load is connected with a cable.
-#       - move bbcham node to babycham?
 #
-#   - create a list of cables:
-#        each item of the list is one cable, described as a dictionnary with keys such as:
-#           ok: loads connected to
-#           pos of extremities
-#           distance2load, ...
-#
-#   - create a node/load structure with the folowing info:
-#       - ok: name, connection to cable(s), parent load/child load
-#
-#   - test pour verifier qu'on a bien identifie a quoi chaque cable etait branche...
-#
-#
-#
-#
-
-# notes on structures:
+# notes on structures: TODO: move this into a class !
 #
 # - nodes_dict=grid: dict(). each node is a key. each node is itself a dictonnary.
 #   nodes_dict['someLoad'] has the following keys:
@@ -54,7 +30,7 @@
 #
 
 # imports
-import json  # to do: print(json.dumps(cables_dict, sort_keys=True, indent=4))
+import json  # to print: print(json.dumps(cables_dict, sort_keys=True, indent=4))
 from qgis.core import QgsDistanceArea, QgsUnitTypes, QgsFeature
 from .get_layer import get_layer
 from .get_coordinates import get_coordinates
@@ -119,32 +95,24 @@ def find_connections(
     nodes_dict = {}
     cables_dict = {}
 
-    # --- fill cables dict with lengthes
+    # --- get cables info (layers' CRS and cables attributes)
     for cable_layer_name in cables_layers_list:
         cable_layer = get_layer(project, cable_layer_name)
-        cables_dict[cable_layer_name] = [None] * len(
-            cable_layer
-        )  # init "empty" (cable) list for this layer
+        cables_dict[cable_layer_name] = [None] * len(cable_layer)
 
-        # --- mesure distance ---  https://gis.stackexchange.com/questions/347802/calculating-elipsoidal-length-of-line-in-pyqgis
+        # tips to mesure distance https://gis.stackexchange.com/questions/347802/calculating-elipsoidal-length-of-line-in-pyqgis
         assert project.crs() == cable_layer.crs(), (
             f"project CRS ({project.crs()}) does not match layer {cable_layer_name}'s CRS ({cable_layer.crs()}), stg is weird... "
         )
 
-        qgsDist = (
-            QgsDistanceArea()
-        )  # https://qgis.org/pyqgis/3.22/core/QgsDistanceArea.html
-        qgsDist.setSourceCrs(
-            cable_layer.crs(), project.transformContext()
-        )  # https://gis.stackexchange.com/questions/57745/how-to-get-crs-of-a-raster-layer-in-pyqgis
+        qgsDist = QgsDistanceArea()
+
+        # https://gis.stackexchange.com/questions/57745/how-to-get-crs-of-a-raster-layer-in-pyqgis
+        qgsDist.setSourceCrs(cable_layer.crs(), project.transformContext())
 
         # on ellipsoids:
         #   - set global settings on qgis: https://gis.stackexchange.com/questions/341997/how-to-set-global-setting-ellipsoid-in-qgis
         #   - crs for ellipsoid measurements: https://gis.stackexchange.com/questions/376703/crs-for-ellipsoid-measurements
-
-        # d.setEllipsoid(QgsProject.instance().ellipsoid())
-        # project.ellipsoid() why this is NONE ?
-        # qgsDist.setEllipsoid('WGS84') #todo: this is not smart, should get the CRS from the project ?!
 
         # check that units are meters
         # https://gis.stackexchange.com/questions/341455/how-to-display-the-correct-unit-of-measure-in-pyqgis
@@ -156,23 +124,16 @@ def find_connections(
             raise ValueError("distance units should be meters")
 
         for cable_idx, cable in enumerate(cable_layer.getFeatures()):
-            cables_dict[cable_layer_name][cable_idx] = dict.fromkeys(
-                cables_dictModel
-            )  # init a dict to describe cable
-            cables_dict[cable_layer_name][cable_idx][
-                "nodes"
-            ] = []  # init empty list of nodes connected to this cable
+            cable_dict = dict.fromkeys(cables_dictModel)
+            cable_dict["nodes"] = []
             cable_length = qgsDist.measureLength(cable.geometry())
             assert cable_length > 0, (
                 f"in layer '{cable_layer}', cable {cable_idx + 1} has length = 0m. It should be deleted"
             )
-            cables_dict[cable_layer_name][cable_idx]["length"] = (
-                cable_length + extra_cable_length
-            )
-            cables_dict[cable_layer_name][cable_idx]["area"] = cable.attribute("area")
-            cables_dict[cable_layer_name][cable_idx]["plugsAndsockets"] = (
-                cable.attribute(r"plugs&sockets")
-            )
+            cable_dict["length"] = cable_length + extra_cable_length
+            cable_dict["area"] = cable.attribute("area")
+            cable_dict["plugsAndsockets"] = cable.attribute(r"plugs&sockets")
+            cables_dict[cable_layer_name][cable_idx] = cable_dict
 
     # --- find connections
     for load_layer_name in loads_layers_list:
