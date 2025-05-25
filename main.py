@@ -134,7 +134,7 @@ def main() -> tuple[dict, dict, bool]:
     if not running_in_qgis:
         qgs.exitQgis()
 
-    print("\n end of script for now :)")
+    print("\nNopywer analysis completed :)")
 
     return grid, qgs_project, running_in_qgis
 
