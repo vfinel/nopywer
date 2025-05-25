@@ -20,9 +20,9 @@ def update_1phase_layers(grid: dict, cables: dict, project: QgsProject):
                 with edit(cable_layer):
                     for i, cable in enumerate(list(cable_layer.getFeatures())):
                         if (
-                            cables[cable_layer_name][i]["current"] != None
+                            cables[cable_layer_name][i].current != None
                         ):  # don't update not connecte cables
-                            phase = cables[cable_layer_name][i]["phase"]
+                            phase = cables[cable_layer_name][i].phase
                             if phase == None:
                                 phase = 0
 

@@ -4,7 +4,24 @@ import numpy as np
 import qgis.utils
 from qgis.core import QgsApplication, QgsProject
 
+try:
+    from qgis.core import Qgis  # qgis 3 and above
+except ImportError:
+    from qgis.core import QGis as Qgis  # qgis 2 and below
+
 import nopywer as npw
+
+
+def check_qgis_version():
+    qgis_version_min = "3.34"
+    qgis_version = Qgis.QGIS_VERSION.split(".")
+
+    for idx, ver in enumerate(qgis_version_min.split(".")):
+        assert qgis_version[idx] >= ver, (
+            f"QGIS version should be at least {qgis_version_min} but is {Qgis.QGIS_VERSION}. Please update"
+        )
+
+    return None
 
 
 def is_running_in_qgis():
@@ -77,7 +94,7 @@ def run_analysis(
     grid, cables_dict = npw.cumulate_current(grid, cables_dict, dlist, V0, PF)
 
     phase_balance = 100 * np.std(
-        grid["generator"]["cum_power"] / np.mean(grid["generator"]["cum_power"])
+        grid["generator"].cum_power / np.mean(grid["generator"].cum_power)
     )
 
     cables_dict = npw.inspect_cable_layers(qgs_project, cables_layers_list, cables_dict)
@@ -103,6 +120,7 @@ def run_analysis(
 
 
 def main() -> tuple[dict, dict, bool]:
+    check_qgis_version()
     running_in_qgis = is_running_in_qgis()
     nopywer_folder = os.path.dirname(__file__)
     print(f"nopywer_folder: {nopywer_folder}")

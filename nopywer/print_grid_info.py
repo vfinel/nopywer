@@ -11,8 +11,8 @@ def print_grid_info(grid, cables_dict, phase_balance, has_no_phase, dlist):
     print("\n === info about the grid === \n")
 
     print(
-        f"total power: {1e-3 * np.sum(grid['generator']['cum_power']):.0f}kW \t {np.round(1e-3 * grid['generator']['cum_power'], 1)}kW "
-        + f"/ {np.round(grid['generator']['cum_power'] / PF / V0)}A"
+        f"total power: {1e-3 * np.sum(grid['generator'].cum_power):.0f}kW \t {np.round(1e-3 * grid['generator'].cum_power, 1)}kW "
+        + f"/ {np.round(grid['generator'].cum_power / PF / V0)}A"
     )
 
     # --- print vdrop for each load, sorted by deepness
@@ -25,9 +25,9 @@ def print_grid_info(grid, cables_dict, phase_balance, has_no_phase, dlist):
     for deep in range(len(dlist)):
         print(f"\t deepness {deep}")
         for load in dlist[deep]:
-            pwr_per_phase = np.round(1e-3 * grid[load]["cum_power"], 1).tolist()
-            pwr_total = 1e-3 * np.sum(grid[load]["cum_power"])
-            vdrop = grid[load]["vdrop_percent"]
+            pwr_per_phase = np.round(1e-3 * grid[load].cum_power, 1).tolist()
+            pwr_total = 1e-3 * np.sum(grid[load].cum_power)
+            vdrop = grid[load].vdrop_percent
             if vdrop > 5:
                 flag = " <<<<<<<<<<"
             else:
@@ -41,12 +41,8 @@ def print_grid_info(grid, cables_dict, phase_balance, has_no_phase, dlist):
 
     print("\nLoads not connected to a cable:")
     for load in grid.keys():
-        needsPower = bool(np.double(grid[load]["power"] > 0).sum())
-        if (
-            (grid[load]["_cable"] == [])
-            and not (grid[load] == "generator")
-            and needsPower
-        ):
+        needsPower = bool(np.double(grid[load].power > 0).sum())
+        if (grid[load]._cable == []) and not (grid[load] == "generator") and needsPower:
             print(f"\t{load}")
 
     print(
@@ -58,18 +54,15 @@ def print_grid_info(grid, cables_dict, phase_balance, has_no_phase, dlist):
     subgrid_dict = {"tot": 0, "msg": ""}
     subgrid = {"red": subgrid_dict.copy(), "yellow": subgrid_dict.copy()}
     for load in grid.keys():
-        if grid[load]["phase"] == "U":
+        if grid[load].phase == "U":
             g = "red"
-
-        elif grid[load]["phase"] == "Y":
+        elif grid[load].phase == "Y":
             g = "yellow"
-
         else:
             g = None
-
-        if g != None:
-            subgrid[g]["tot"] += grid[load]["power"]
-            subgrid[g]["msg"] += f"\t\t {load} ({grid[load]['power']}W) \n"
+        if g is not None:
+            subgrid[g]["tot"] += grid[load].power
+            subgrid[g]["msg"] += f"\t\t {load} ({grid[load].power}W) \n"
 
     for g in subgrid.keys():
         print(
@@ -84,7 +77,7 @@ def print_grid_info(grid, cables_dict, phase_balance, has_no_phase, dlist):
             print(f"\t deepness {deep}")
             for load in dlist[deep]:
                 print(f"\t\t {load}:")
-                distro = grid[load]["distro"]
+                distro = grid[load].distro
                 print(f"\t\t\t in: {distro['in']}")
                 print("\t\t\t out: ")
                 for desc in distro["out"].keys():
