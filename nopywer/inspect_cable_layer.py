@@ -35,7 +35,7 @@ def inspect_cable_layers(project, cables_layers_list, cables_nopywer: dict):
             cable_info = {"layer": cable_layer_name, "idx": cable_idx}
 
             # --- check current
-            if (cable_nopywer.current != None) and (
+            if (len(cable_nopywer.current) > 0) and (
                 cable_nopywer.plugs_and_sockets != None
             ):
                 if max(cable_nopywer.current) >= 0.9 * (

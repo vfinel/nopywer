@@ -3,8 +3,6 @@ import numpy as np
 
 class Cable:
     # TODO:
-    #   - use properties to compute r dynamically
-    #   - track every use of the cable dict to make sure that... ?
     #   - check attributes values (with properties setter) for each attribute
     #   - add helpers strings
 
@@ -12,12 +10,12 @@ class Cable:
     __slots__ = (
         "_length",
         "_area",
-        "plugs_and_sockets",
+        "_plugs_and_sockets",
         "_r",
-        "phase",
-        "nodes",
-        "current",
-        "vdrop_volts",
+        "_phase",
+        "_nodes",
+        "_current",
+        "_vdrop_volts",
         "_coordinates",
         "_layer_name",
         "_id",
@@ -30,7 +28,7 @@ class Cable:
         self.area = area
         self.plugs_and_sockets = plugs_and_sockets
         self.nodes = []
-        self.current = None
+        self.current = []
 
     @property
     def length(self):
@@ -49,6 +47,7 @@ class Cable:
 
     @property
     def area(self):
+        """area of the cable, in squared millimeters"""
         return self._area
 
     @area.setter
@@ -59,17 +58,122 @@ class Cable:
         self._area = value
 
     @property
+    def plugs_and_sockets(self):
+        """rating of plugs and sockets of the cable, in amps"""
+        return self._plugs_and_sockets
+
+    @plugs_and_sockets.setter
+    def plugs_and_sockets(self, value):
+        assert isinstance(value, (float, int)), (
+            f"cable plugs_and_sockets should be a float or int but is {value} (which is a {type(value)})"
+        )
+        self._plugs_and_sockets = value
+
+    @property
+    def nodes(self):
+        """list of nodes that are connected by this cable."""
+        return self._nodes
+
+    @nodes.setter
+    def nodes(self, value):
+        assert isinstance(value, list), (
+            f"cable nodes should be a list but is {value} (which is a {type(value)})"
+        )
+        self._nodes = value
+
+    @property
+    def phase(self):
+        """Phase flowing through this cable. Can be 'T' for triphase, or an int for single phases."""
+        return self._phase
+
+    @phase.setter
+    def phase(self, value):
+        assert isinstance(
+            value,
+            (
+                type(None),  # for init
+                int,  # if connected to only 1-phase
+                str,  # if connected to another grid
+                list,  # if connected to multiple phases
+            ),
+        ), (
+            f"phase should be a (int, str, list, or None) but is {value} which is a {type(value)}"
+        )
+        self._phase = value
+
+    @property
+    def current(self):
+        """current flowing through this cable, in each phase, in amps"""
+        return self._current
+
+    @current.setter
+    def current(self, value):
+        assert isinstance(value, list), (
+            f"cable current should be a list (of floats) but is {value} (which is a {type(value)})"
+        )
+        self._current = value
+
+    @property
     def r(self):
+        """resistance of the cable in Ohms"""
         self._r = self.rho * self.length / self.area
         return self._r
 
+    @r.setter
+    def r(self, value):
+        assert isinstance(value, float), (
+            f"cable resistance should be a float but is {value} (which is a {type(value)})"
+        )
+        self._r = value
+
+    @property
+    def vdrop_volts(self):
+        """voltage drop induced in this cable, in volts"""
+        return self._vdrop_volts
+
+    @vdrop_volts.setter
+    def vdrop_volts(self, value):
+        assert isinstance(value, float), (
+            f"cable vdrop_volts should be a float but is {value} (which is a {type(value)})"
+        )
+        self._vdrop_volts = value
+
     @property
     def coordinates(self):
+        """list of QgsPointXY coordinates of each extremities of the cables
+        Note that the cable can have more than 2 extremities if doing angles."""
         return self._coordinates
 
     @coordinates.setter
     def coordinates(self, value):
+        assert isinstance(value, list), (
+            f"coordinates should be a list of QgsPointXY values but got {value} instead, which is a {type(value)}"
+        )
         self._coordinates = value
+
+    @property
+    def layer_name(self):
+        """str representing in which QGIS layer this cable is stored."""
+        return self._layer_name
+
+    @layer_name.setter
+    def layer_name(self, value):
+        assert isinstance(value, str), (
+            f"layer_name should be a str but got {value} instead, which is a {type(value)}"
+        )
+        self._layer_name = value
+
+    @property
+    def id(self):
+        """idx of the cable in the list of cables from the QGIS layer this cable is stored."""
+        return self._id
+
+    @id.setter
+    def id(self, value):
+        assert isinstance(value, int), (
+            f"id should be a str but got {value} instead, which is a {type(value)}"
+        )
+        self._id = value
 
 
 class Node:
@@ -100,7 +204,7 @@ class Node:
         self.deepness = None
         self.cable = {}
         self.cables = []
-        self.power = None
+        self.power = np.array([0.0] * 3)
         self.phase = None
         self.date = None
         self.cum_power = np.array([0.0] * 3)
@@ -171,6 +275,7 @@ class Node:
 
     @power.setter
     def power(self, value):
+        assert isinstance(value, np.ndarray), "'power' must be a np.ndarray"
         self._power = value
 
     @property
@@ -179,6 +284,17 @@ class Node:
 
     @phase.setter
     def phase(self, value):
+        assert isinstance(
+            value,
+            (
+                type(None),  # for init
+                int,  # if connected to only 1-phase
+                str,  # if connected to another grid
+                list,  # if connected to multiple phases
+            ),
+        ), (
+            f"phase should be a (int, str, list, or None) but is {value} which is a {type(value)}"
+        )
         self._phase = value
 
     @property
@@ -195,6 +311,7 @@ class Node:
 
     @cum_power.setter
     def cum_power(self, value):
+        assert isinstance(value, np.ndarray), "'power' must be a np.ndarray"
         self._cum_power = value
 
     @property

@@ -114,8 +114,8 @@ def get_cables_info(project, cables_layers_list, extra_cable_length) -> dict:
                     plugs_and_sockets=cable_qgis.attribute(r"plugs&sockets"),
                 )
                 cable_nopywer.coordinates = get_coordinates(cable_qgis)
-                cable_nopywer._layer_name = cable_layer_name
-                cable_nopywer._id = cable_idx
+                cable_nopywer.layer_name = cable_layer_name
+                cable_nopywer.id = cable_idx
 
             except Exception as error:
                 raise ValueError(
