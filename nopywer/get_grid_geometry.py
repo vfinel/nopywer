@@ -184,7 +184,7 @@ def is_load_connected(cable, load, qgsDist):
 def find_connections(
     project, loads_layers_list, cables_layers_list, extra_cable_length, thres
 ) -> tuple[dict, dict]:
-    verbose = 0
+    verbose = 1
     qgsDist = QgsDistanceArea()
     cables_dict = get_cables_info(project, cables_layers_list, extra_cable_length)
     nodes_dict = get_loads_info(project, loads_layers_list)
@@ -203,6 +203,13 @@ def find_connections(
 
             else:
                 print(f"\t{load.name} is connected to {len(load.cables)} cable(s)")
+
+    # to debug
+    if verbose:
+        print("list of cables:")
+        for cable_layer in cables_dict.values():
+            for cable in cable_layer:
+                print(f"\t {cable}")
 
     return nodes_dict, cables_dict
 

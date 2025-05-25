@@ -176,6 +176,9 @@ class Cable:
         )
         self._id = value
 
+    def __str__(self):
+        return f"Cable {self.id + 1} from layer {self.layer_name}, between {self.nodes}. Length {self.length:.1f}m."
+
 
 class Node:
     __slots__ = (
