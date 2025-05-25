@@ -71,18 +71,17 @@ def update_load_layers(grid: dict, loads_layers_list: list, project: QgsProject)
                             f'layer "{load_layer_name} does not have a field "{field}"'
                         )
                         load.setAttribute(
-                            field, f"{1e-3 * grid[load_name]['power'].sum()}"
+                            field, f"{1e-3 * grid[load_name].power.sum()}"
                         )
 
-                        field = "cum_power"
-                        if type(grid[load_name][field]) != type(
-                            None
+                        if (
+                            grid[load_name].cum_power is not None
                         ):  # this can be False if load is not connected
                             assert field in load.fields().names(), (
-                                f'layer "{load_layer_name}" does not have a field "{field}"'
+                                f'layer "{load_layer_name}" does not have a field cum_power"'
                             )
                             load.setAttribute(
-                                field, f"{1e-3 * sum(grid[load_name]['cum_power'])}"
+                                field, f"{1e-3 * sum(grid[load_name].cum_power)}"
                             )
 
                         layer.updateFeature(load)

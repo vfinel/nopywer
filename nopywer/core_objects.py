@@ -30,6 +30,7 @@ class Cable:
         self.plugs_and_sockets = plugs_and_sockets
         self.nodes = []
         self.current = []
+        self.phase = None
 
     @property
     def length(self):
