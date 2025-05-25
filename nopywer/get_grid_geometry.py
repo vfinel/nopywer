@@ -162,10 +162,11 @@ def get_loads_info(project, loads_layers_list) -> dict:
 
 
 def is_load_connected(cable, load, qgsDist):
-    verbose = load.name == "generator"
+    """compute distance load-extremities of the cable and store it
+    TODO: check correctness of distance ??
+    """
+    verbose = 0
 
-    # compute distance load-extremities of the cable and store it
-    # TODO: check correctness of distance ??
     elist = [
         qgsDist.measureLine(load.coordinates, extrem) for extrem in cable.coordinates
     ]
@@ -183,7 +184,7 @@ def is_load_connected(cable, load, qgsDist):
 def find_connections(
     project, loads_layers_list, cables_layers_list, extra_cable_length, thres
 ) -> tuple[dict, dict]:
-    verbose = 1
+    verbose = 0
     qgsDist = QgsDistanceArea()
     cables_dict = get_cables_info(project, cables_layers_list, extra_cable_length)
     nodes_dict = get_loads_info(project, loads_layers_list)
@@ -303,9 +304,6 @@ def get_grid_geometry(project, param: dict):
         cables_layers_list,
         param["extra_cable_length"],
         thres,
-    )
-    assert len(nodes_dict["generator"].cables) == 7, (
-        f"generator should have 7 cables connected to it, but has {len(nodes_dict['generator'].cables)}"
     )
 
     # 2. find connections between nodes to get the "flow direction":
