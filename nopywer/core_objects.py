@@ -1,4 +1,5 @@
 import numpy as np
+from qgis.core import QgsPointXY
 
 
 class Cable:
@@ -186,7 +187,6 @@ class Node:
         "_cables",
         "_power",
         "_phase",
-        "_date",
         "_cum_power",
         "_distro",
         "_coordinates",
@@ -200,19 +200,20 @@ class Node:
     ):
         self.name = name
         self.parent = None
-        self.children = None
+        self.children = {}
         self.deepness = None
         self.cable = {}
         self.cables = []
         self.power = np.array([0.0] * 3)
         self.phase = None
-        self.date = None
+        # self.date = None
         self.cum_power = np.array([0.0] * 3)
         self.distro = dict.fromkeys(["in", "out"])
         self.coordinates = None
 
     @property
     def name(self):
+        """name of that node"""
         return self._name
 
     @name.setter
@@ -221,7 +222,20 @@ class Node:
         self._name = value
 
     @property
+    def coordinates(self):
+        """coordinates of the Node, has a QgsPointXY"""
+        return self._coordinates
+
+    @coordinates.setter
+    def coordinates(self, value):
+        assert isinstance(value, QgsPointXY) or value is None, (
+            "coordinates should be a QgsPointXY"
+        )
+        self._coordinates = value
+
+    @property
     def parent(self):
+        """name of this node's parent"""
         return self._parent
 
     @parent.setter
@@ -233,17 +247,17 @@ class Node:
 
     @property
     def children(self):
+        """ " dict containing Node's children. Each key is the name of one children, the value is the cable going to that children (cf cable attribute)"""
         return self._children
 
     @children.setter
     def children(self, value):
-        assert isinstance(value, dict) or value is None, (
-            "Children must be a dict or None"
-        )
+        assert isinstance(value, dict), "Children must be a dict"
         self._children = value
 
     @property
     def deepness(self):
+        """deepness of that node wrt the generator"""
         return self._deepness
 
     @deepness.setter
@@ -253,6 +267,11 @@ class Node:
 
     @property
     def cable(self):
+        """dict containing information about the cable to parent
+        The dictionnary contains the keys
+            - 'layer' : str : name of the qgis layer containing the cable
+            - 'idx': int: index of the cable in that layer
+        """
         return self._cable
 
     @cable.setter
@@ -262,21 +281,13 @@ class Node:
 
     @property
     def cables(self):
+        """list of cables connected to that Node. Cables are described as dictionnaries, cf cable attribute."""
         return self._cables
 
     @cables.setter
     def cables(self, value):
         assert isinstance(value, list), "'cables' must be list"
         self._cables = value
-
-    @property
-    def power(self):
-        return self._power
-
-    @power.setter
-    def power(self, value):
-        assert isinstance(value, np.ndarray), "'power' must be a np.ndarray"
-        self._power = value
 
     @property
     def phase(self):
@@ -298,12 +309,13 @@ class Node:
         self._phase = value
 
     @property
-    def date(self):
-        return self._date
+    def power(self):
+        return self._power
 
-    @date.setter
-    def date(self, value):
-        self._date = value
+    @power.setter
+    def power(self, value):
+        assert isinstance(value, np.ndarray), "'power' must be a np.ndarray"
+        self._power = value
 
     @property
     def cum_power(self):
@@ -316,20 +328,13 @@ class Node:
 
     @property
     def distro(self):
+        """a dict with 'in' and 'out' keys describing the necessary inputs and ouputs for that node"""
         return self._distro
 
     @distro.setter
     def distro(self, value):
         assert isinstance(value, dict), "'distro' must be a dict"
         self._distro = value
-
-    @property
-    def coordinates(self):
-        return self._coordinates
-
-    @coordinates.setter
-    def coordinates(self, value):
-        self._coordinates = value
 
     @property
     def voltage(self):

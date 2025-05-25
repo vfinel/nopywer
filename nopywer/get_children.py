@@ -5,7 +5,7 @@ def get_children(node_name: str, grid: dict, cables: dict) -> tuple[dict, dict]:
     debug_print = 0
     children_dict = dict()  # for parent to store info about its children
 
-    if grid[node_name].children is not None:
+    if grid[node_name].children != {}:
         # the first time a node is called, it has no children
         # if it has children, it means that it was already processed
         raise ValueError(
