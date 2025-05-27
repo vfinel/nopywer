@@ -18,14 +18,14 @@ def update_1phase_layers(grid: dict, cables: dict, project: QgsProject):
             if verbose:
                 print(f"\t cable layer {cable_layer_name}")
             cable_layer = get_layer(project, cable_layer_name)
-            if cable_layer.isEditable() == False:
+            if not cable_layer.isEditable():
                 with edit(cable_layer):
                     for i, cable in enumerate(list(cable_layer.getFeatures())):
                         if (
-                            cables[cable_layer_name][i].current != None
+                            cables[cable_layer_name][i].current is not None
                         ):  # don't update not connecte cables
                             phase = cables[cable_layer_name][i].phase
-                            if phase == None:
+                            if phase is None:
                                 phase = 0
 
                             if verbose:
