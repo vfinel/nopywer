@@ -193,6 +193,7 @@ class Node:
         "_phase",
         "_cum_power",
         "_distro",
+        "_distro_chosen",
         "_coordinates",
         "_voltage",
         "_vdrop_percent",
@@ -210,9 +211,9 @@ class Node:
         self.cables = []
         self.power = np.array([0.0] * 3)
         self.phase = None
-        # self.date = None
         self.cum_power = np.array([0.0] * 3)
         self.distro = dict.fromkeys(["in", "out"])
+        self.distro_chosen = dict.fromkeys(["in", "out"])
         self.coordinates = None
 
     @property
@@ -341,6 +342,17 @@ class Node:
         self._distro = value
 
     @property
+    def distro_chosen(self):
+        """a dict with 'in' and 'out' keys describing the distro chosen from the inventory
+        for that node. If it was not possible to find a corresponding distro, then distro_chosen is a string."""
+        return self._distro_chosen
+
+    @distro_chosen.setter
+    def distro_chosen(self, value):
+        assert isinstance(value, (dict, str)), "'distro' must be a dict or str."
+        self._distro_chosen = value
+
+    @property
     def voltage(self):
         """voltage at the load, in Volts"""
         return self._voltage
@@ -366,3 +378,7 @@ class Node:
             f"voltage drop should be float, got {type(value)}"
         )
         self._vdrop_percent = value
+
+
+# class Distro:
+#     # use me for distros

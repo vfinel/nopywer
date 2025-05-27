@@ -24,6 +24,10 @@ def write_spreadsheet(grid: dict, sh):
     ]  # TODO: move in read_spreadsheet ?
 
     # ... drop useless cols, and rename others
+    # TODO: test if column exist before using them
+    #       and don't try to remove cols that do not exist ....
+    #       -> a good thing would be to test which cols are in the sh at the very beginning and warn the user if the required cols are not present
+    #       Also: document more clearly what "updating spreadsheet" means (maybe write functions to ease write_spreadsheet() understanding ?)
     sh = sh.drop(
         columns=["Arrive", "Depart", "daytime power [W]", "nighttime power [W]"]
     )

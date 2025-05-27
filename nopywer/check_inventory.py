@@ -1,4 +1,5 @@
 from itertools import combinations
+import numpy as np
 import os
 import pandas as pd
 import re
@@ -197,6 +198,63 @@ def parse_distro_req(req: str) -> tuple[str, float]:
     return phase_type, current_rating
 
 
+def distro_serie_to_dict(serie: pd.core.series.Series) -> dict:
+    """convert a Serie (extracted from a DataFrame) describing a distro to a dict.
+    The Serie looks like this
+        input - type                     3P
+        input - current [A]              63
+        3P output - current [A]        63.0
+        3P output - quantity            1.0
+        3P 2nd output - current [A]    32.0
+        3P 2nd output - quantity        2.0
+        1P output - current [A]        16.0
+        1P output - quantity            3.0
+        how many distros                  0
+
+    and the dict looks like this
+        {'in': '3P - 63A',
+        'out':
+            ['3P - 63A (x1)',
+            '3P - 32A (x2)',
+            '1P - 16A (x3)']
+        }
+
+    """
+
+    # find out the outputs of this distro
+    # this assumes that they are described as mentionned above
+    outputs = []
+    for header in serie.index:
+        if "output" in header:
+            delimiter = header.find("-")
+            assert delimiter != -1, "unable to parse distro output"
+            output_desc = header[: delimiter - 1]
+            if output_desc not in outputs:
+                outputs.append(output_desc)
+
+    # build distro dictionnary
+    distro_dict = dict.fromkeys(["in", "out"])
+
+    distro_dict["in"] = f"{serie['input - type']} - {serie['input - current [A]']}A"
+
+    distro_dict["out"] = []
+    for output_desc in outputs:
+        for header in serie.index:
+            # note : this could have been done in a more elegant way but this is more robust to spelling errors
+            if (output_desc in header) and ("current" in header):
+                n_phases = header[:2]
+                current_rating = serie[header]
+
+            elif (output_desc in header) and ("quantity" in header):
+                quantity = serie[header]
+
+        if not np.isnan(current_rating):
+            output_str = f"{n_phases} - {current_rating:.0f}A (x{quantity:.0f})"
+            distro_dict["out"].append(output_str)
+
+    return distro_dict
+
+
 def choose_distros_in_inventory(project_path: str, grid: dict, sh_name: str) -> None:
     """assumes that the inventory spreadsheet has colmuns like;
     input - type                | input - current [A]           | ...
@@ -208,6 +266,18 @@ def choose_distros_in_inventory(project_path: str, grid: dict, sh_name: str) -> 
 
     """
     verbose = 0
+    expected_cols = [
+        "input - type",
+        "input - current [A]",
+        "3P output - current [A]",
+        "3P output - quantity",
+        "3P 2nd output - current [A]",
+        "3P 2nd output - quantity",
+        "1P output - current [A]",
+        "1P output - quantity",
+        "how many distros",
+    ]
+
     print("\nReading distros inventory")
     df = pd.read_excel(
         os.path.join(project_path, sh_name),
@@ -218,6 +288,12 @@ def choose_distros_in_inventory(project_path: str, grid: dict, sh_name: str) -> 
 
     if verbose >= 2:
         print(f"\t {df}")
+
+    assert list(df.columns) == expected_cols, (
+        f"The 'distos' tab of the inventory spreadsheet should have the following columns: {expected_cols}"
+    )
+
+    # init list of unmatched distros
     unmatched = []
 
     # get names of 'outputs' cols assuming they are in the "output - xxxx" format
@@ -226,11 +302,11 @@ def choose_distros_in_inventory(project_path: str, grid: dict, sh_name: str) -> 
     )
 
     for load_name, load in grid.items():
-        distro = load.distro
-        if (distro["in"] != None) and (distro["out"] != {}):
-            if verbose:
-                print(f"\n{load_name} needs a distro with {distro}")
+        distro = load.distro  # replace by distro_requirements
+        if verbose:
+            print(f"\n\t{load_name} needs a distro with {distro}")
 
+        if (distro["in"] != None) and (distro["out"] != {}):
             score_cols = (
                 ["in: " + distro["in"]]
                 + ["out: " + req for req in distro["out"].keys()]
@@ -266,7 +342,7 @@ def choose_distros_in_inventory(project_path: str, grid: dict, sh_name: str) -> 
                 ]
                 for available_ouput in inventory_col_to_check:
                     if verbose >= 2:
-                        print(f"\t\t looking in the '{available_ouput}' column...")
+                        print(f"\t looking in the '{available_ouput}' column...")
 
                     # find out which distro(s) have the needed type of output
                     has_output_rating = df[f"{available_ouput} - current [A]"] == c_out
@@ -274,9 +350,10 @@ def choose_distros_in_inventory(project_path: str, grid: dict, sh_name: str) -> 
                     has_output[desc] = has_output[desc] | (
                         has_output_rating & has_output_qty
                     )
-                    scoreboard.loc[:, score_cols[no]] = has_output[
-                        desc
-                    ]  # update score for this output
+
+                    # update score for this output
+                    scoreboard.loc[:, score_cols[no]] = has_output[desc]
+
                     if verbose >= 3:
                         print(f"has output: \n{has_output}")
                         print(f"scoreboard: {scoreboard}")
@@ -289,22 +366,27 @@ def choose_distros_in_inventory(project_path: str, grid: dict, sh_name: str) -> 
             candidates = df[scoreboard.loc[:, score_cols[-1]] == True]
 
             if len(candidates) == 0:
-                prt = "\t could not find a good distro :( "
+                prt = "\t -> could not find a good distro :( "
                 choice = None
                 unmatched.append(load_name)
 
             elif len(candidates) == 1:
-                prt = "\t could find the perfect type of distro"
+                prt = "\t -> could find the perfect type of distro"
                 choice = df[scoreboard.loc[:, score_cols[-1]] == True].index[0]
 
             else:
-                prt = f"\t could find {len(candidates)} types of distros"
+                prt = f"\t -> could find {len(candidates)} types of distros"
                 # take first ok one https://stackoverflow.com/a/40660434
                 choice = df[scoreboard.loc[:, score_cols[-1]] == True].index[0]
 
             if choice != None:  # update inventory
                 df.loc[choice, "how many distros"] -= 1
-                # TODO: write destination in spreadsheet ? update grid ?
+                # TODO: write destination in spreadsheet ?
+                # update grid with chosen distro
+                grid[load_name].distro_chosen = distro_serie_to_dict(df.loc[choice, :])
+
+            else:
+                grid[load_name].distro_chosen = "no distro available"
 
             if verbose:
                 print(prt)
@@ -316,10 +398,16 @@ def choose_distros_in_inventory(project_path: str, grid: dict, sh_name: str) -> 
                 print(f"scoreboard : \n{scoreboard}")
 
         else:
+            print(
+                f"\t -> Unable to get distro requirements for {load_name}: {load.distro} -> skipping"
+            )
             choice = None
+            unmatched.append(load_name)
 
-        # TODO: update grid with chosen distro ?
-        # grid[load_name]['distro_chosen'] = df.loc[choice, :]
-    print(f"\ncould not find distros for the following loads: {unmatched}")
+    if len(unmatched) == 0:
+        print("\nall nodes have a distro assigned from the inventory !")
 
-    return None
+    else:
+        print(f"\ncould not find distros for the following loads: {unmatched}")
+
+    return grid
