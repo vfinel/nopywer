@@ -108,6 +108,7 @@ def get_cables_info(project, cables_layers_list, extra_cable_length) -> dict:
             )
 
             try:
+                # check attributes before getting them ?
                 cable_nopywer = Cable(
                     length=cable_length + extra_cable_length,
                     area=cable_qgis.attribute("area"),

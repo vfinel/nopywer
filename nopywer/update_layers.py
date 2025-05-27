@@ -1,6 +1,8 @@
 from qgis.core import edit, QgsProject
 from .get_layer import get_layer
 from .get_grid_geometry import get_load_name
+from qgis.PyQt.QtCore import QVariant
+from qgis.core import QgsField
 
 # based on https://gis.stackexchange.com/questions/428973/writing-list-as-attribute-field-in-pyqgis
 
@@ -16,14 +18,14 @@ def update_1phase_layers(grid: dict, cables: dict, project: QgsProject):
             if verbose:
                 print(f"\t cable layer {cable_layer_name}")
             cable_layer = get_layer(project, cable_layer_name)
-            if cable_layer.isEditable() == False:
+            if not cable_layer.isEditable():
                 with edit(cable_layer):
                     for i, cable in enumerate(list(cable_layer.getFeatures())):
                         if (
-                            cables[cable_layer_name][i].current != None
+                            cables[cable_layer_name][i].current is not None
                         ):  # don't update not connecte cables
                             phase = cables[cable_layer_name][i].phase
-                            if phase == None:
+                            if phase is None:
                                 phase = 0
 
                             if verbose:
@@ -60,7 +62,16 @@ def update_load_layers(grid: dict, loads_layers_list: list, project: QgsProject)
     print("\nupdating load layers with power usage and cumulated power...")
     for load_layer_name in loads_layers_list:
         layer = get_layer(project, load_layer_name)
-        if layer.isEditable() == False:
+
+        # Ensure 'distro assigned' field exists
+        distro_field = "distro assigned"
+        if distro_field not in layer.fields().names():
+            layer.dataProvider().addAttributes(
+                [QgsField(distro_field, QVariant.String)]
+            )
+            layer.updateFields()
+
+        if not layer.isEditable():
             with edit(layer):
                 for load in list(layer.getFeatures()):
                     load_name = get_load_name(load)
@@ -83,6 +94,10 @@ def update_load_layers(grid: dict, loads_layers_list: list, project: QgsProject)
                             load.setAttribute(
                                 field, f"{1e-3 * sum(grid[load_name].cum_power)}"
                             )
+
+                        # Check for "distro assigned" field and set it if present
+                        distro_value = getattr(grid[load_name], "distro_chosen", None)
+                        load.setAttribute(distro_field, str(distro_value))
 
                         layer.updateFeature(load)
 
