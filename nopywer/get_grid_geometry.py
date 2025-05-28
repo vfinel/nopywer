@@ -205,12 +205,21 @@ def find_connections(
             else:
                 print(f"\t{load.name} is connected to {len(load.cables)} cable(s)")
 
-    # to debug
+    cables_list_str = "list of cables:\n"
+    cables_not_connected = ""
+    for cable_layer in cables_dict.values():
+        for cable in cable_layer:
+            cables_list_str += f"\t {cable}"
+            if len(cable.nodes) < 2:
+                cables_not_connected += f"\t{cable}\n"
+
+    if len(cables_not_connected) > 0:
+        print(
+            f"the following cables are not connected on both ends: \n{cables_not_connected}"
+        )
+
     if verbose:
-        print("list of cables:")
-        for cable_layer in cables_dict.values():
-            for cable in cable_layer:
-                print(f"\t {cable}")
+        print(cables_list_str)
 
     return nodes_dict, cables_dict
 
