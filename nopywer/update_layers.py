@@ -1,10 +1,19 @@
-from qgis.core import edit, QgsProject
+from qgis.core import edit, QgsProject, QgsFeature
 from .get_layer import get_layer
 from .get_grid_geometry import get_load_name
 from qgis.PyQt.QtCore import QVariant
 from qgis.core import QgsField
 
 # based on https://gis.stackexchange.com/questions/428973/writing-list-as-attribute-field-in-pyqgis
+
+
+def set_attribute(feature: QgsFeature, field: str, value: str):
+    load_layer_name = "toto"  # how to get the feature name from the feature itself ?
+    assert field in feature.fields().names(), (
+        f'layer "{load_layer_name} does not have a field "{field}"'
+    )
+    feature.setAttribute(field, f"{value}")
+    return None
 
 
 def update_1phase_layers(grid: dict, cables: dict, project: QgsProject):
@@ -37,6 +46,7 @@ def update_1phase_layers(grid: dict, cables: dict, project: QgsProject):
                                     f'cable idx {i} cannot be on phase "{phase}" because it is in a single phase layer.'
                                 )
 
+                            # TODO: use function set_attribute
                             cable.setAttribute("phase", f"{phase}")
                             try:
                                 cable_layer.updateFeature(cable)
@@ -77,23 +87,15 @@ def update_load_layers(grid: dict, loads_layers_list: list, project: QgsProject)
                     load_name = get_load_name(load)
 
                     if load_name in grid.keys():
-                        field = "power"
-                        assert field in load.fields().names(), (
-                            f'layer "{load_layer_name} does not have a field "{field}"'
-                        )
-                        load.setAttribute(
-                            field, f"{1e-3 * grid[load_name].power.sum()}"
+                        set_attribute(
+                            load, "power", f"{1e-3 * grid[load_name].power.sum()}"
                         )
 
-                        if (
-                            grid[load_name].cum_power is not None
-                        ):  # this can be False if load is not connected
-                            assert field in load.fields().names(), (
-                                f'layer "{load_layer_name}" does not have a field cum_power"'
-                            )
-                            load.setAttribute(
-                                field, f"{1e-3 * sum(grid[load_name].cum_power)}"
-                            )
+                        set_attribute(
+                            load,
+                            "cumPower",
+                            f"{1e-3 * grid[load_name].cum_power.sum()}",
+                        )
 
                         # Check for "distro assigned" field and set it if present
                         distro_value = getattr(grid[load_name], "distro_chosen", None)
