@@ -41,13 +41,14 @@ def update_1phase_layers(grid: dict, cables: dict, project: QgsProject):
                                 print(
                                     f"\t\t cable idx {i} on phase {phase} (type: {type(phase)})"
                                 )
+
                             if phase == "T":
                                 raise ValueError(
                                     f'cable idx {i} cannot be on phase "{phase}" because it is in a single phase layer.'
                                 )
 
-                            # TODO: use function set_attribute
-                            cable.setAttribute("phase", f"{phase}")
+                            set_attribute(cable, "phase", f"{phase}")
+
                             try:
                                 cable_layer.updateFeature(cable)
 
