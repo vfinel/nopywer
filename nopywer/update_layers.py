@@ -10,7 +10,7 @@ from qgis.core import QgsField
 def set_attribute(feature: QgsFeature, field: str, value: str):
     load_layer_name = "toto"  # how to get the feature name from the feature itself ?
     assert field in feature.fields().names(), (
-        f'layer "{load_layer_name} does not have a field "{field}"'
+        f'The feature "{feature["name"]}" does not have a field "{field}"'
     )
     feature.setAttribute(field, f"{value}")
     return None
