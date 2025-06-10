@@ -113,8 +113,8 @@ def read_spreadsheet(
                         if phase == "T":
                             grid[load].power += pwr / 3
 
-                        else:
-                            grid[load].power = pwr
+                        else:  # letter 'Y' or other... ?
+                            pass  # grid[load].power = pwr
 
                     # store date info:
                     #   grid[load]['date'] = dict()
@@ -123,8 +123,9 @@ def read_spreadsheet(
 
                 elif pwr == 0:
                     if verbose:
-                        print(f"deleting {load} because doesn't draw power")
-                    del grid[load]
+                        print(
+                            f"'{load}' doesn't draw power but let's keep it anyway :) "
+                        )
 
                 else:
                     raise ValueError(f'Unable to read "{name_on_sheet}" power usage')

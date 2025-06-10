@@ -51,7 +51,7 @@ def print_grid_info(grid, cables_dict, phase_balance, has_no_phase, dlist):
 
     # --- compute and print loads on red and yellow grids
     print("total power on other grids: ")
-    subgrid_dict = {"tot": 0, "msg": ""}
+    subgrid_dict = {"tot": 0.0, "msg": ""}
     subgrid = {"red": subgrid_dict.copy(), "yellow": subgrid_dict.copy()}
     for load in grid.keys():
         if grid[load].phase == "U":
@@ -60,15 +60,23 @@ def print_grid_info(grid, cables_dict, phase_balance, has_no_phase, dlist):
             g = "yellow"
         else:
             g = None
+
         if g is not None:
             subgrid[g]["tot"] += grid[load].power
             subgrid[g]["msg"] += f"\t\t {load} ({grid[load].power}W) \n"
 
-    for g in subgrid.keys():
-        print(
-            f"\t {g} grid: {subgrid[g]['tot'] / 1e3:.1f}kW / {subgrid[g]['tot'] / V0:.1f}A"
-        )
-        print(subgrid[g]["msg"])
+    for subgrid_name, subgrid_val in subgrid.items():  #:g in subgrid.keys():
+        if isinstance(subgrid_val["tot"], float):
+            tot = subgrid_val["tot"]
+
+        elif len(subgrid_val["tot"]) > 1:  # is a np.ndarray
+            tot = sum(subgrid_val["tot"])
+
+        else:
+            tot = subgrid_val["tot"]
+
+        print(f"\t {subgrid_name} grid: {tot / 1e3:.1f}kW / {tot / V0:.1f}A")
+        print(subgrid_val["msg"])
 
     # --- print distro requirements at each load , sorted by deepness
     if 0:
