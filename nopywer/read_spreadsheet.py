@@ -123,8 +123,9 @@ def read_spreadsheet(
 
                 elif pwr == 0:
                     if verbose:
-                        print(f"deleting {load} because doesn't draw power")
-                    del grid[load]
+                        print(
+                            f"'{load}' doesn't draw power but let's keep it anyway :) "
+                        )
 
                 else:
                     raise ValueError(f'Unable to read "{name_on_sheet}" power usage')
