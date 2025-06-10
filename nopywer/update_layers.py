@@ -94,7 +94,7 @@ def update_load_layers(grid: dict, loads_layers_list: list, project: QgsProject)
 
                         set_attribute(
                             load,
-                            "cumPower",
+                            "cum_power",
                             f"{1e-3 * grid[load_name].cum_power.sum()}",
                         )
 
