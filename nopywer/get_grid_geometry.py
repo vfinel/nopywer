@@ -130,6 +130,9 @@ def get_cables_info(project, cables_layers_list, extra_cable_length) -> dict:
 
 def get_loads_info(project, loads_layers_list) -> dict:
     """get loads info"""
+    if verbose:
+        print("get_loads_info:")
+
     nodes_dict = {}
     for load_layer_name in loads_layers_list:
         load_layer = get_layer(project, load_layer_name)
@@ -209,13 +212,13 @@ def find_connections(
     cables_not_connected = ""
     for cable_layer in cables_dict.values():
         for cable in cable_layer:
-            cables_list_str += f"\t {cable}"
+            cables_list_str += f"\t {cable}\n"
             if len(cable.nodes) < 2:
                 cables_not_connected += f"\t{cable}\n"
 
     if len(cables_not_connected) > 0:
         print(
-            f"the following cables are not connected on both ends: \n{cables_not_connected}"
+            f"\nthe following cables are not connected on both ends: \n{cables_not_connected}"
         )
 
     if verbose:
