@@ -113,8 +113,8 @@ def read_spreadsheet(
                         if phase == "T":
                             grid[load].power += pwr / 3
 
-                        else:
-                            grid[load].power = pwr
+                        else:  # letter 'Y' or other... ?
+                            pass  # grid[load].power = pwr
 
                     # store date info:
                     #   grid[load]['date'] = dict()
