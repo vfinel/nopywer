@@ -3,6 +3,7 @@ import numpy as np
 import os
 import pandas as pd
 import re
+from .logger_config import logger
 
 
 def find_combinations(arr: list, target_sum, th: float = 5.0):
@@ -19,9 +20,8 @@ def find_combinations(arr: list, target_sum, th: float = 5.0):
                 if found:
                     return combo
 
-        if (not found) and (
-            th < 5 * target_sum
-        ):  # second arg is a sanity check to avoid infinite recursion
+        if (not found) and (th < 5 * target_sum):
+            # second arg is a sanity check to avoid infinite recursion
             # print(f'unable to find, trying with increase threshold to {th+5}m ')
             output = find_combinations(arr, target_sum, 1.5 * th)
 
@@ -29,10 +29,9 @@ def find_combinations(arr: list, target_sum, th: float = 5.0):
 
 
 def compute_cable_length_in_inventory():
-    debug = 1
-    print("\nReading inventory spreadsheet")
+    logger.info("\nReading inventory spreadsheet")
     sh = pd.read_excel(
-        "../Miss PiggyInventory 2023.ods",
+        "../Miss PiggyInventory 2023.ods",  # TODO: why is this still here ?
         sheet_name="build2023",
         skiprows=2,
         engine="odf",
@@ -49,19 +48,16 @@ def compute_cable_length_in_inventory():
 
     # loop through loads on the map and find corresponding info on the spreadsheet
     for idx, item in enumerate(items):
-        # print(f'\titem: {item}')
+        # logger.debug(f'\titem: {item}')
         if isinstance(item, str):
             if "3P Cable" in item:
                 idxStart = len("3P Cable")
                 idxStop = item.index("m")
                 length = float(item[idxStart:idxStop])
-
                 len_3p += qty[idx] * length
-
-                if debug:
-                    print(
-                        f'\t\t3P cable: {qty[idx]} times "{item} (length: {length:.0f})"'
-                    )
+                logger.debug(
+                    f'\t\t3P cable: {qty[idx]} times "{item} (length: {length:.0f})"'
+                )
                 inventory["3p"][item] = {}
                 inventory["3p"][item]["length"] = length
                 inventory["3p"][item]["qty"] = qty[idx]
@@ -70,19 +66,16 @@ def compute_cable_length_in_inventory():
                 idxStart = len("1P Cable")
                 idxStop = item.index("m")
                 length = float(item[idxStart:idxStop])
-
                 len_1p += qty[idx] * length
-
-                if debug:
-                    print(
-                        f'\t\t1P cable: {qty[idx]} times "{item} (length: {length:.0f})"'
-                    )
+                logger.debug(
+                    f'\t\t1P cable: {qty[idx]} times "{item} (length: {length:.0f})"'
+                )
                 inventory["1p"][item] = {}
                 inventory["1p"][item]["length"] = length
                 inventory["1p"][item]["qty"] = qty[idx]
 
-    print(f"\n\t total 3p length: {len_3p:.0f}m")
-    print(f"\t total 1p length: {len_1p:.0f}m")
+    logger.info(f"\n\t total 3p length: {len_3p:.0f}m")
+    logger.info(f"\t total 1p length: {len_1p:.0f}m")
 
 
 def choose_cables_in_inventory(
@@ -90,7 +83,7 @@ def choose_cables_in_inventory(
 ) -> None:
     verbose = 1
     unmatched = []
-    print("\nReading cables inventory")
+    logger.info("\nReading cables inventory")
     df = pd.read_excel(
         os.path.join(project_path, sh_name),
         sheet_name="cables",
@@ -99,20 +92,20 @@ def choose_cables_in_inventory(
     )
 
     if verbose >= 3:
-        print(f"\t {df}")
+        logger.debug(f"\t {df}")
 
     for cable_layer_name in cables_dict.keys():
-        if verbose:
-            print(f"\n\t\t layer: {cable_layer_name}")
+        logger.debug(f"\n\t\t layer: {cable_layer_name}")
 
         # sort cables. Decreasing order allows to make sure long cables are used for long dsitances, decreasing number of extensions
+        # https://stackoverflow.com/questions/72899/how-to-sort-a-list-of-dictionaries-by-a-value-of-the-dictionary-in-python
         cable_layer = sorted(
             cables_dict[cable_layer_name], key=lambda d: d.length, reverse=True
-        )  # https://stackoverflow.com/questions/72899/how-to-sort-a-list-of-dictionaries-by-a-value-of-the-dictionary-in-python
+        )
 
         for idx, cable in enumerate(cable_layer):
             if verbose >= 2:
-                print(
+                logger.debug(
                     f"\n\t\t\t taking care of cable {idx + 1}/{len(cable_layer)}, length {cable['length']} m"
                 )
 
@@ -129,7 +122,7 @@ def choose_cables_in_inventory(
                 )
 
             if verbose >= 2:
-                print(f" n phases: {n_phases}")
+                logger.debug(f" n phases: {n_phases}")
 
             compatible_rows = (
                 (df["number of phases"] == n_phases)
@@ -139,12 +132,14 @@ def choose_cables_in_inventory(
 
             compatible_df = df[compatible_rows]
             if verbose >= 2:
-                print(f"\t\t\t compatible cables dataframe: \n {compatible_df}")
+                logger.debug(f"\t\t\t compatible cables dataframe: \n {compatible_df}")
 
             comb = None
             if compatible_df.empty:
                 if verbose >= 2:
-                    print("DataFrame is empty --> no compatible cables in inventory!")
+                    logger.debug(
+                        "DataFrame is empty --> no compatible cables in inventory!"
+                    )
 
             else:
                 # build a list of all compatible cables (account for their quantity) https://stackoverflow.com/questions/16476924/how-can-i-iterate-over-rows-in-a-pandas-dataframe
@@ -161,26 +156,26 @@ def choose_cables_in_inventory(
                 target_sum = cable.length
                 comb = find_combinations(list_of_cables, target_sum)
                 if (comb == None) | verbose:
-                    print(f"\t\t\t cable {cable.nodes}: {comb}")
+                    logger.debug(f"\t\t\t cable {cable.nodes}: {comb}")
 
                 # update inventory's panda dataframe (and list?)
-                if comb != None:
+                if comb is not None:
                     found = True
                     for c in comb:
                         df.loc[
                             compatible_rows & (df["length [m]"] == c), "quantity"
                         ] -= 1
                         if verbose >= 2:
-                            print(
+                            logger.debug(
                                 f"\t\t\t qty of {c}m remaining: {df.loc[compatible_rows & (df['length [m]'] == c), 'quantity'].values}"
                             )
 
-            if comb == None:
+            if comb is None:
                 unmatched.append(cable)
 
-    print("\t unmatched cables: ")
+    logger.info("\t unmatched cables: ")
     for unm in unmatched:
-        print(
+        logger.info(
             f"\t {unm.plugs_and_sockets}{'A':.<4} ({unm.length:.0f}m) {'-'.join(unm.nodes)} "
         )
 
@@ -278,7 +273,7 @@ def choose_distros_in_inventory(project_path: str, grid: dict, sh_name: str) -> 
         "how many distros",
     ]
 
-    print("\nReading distros inventory")
+    logger.info("\nReading distros inventory")
     df = pd.read_excel(
         os.path.join(project_path, sh_name),
         sheet_name="distros",
@@ -287,7 +282,7 @@ def choose_distros_in_inventory(project_path: str, grid: dict, sh_name: str) -> 
     )
 
     if verbose >= 2:
-        print(f"\t {df}")
+        logger.debug(f"\t {df}")
 
     assert list(df.columns) == expected_cols, (
         f"The 'distos' tab of the inventory spreadsheet should have the following columns: {expected_cols}"
@@ -303,8 +298,7 @@ def choose_distros_in_inventory(project_path: str, grid: dict, sh_name: str) -> 
 
     for load_name, load in grid.items():
         distro = load.distro  # replace by distro_requirements
-        if verbose:
-            print(f"\n\t{load_name} needs a distro with {distro}")
+        logger.debug(f"\n\t{load_name} needs a distro with {distro}")
 
         if (distro["in"] != None) and (distro["out"] != {}):
             score_cols = (
@@ -314,7 +308,7 @@ def choose_distros_in_inventory(project_path: str, grid: dict, sh_name: str) -> 
             )
             scoreboard = pd.DataFrame(None, index=df.index, columns=score_cols)
 
-            # check input
+            # --- check input
             ph_in, c_in = parse_distro_req(distro["in"])
             has_input = (df["input - type"].str.find(ph_in) != -1) & (
                 df["input - current [A]"] == c_in
@@ -322,14 +316,14 @@ def choose_distros_in_inventory(project_path: str, grid: dict, sh_name: str) -> 
             scoreboard.loc[:, score_cols[0]] = has_input
             scoreboard.loc[:, score_cols[-1]] = has_input  # init total score
 
-            # check output(s)
-            has_output = dict.fromkeys(
-                distro["out"].keys(), False
-            )  # a dict checking if considered distro has the correct outputs
+            # --- check output(s)
+
+            # create a dict to check if considered distro has the correct outputs
+            has_output = dict.fromkeys(distro["out"].keys(), False)
             no = 0  # output type counter
             for desc, qty in distro["out"].items():
                 if verbose >= 2:
-                    print(
+                    logger.debug(
                         f"\t looking for a distro with {qty} output(s) of type {desc}..."
                     )
 
@@ -342,7 +336,7 @@ def choose_distros_in_inventory(project_path: str, grid: dict, sh_name: str) -> 
                 ]
                 for available_ouput in inventory_col_to_check:
                     if verbose >= 2:
-                        print(f"\t looking in the '{available_ouput}' column...")
+                        logger.debug(f"\t looking in the '{available_ouput}' column...")
 
                     # find out which distro(s) have the needed type of output
                     has_output_rating = df[f"{available_ouput} - current [A]"] == c_out
@@ -355,8 +349,8 @@ def choose_distros_in_inventory(project_path: str, grid: dict, sh_name: str) -> 
                     scoreboard.loc[:, score_cols[no]] = has_output[desc]
 
                     if verbose >= 3:
-                        print(f"has output: \n{has_output}")
-                        print(f"scoreboard: {scoreboard}")
+                        logger.debug(f"has output: \n{has_output}")
+                        logger.debug(f"scoreboard: {scoreboard}")
 
                 # now that the output possibilities have been checked, update total score
                 scoreboard.loc[:, score_cols[-1]] &= scoreboard.loc[:, score_cols[no]]
@@ -389,25 +383,25 @@ def choose_distros_in_inventory(project_path: str, grid: dict, sh_name: str) -> 
                 grid[load_name].distro_chosen = "no distro available"
 
             if verbose:
-                print(prt)
+                logger.debug(prt)
 
             if verbose >= 2:
-                print(f"\t candidates: \n{candidates}")
+                logger.debug(f"\t candidates: \n{candidates}")
 
             if verbose >= 3:
-                print(f"scoreboard : \n{scoreboard}")
+                logger.debug(f"scoreboard : \n{scoreboard}")
 
         else:
-            print(
+            logger.info(
                 f"\t -> Unable to get distro requirements for {load_name}: {load.distro} -> skipping"
             )
             choice = None
             unmatched.append(load_name)
 
     if len(unmatched) == 0:
-        print("\nall nodes have a distro assigned from the inventory !")
+        logger.info("\nall nodes have a distro assigned from the inventory !")
 
     else:
-        print(f"\ncould not find distros for the following loads: {unmatched}")
+        logger.info(f"\ncould not find distros for the following loads: {unmatched}")
 
     return grid
