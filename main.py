@@ -34,7 +34,7 @@ def is_running_in_qgis():
 
 def get_project(
     param: dict, running_in_qgis: bool
-) -> tuple[QgsProject, str, qgis._core.QgsApplication]:
+) -> tuple[QgsProject, str, QgsApplication]:
     """get QGIS qgs_project and project file"""
     qgs_project = QgsProject.instance()
     if running_in_qgis:
@@ -119,7 +119,7 @@ def run_analysis(
     return grid, cables_dict
 
 
-def main() -> tuple[dict, dict, bool]:
+def main() -> tuple[dict, dict, QgsApplication, bool]:
     check_qgis_version()
     running_in_qgis = is_running_in_qgis()
     nopywer_folder = os.path.dirname(__file__)
@@ -131,13 +131,13 @@ def main() -> tuple[dict, dict, bool]:
 
     qgs_project, project_folder, qgs = get_project(param, running_in_qgis)
     grid, cables_dict = run_analysis(qgs_project, project_folder, param)
-    if not running_in_qgis:
-        qgs.exitQgis()
 
     print("\nNopywer analysis completed :)")
 
-    return grid, qgs_project, running_in_qgis
+    return grid, qgs_project, qgs, running_in_qgis
 
 
 if (__name__ == "__main__") or (QgsApplication.instance() is not None):
-    grid, qgs_project, running_in_qgis = main()
+    grid, qgs_project, qgs, running_in_qgis = main()
+    if not running_in_qgis:
+        qgs.exitQgis()
