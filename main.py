@@ -1,3 +1,4 @@
+import traceback
 import os
 
 import numpy as np
@@ -10,6 +11,7 @@ except ImportError:
     from qgis.core import QGis as Qgis  # qgis 2 and below
 
 import nopywer as npw
+from nopywer.logger_config import logger
 
 
 def check_qgis_version():
@@ -28,7 +30,7 @@ def is_running_in_qgis():
     """get QGS application instance"""
     qgs = QgsApplication.instance()
     running_in_qgis = qgs is not None
-    print(f"running in QGIS = {running_in_qgis}")
+    logger.info(f"running in QGIS = {running_in_qgis}")
     return running_in_qgis
 
 
@@ -44,7 +46,7 @@ def get_project(
     else:
         project_file, qgs = load_qgis_project(param, qgs_project)
 
-    print(f"project filename: {qgs_project.fileName()}\n")
+    logger.info(f"project filename: {qgs_project.fileName()}\n")
     project_folder = os.path.split(project_file)[0]
 
     return qgs_project, project_folder, qgs
@@ -53,12 +55,12 @@ def get_project(
 def load_qgis_project(
     param: dict, qgs_project: QgsProject
 ) -> tuple[str, qgis._core.QgsApplication]:
-    print("initializing QGIS...")
+    logger.info("initializing QGIS...")
     qgs = QgsApplication([], False)  # second argument to False disables the GUI.
     qgs.initQgis()  # Load providers
 
     # load project - cf https://gis.stackexchange.com/questions/136861/getting-layer-by-name-in-pyqgis/136879#136879
-    print("\nloading project...")
+    logger.info("\nloading project...")
     project_file = param["project_file"]
     assert os.path.isfile(project_file), (
         f'the project file does not exists: "{project_file}"'
@@ -100,10 +102,10 @@ def run_analysis(
     cables_dict = npw.inspect_cable_layers(qgs_project, cables_layers_list, cables_dict)
     grid = npw.compute_distro_requirements(grid, cables_dict)
 
-    print("\ncomputingVDrop...")
+    logger.info("\ncomputingVDrop...")
     grid, cables_dict = npw.compute_voltage_drop(grid, cables_dict)
 
-    print("\nchecking inventory:")
+    logger.info("\nchecking inventory:")
     npw.choose_cables_in_inventory(project_folder, cables_dict, param["inventory"])
     npw.choose_distros_in_inventory(project_folder, grid, param["inventory"])
 
@@ -123,7 +125,7 @@ def main() -> tuple[dict, dict, QgsApplication, bool]:
     check_qgis_version()
     running_in_qgis = is_running_in_qgis()
     nopywer_folder = os.path.dirname(__file__)
-    print(f"nopywer_folder: {nopywer_folder}")
+    logger.info(f"nopywer_folder: {nopywer_folder}")
     if running_in_qgis:
         os.chdir(nopywer_folder)
 
@@ -132,12 +134,17 @@ def main() -> tuple[dict, dict, QgsApplication, bool]:
     qgs_project, project_folder, qgs = get_project(param, running_in_qgis)
     grid, cables_dict = run_analysis(qgs_project, project_folder, param)
 
-    print("\nNopywer analysis completed :)")
+    logger.info("\nNopywer analysis completed :)")
 
     return grid, qgs_project, qgs, running_in_qgis
 
 
 if (__name__ == "__main__") or (QgsApplication.instance() is not None):
-    grid, qgs_project, qgs, running_in_qgis = main()
-    if not running_in_qgis:
-        qgs.exitQgis()
+    try:
+        grid, qgs_project, qgs, running_in_qgis = main()
+        if not running_in_qgis:
+            qgs.exitQgis()
+
+    except Exception as e:
+        # https://stackoverflow.com/questions/4990718/how-can-i-write-a-try-except-block-that-catches-all-exceptions/4992124#4992124
+        logger.error(traceback.format_exc())

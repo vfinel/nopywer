@@ -1,5 +1,6 @@
 import numpy as np
 from .get_constant_parameters import get_constant_parameters
+from .logger_config import logger
 
 # --- constant data
 th_percent = 5  # vdrop threshold in %, above with a message is printed
@@ -16,9 +17,7 @@ verbose = 0
 
 def compute_voltage_drop(grid: dict, cables_dict: dict, load=None):
     # load is supposed to be a string
-    verbose = 0
-    if verbose:
-        print(f"\n\t propagating vdrop to {load}")
+    logger.debug(f"\n\t propagating vdrop to {load}")
 
     if load == None:  # first call of the function. no vdrop at generator
         load = "generator"
@@ -33,14 +32,19 @@ def compute_voltage_drop(grid: dict, cables_dict: dict, load=None):
         grid[load].voltage = grid[parent].voltage - cable.vdrop_volts
         grid[load].vdrop_percent = 100 * (V0 - grid[load].voltage) / vdrop_ref
 
-        if verbose:
-            print(f"\t\t cable: length {cable.length:.0f}m, area: {cable.area:.1f}mm²")
-            print(f"\t\t grid[parent]['voltage']: {grid[parent].voltage:.0f}V")
-            print(f"\t\t grid[load]['voltage']: {grid[load].voltage:.0f}V")
-            print(f"\t\t grid[load]['vdrop_percent']: {grid[load].vdrop_percent:.1f}%")
+        logger.debug(
+            f"\t\t cable: length {cable.length:.0f}m, area: {cable.area:.1f}mm²"
+        )
+        logger.debug(f"\t\t grid[parent]['voltage']: {grid[parent].voltage:.0f}V")
+        logger.debug(f"\t\t grid[load]['voltage']: {grid[load].voltage:.0f}V")
+        logger.debug(
+            f"\t\t grid[load]['vdrop_percent']: {grid[load].vdrop_percent:.1f}%"
+        )
 
         if grid[load].vdrop_percent > th_percent:
-            print(f"\t /!\\ vdrop of {grid[load].vdrop_percent:.1f} percent at {load}")
+            logger.info(
+                f"\t /!\\ vdrop of {grid[load].vdrop_percent:.1f} percent at {load}"
+            )
 
     # recursive call
     children = grid[load].children.keys()
