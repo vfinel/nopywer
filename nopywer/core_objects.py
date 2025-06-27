@@ -31,6 +31,7 @@ class Cable:
         self.nodes = []
         self.current = []
         self.phase = None
+        self._r = self.rho * self.length / self.area
 
     @property
     def length(self):
@@ -46,6 +47,7 @@ class Cable:
         )
         assert value > 0, f"cable length is equal to 0m. This cable cannot be created."
         self._length = value
+        self._r = self.rho * self.length / self.area
 
     @property
     def area(self):
@@ -58,6 +60,7 @@ class Cable:
             f"cable area should be a float but is {value} (which is a {type(value)})"
         )
         self._area = value
+        self._r = self.rho * self.length / self.area
 
     @property
     def plugs_and_sockets(self):
@@ -118,7 +121,6 @@ class Cable:
     @property
     def r(self):
         """resistance of the cable in Ohms"""
-        self._r = self.rho * self.length / self.area
         return self._r
 
     @r.setter
