@@ -78,7 +78,7 @@ file_handler = logging.handlers.RotatingFileHandler(
     maxBytes=5 * 1024**2,  # count in [MB]
     backupCount=5,
 )
-file_handler.setLevel(logging.TRACE)
+file_handler.setLevel(logging.DEBUG)
 file_handler.setFormatter(file_formatter)
 
 # add loggers
