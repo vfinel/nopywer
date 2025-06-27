@@ -381,6 +381,9 @@ class Node:
         )
         self._vdrop_percent = value
 
+    def __str__(self):
+        return f"Node {self.name} (deepness: {self.deepness}, power: {self.power})"
+
 
 # class Distro:
 #     # use me for distros
