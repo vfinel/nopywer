@@ -1,4 +1,5 @@
 import logging
+import logging.handlers
 
 # Create a logger
 logger = logging.getLogger()  # "my_application")  # can use __name__ too
@@ -15,7 +16,12 @@ console_handler = logging.StreamHandler()
 console_handler.setLevel(logging.INFO)  # Change to DEBUG for detailed logs
 console_handler.setFormatter(console_formatter)
 
-file_handler = logging.FileHandler("app.log")
+# file_handler = logging.FileHandler("app.log")
+file_handler = logging.handlers.RotatingFileHandler(
+    "app.log",
+    maxBytes=5000000,
+    backupCount=5,
+)
 file_handler.setLevel(logging.DEBUG)
 file_handler.setFormatter(file_formatter)
 
