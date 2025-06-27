@@ -214,8 +214,8 @@ class Node:
         self.power = np.array([0.0] * 3)
         self.phase = None
         self.cum_power = np.array([0.0] * 3)
-        self.distro = dict.fromkeys(["in", "out"])
-        self.distro_chosen = dict.fromkeys(["in", "out"])
+        self.distro = {"in": None, "out": {}}
+        self.distro_chosen = {"in": None, "out": {}}
         self.coordinates = None
 
     @property
