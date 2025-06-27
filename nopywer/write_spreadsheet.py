@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from .logger_config import logger
 
 
 def write_spreadsheet(grid: dict, sh):
@@ -14,9 +15,8 @@ def write_spreadsheet(grid: dict, sh):
             - add nodes without loads (eg malfarenode)
     """
 
-    print("write_spreadsheet...")
+    logger.info("write_spreadsheet...")
 
-    verbose = 0
     # start from the input spreadsheet, and...
     # ... drop unnmamed cols https://stackoverflow.com/questions/43983622/remove-unnamed-columns-in-pandas-dataframe
     sh = sh.loc[
@@ -100,16 +100,14 @@ def write_spreadsheet(grid: dict, sh):
     df_norg = sh.iloc[norg_loads, :]
     df_others = sh.iloc[other_loads, :]
 
-    if verbose:
-        print(f"norg loads: {norg_loads}")
-        print(f"other_loads: {other_loads}")
-        with pd.option_context(
-            "display.max_rows", None, "display.max_columns", None
-        ):  # more options can be specified also
-            print(sh)
-            print("splitted:")
-            print(df_norg)
-            print(df_others)
+    logger.debug(f"norg loads: {norg_loads}")
+    logger.debug(f"other_loads: {other_loads}")
+    with pd.option_context("display.max_rows", None, "display.max_columns", None):
+        # (more options can be specified)
+        logger.debug(sh)
+        logger.debug("splitted:")
+        logger.debug(df_norg)
+        logger.debug(df_others)
 
     # ... create a excel writer object and write file
     with pd.ExcelWriter("output.ods") as writer:

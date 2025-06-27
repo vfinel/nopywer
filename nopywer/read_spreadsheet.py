@@ -1,19 +1,19 @@
 import pandas as pd
 import numpy as np
 import os
+from .logger_config import logger
 
 
 def read_spreadsheet(
     project_path: str, grid: dict, cables_dict: dict, sparam: dict
 ) -> tuple[dict, dict, list, pd.DataFrame]:
-    verbose = 0
     headers = {
         "name": "Project",
         "phase": "which phase(1, 2, 3, T, U or Y)",
         "power": "worstcase power [W]",
     }
 
-    print("\nReading spreadsheet")
+    logger.info("\nReading spreadsheet")
     # TODO: one sheet per "norg / power swap / art", loop on sheets, build dict of all loads_on_sheet ---> avoid manual editing of .ods
     sh = pd.read_excel(
         os.path.join(project_path, sparam["name"]),
@@ -59,10 +59,9 @@ def read_spreadsheet(
                 phase = sh[headers["phase"]][row]
                 pwr = np.double(sh[headers["power"]][row])
                 assert pwr != np.nan, f"load {name_on_sheet} has no power indicated"
-                if verbose:
-                    print(
-                        f"\t'{name_on_sheet}' draws {pwr}W on phase {phase} ('{load}' on the map)"
-                    )
+                logger.debug(
+                    f"\t'{name_on_sheet}' draws {pwr}W on phase {phase} ('{load}' on the map)"
+                )
 
                 if pwr > 0:
                     # --- parse phase info
@@ -87,7 +86,7 @@ def read_spreadsheet(
                         has_no_phase.append(name_on_sheet)
 
                     else:
-                        print(grid[load])
+                        logger.info(grid[load])
                         raise ValueError(
                             f"{name_on_sheet} has a wrong phase assigned: {phase}"
                         )
@@ -122,15 +121,14 @@ def read_spreadsheet(
                     #   grid[load]['date']['to'] = sh['Depart'][idx[0]]
 
                 elif pwr == 0:
-                    if verbose:
-                        print(
-                            f"'{load}' doesn't draw power but let's keep it anyway :) "
-                        )
+                    logger.info(
+                        f"'{load}' doesn't draw power but let's keep it anyway :) "
+                    )
 
                 else:
                     raise ValueError(f'Unable to read "{name_on_sheet}" power usage')
 
-        # print(f"\t {load} draws {grid[load]['power']/1e3:.1f}kW on phase {grid[load]['phase']} \
+        # logger.debug(f"\t {load} draws {grid[load]['power']/1e3:.1f}kW on phase {grid[load]['phase']} \
         #           from {grid[load]['date']['from']} to {grid[load]['date']['to']}")
 
         if (len(idx) == 0) and (
@@ -148,14 +146,14 @@ def read_spreadsheet(
         if len(idx_on_map) == 0:
             missing_on_map.append(name_on_sheet)
 
-    print(
+    logger.info(
         "\n!!! you should not go any further if some loads on the map are not on spreadsheet:"
     )
-    print(
+    logger.info(
         f"\t on map but missing on spreadsheet: \n\t {missing_on_sheet}"
     )  # will make compute_voltage_drop to crash because those don't have cable lengthes
-    print(f"\n\t on spreadsheet but missing on map: \n\t {missing_on_map}")
-    print(
+    logger.info(f"\n\t on spreadsheet but missing on map: \n\t {missing_on_map}")
+    logger.info(
         f"\n list of loads on the spreadsheet that don't have a phase assigned: \n\t {has_no_phase} \n "
     )
 

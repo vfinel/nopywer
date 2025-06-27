@@ -30,7 +30,7 @@ def get_children(node_name: str, grid: dict, cables: dict) -> tuple[dict, dict]:
                 # grid[child]["cable"] = children_dict[child]['cable']
 
         if debug_print > 1:
-            print(f"\t {node_name} has one cable connecting it to: {children}")
+            logger.debug(f"\t {node_name} has one cable connecting it to: {children}")
 
     # --- remove parent from the list of connected nodes
     if node_name != "generator":
@@ -45,7 +45,7 @@ def get_children(node_name: str, grid: dict, cables: dict) -> tuple[dict, dict]:
         grid[node_name].parent = ""
 
     if debug_print:
-        print(f"\t{node_name} has children: {children_dict.keys()}")
+        logger.debug(f"\t{node_name} has children: {children_dict.keys()}")
 
     # --- store
     grid[node_name].children = children_dict  # store current node's children

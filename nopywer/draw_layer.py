@@ -13,11 +13,12 @@ from qgis.core import (
 
 from qgis.utils import iface
 from qgis.PyQt.QtCore import QMetaType
+from .logger_config import logger
 
 
 def draw_point_layer(project: QgsProject):
     # based on https://anitagraser.com/pyqgis-101-introduction-to-qgis-python-programming-for-non-programmers/pyqgis101-creating-editing-a-new-vector-layer/
-    print("running draw_point_layer()...")
+    logger.info("running draw_point_layer()...")
 
     # create a new vector layer
     vl = QgsVectorLayer("Point", "tdsdsemp", "memory")
@@ -46,20 +47,20 @@ def draw_point_layer(project: QgsProject):
     # add the layer to the project
     project.addMapLayer(vl)
 
-    # print some stats
-    print("\nNo. fields:", len(pr.fields()))
-    print("No. features:", pr.featureCount())
+    # log some stats
+    logger.info("\nNo. fields:", len(pr.fields()))
+    logger.info("No. features:", pr.featureCount())
     e = vl.extent()
-    print("Extent:", e.xMinimum(), e.yMinimum(), e.xMaximum(), e.yMaximum())
+    logger.info("Extent:", e.xMinimum(), e.yMinimum(), e.xMaximum(), e.yMaximum())
     for f in vl.getFeatures():
-        print("Feature:", f.id(), f.attributes(), f.geometry().asPoint())
+        logger.info("Feature:", f.id(), f.attributes(), f.geometry().asPoint())
 
     # add more attributes
     my_field_name = "new field"
     my_field_value = "Hello world!"
 
     use_with = 1
-    print(f"use_with: {use_with}")
+    logger.info(f"use_with: {use_with}")
     if not use_with:
         """using startEditing"""
         vl.startEditing()
@@ -87,7 +88,7 @@ def draw_point_layer(project: QgsProject):
 
     # print some stuff
     for f in vl.getFeatures():
-        print("Feature:", f.id(), f.attributes(), f.geometry().asPoint())
+        logger.info("Feature:", f.id(), f.attributes(), f.geometry().asPoint())
 
     return None
 
@@ -162,19 +163,19 @@ if __name__ == "__console__":  # ran from pyqgis console
 
 if __name__ == "__main__":
     # WARNING: update won''t show when code ran from QGIS
-    print("running draw_layer as __main__")
+    logger.info("running draw_layer as __main__")
     from get_user_parameters import get_user_parameters
 
-    print("initializing QGIS...")
+    logger.info("initializing QGIS...")
     QgsApplication.setPrefixPath("C:/PROGRA~1/QGIS33~1.3/apps/qgis", True)
     qgs = QgsApplication([], False)  # second argument to False disables the GUI.
     qgs.initQgis()  # Load providers
 
-    print("\nloading project...")
+    logger.info("\nloading project...")
     param = get_user_parameters()
     project = QgsProject.instance()
     project_file = param["project_file"]
-    print(f"\nloading project {project_file}...")
+    logger.info(f"\nloading project {project_file}...")
     assert os.path.isfile(project_file), (
         f'the project file does not exists: "{project_file}"'
     )
@@ -182,4 +183,4 @@ if __name__ == "__main__":
     assert status, f'unable to read project "{project_file}"'
 
     draw_point_layer(project)
-    print("WARNING: update wont show when code ran from QGIS")
+    logger.info("WARNING: update wont show when code ran from QGIS")

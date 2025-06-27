@@ -22,7 +22,7 @@ def find_combinations(arr: list, target_sum, th: float = 5.0):
 
         if (not found) and (th < 5 * target_sum):
             # second arg is a sanity check to avoid infinite recursion
-            # print(f'unable to find, trying with increase threshold to {th+5}m ')
+            # logger.info(f'unable to find, trying with increase threshold to {th+5}m ')
             output = find_combinations(arr, target_sum, 1.5 * th)
 
     return output

@@ -1,4 +1,5 @@
 from qgis.core import QgsProject
+from .logger_config import logger
 
 
 def get_layer(project, layer_name: str):
@@ -6,7 +7,7 @@ def get_layer(project, layer_name: str):
     layers = project.mapLayersByName(layer_name)
     if len(layers) == 0:
         names = [layer.name() for layer in project.mapLayers().values()]
-        print("\n".join(names))
+        logger.info("\n".join(names))
         raise ValueError(
             f'layer "{layer_name}" does not exists. Existing layers are \n {names}'
         )
