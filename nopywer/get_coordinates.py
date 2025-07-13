@@ -38,7 +38,7 @@ def get_coordinates(feature):
     elif geom.type() == QgsWkbTypes.PolygonGeometry:  # == 2
         if geomSingleType:
             x = geom.asPolygon()
-            logger.trace(f"Polygon: {x}, Area: {geom.area()}")
+            logger.debug(f"Polygon: {x}, Area: {geom.area()}")
 
         else:
             x = geom.asMultiPolygon()
