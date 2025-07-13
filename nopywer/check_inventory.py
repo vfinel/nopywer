@@ -300,6 +300,16 @@ def choose_distros_in_inventory(project_path: str, grid: dict, sh_name: str) -> 
         distro = load.distro  # replace by distro_requirements
         logger.debug(f"\n\t{load_name} needs a distro with {distro}")
 
+        if load_name == "ctna distri":
+            print(f"why ctna distri cannot be matched ? distro : {distro}")
+            print("?")
+        #     je crois que c'est parce que j'ai assigné les distro avec 2 sorties 3P 32A
+        #     trop tot, a d'autres loads ne necessitant pas forcément autant de sortie 3P 32A, par exemple nomiddleofnowhere...
+        #     -> si c'est ca, il faut raffiner la selection, et choisir le disro qui match et dont on utilise
+        # un maximum les sorties
+        # ca laisserai les distro ac plus de sorties libres
+        # calculer le "taux  de sorties utilisées"
+
         if (distro["in"] != None) and (distro["out"] != {}):
             score_cols = (
                 ["in: " + distro["in"]]
@@ -370,8 +380,37 @@ def choose_distros_in_inventory(project_path: str, grid: dict, sh_name: str) -> 
 
             else:
                 prt = f"\t -> could find {len(candidates)} types of distros"
-                # take first ok one https://stackoverflow.com/a/40660434
-                choice = df[scoreboard.loc[:, score_cols[-1]] == True].index[0]
+                # Compute ratio of outputs usage and choose the one with the highest ratio
+                valid_candidates = df[scoreboard.loc[:, score_cols[-1]] == True]
+                usage_ratios = []
+
+                for idx, candidate in valid_candidates.iterrows():
+                    total_outputs = 0
+                    used_outputs = 0
+                    # For each output requirement in the current distro
+                    for desc, qty in distro["out"].items():
+                        ph_out, c_out = parse_distro_req(desc)
+                        # Find matching output columns in candidate
+                        for col in candidate.index:
+                            if "output" in col and ph_out in col and "current" in col:
+                                # Check if current matches
+                                if candidate[col] == c_out:
+                                    # Find corresponding quantity column
+                                    qty_col = col.replace("current [A]", "quantity")
+                                    total_outputs += candidate[qty_col]
+                                    used_outputs += min(candidate[qty_col], qty)
+                    # Avoid division by zero
+                    ratio = used_outputs / total_outputs if total_outputs > 0 else 0
+                    usage_ratios.append(ratio)
+
+                # Select the candidate with the highest usage ratio
+                if usage_ratios:
+                    max_idx = usage_ratios.index(max(usage_ratios))
+                    choice = valid_candidates.index[max_idx]
+                else:
+                    choice = valid_candidates.index[0]  # fallback
+
+                logger.info(f"best candidate for {load_name} is {choice}")
 
             if choice != None:  # update inventory
                 df.loc[choice, "how many distros"] -= 1
@@ -391,10 +430,18 @@ def choose_distros_in_inventory(project_path: str, grid: dict, sh_name: str) -> 
             if verbose >= 3:
                 logger.debug(f"scoreboard : \n{scoreboard}")
 
+        elif distro["out"] == {}:
+            if verbose:
+                logger.debug(
+                    f"\n\t{load_name} does not need a distro because it has no output requirement: {distro}"
+                )
+            choice = None
+
         else:
             logger.info(
                 f"\t -> Unable to get distro requirements for {load_name}: {load.distro} -> skipping"
             )
+
             choice = None
             unmatched.append(load_name)
 
