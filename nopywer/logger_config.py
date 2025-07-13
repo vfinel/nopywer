@@ -55,9 +55,22 @@ def addLoggingLevel(levelName, levelNum, methodName=None):
     setattr(logging, methodName, logToRoot)
 
 
+# Add the TRACE level before defining the CustomLogger class
+addLoggingLevel("TRACE", logging.DEBUG - 5)
+
+
+# Define a custom Logger class with a trace() method for static analysis tools
+class CustomLogger(logging.Logger):
+    def trace(self, message, *args, **kwargs):
+        if self.isEnabledFor(logging.TRACE):
+            self._log(logging.TRACE, message, args, **kwargs)
+
+
+# Set the custom logger class before any loggers are created
+logging.setLoggerClass(CustomLogger)
+
 # Create a logger
 logger = logging.getLogger()  # "my_application")  # can use __name__ too
-addLoggingLevel("TRACE", logging.DEBUG - 5)
 
 # Set basic logger level
 logger.setLevel(logging.TRACE)

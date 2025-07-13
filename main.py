@@ -4,11 +4,7 @@ import os
 import numpy as np
 import qgis.utils
 from qgis.core import QgsApplication, QgsProject
-
-try:
-    from qgis.core import Qgis  # qgis 3 and above
-except ImportError:
-    from qgis.core import QGis as Qgis  # qgis 2 and below
+from qgis.core import Qgis  # qgis 3 and above
 
 import nopywer as npw
 from nopywer.logger_config import logger
@@ -54,7 +50,7 @@ def get_project(
 
 def load_qgis_project(
     param: dict, qgs_project: QgsProject
-) -> tuple[str, qgis._core.QgsApplication]:
+) -> tuple[str, QgsApplication]:
     logger.info("initializing QGIS...")
     qgs = QgsApplication([], False)  # second argument to False disables the GUI.
     qgs.initQgis()  # Load providers
