@@ -21,6 +21,7 @@ def calculate_fitness(G: nx.DiGraph):
     grid, _, _ = build_nopywer_grid(G)
     vdrop = analyze_power_grid(G)
 
+    # https://stackoverflow.com/questions/66217836/how-to-sum-up-a-networkx-graphs-edge-weights
     total_length = G.size(weight="length")
 
     # fitness = [1/voltage_drop, 1/length]
@@ -47,7 +48,11 @@ def fitness_func_pyGAD(ga_instance: pygad.GA, solution: np.ndarray, solution_idx
     return fitness
 
 
-def nx_to_pygad(G: nx.DiGraph | list, nodes_list: list) -> np.ndarray | list:
+def nx_to_pygad(
+    G: nx.DiGraph | list[nx.DiGraph], nodes_list: list
+) -> np.ndarray | list[np.ndarray]:
+    """convert a directed graph to its adjacency matrix representation
+    inputs and outputs can be lists"""
     if isinstance(G, list):
         adjacency_mtx = []
         for g in G:
@@ -64,6 +69,7 @@ def nx_to_pygad(G: nx.DiGraph | list, nodes_list: list) -> np.ndarray | list:
 def pygad_to_nx(
     adjency_vector: np.ndarray, nodes_list, nodes_attributes: dict, debug: bool = False
 ) -> nx.DiGraph:
+    """convert a network from its adjacency matrix representation to its networkx representation"""
     # TODO: verifier que pygad_to_nx(nx_to_pygad(G)) == G
     # this is dirty, works because adjency_mtx is a global var
     shape = adjacency_mtx.shape
@@ -87,7 +93,7 @@ def pygad_to_nx(
 
 def selection(population, fitness_scores, num_parents):
     """Selects the best individuals from the population."""
-    # (Placeholder - replace with a selection algorithm like tournament selection)
+    # (Placeholder - TODO replace with a selection algorithm like tournament selection)
     # For now, just select the individuals with the lowest fitness scores.
     sorted_population = sorted(zip(population, fitness_scores), key=lambda x: x[1])
     parents = [individual for individual, fitness in sorted_population[:num_parents]]
@@ -102,12 +108,16 @@ def crossover(parent1, parent2):
     return offspring
 
 
-def mutation(population: list, ga_instance, plot: bool = True):
+def mutation(population: list, ga_instance, plot: bool = True) -> list:
     """
     Apply mutation to a graph
     https://gist.github.com/josephlewisjgl/16fad9765b826a5d59a35009c709ebbc#file-ga_mutation-py
-    """
+    inputs:
+        population: a list of flatten adjacency matrices representing a population
 
+        output: a list of mutated flatten adjacency matrices representing the mutated population
+
+    """
     s = int(len(population[0]) ** 0.5)
     for idx, individual in enumerate(population):
         # get adjacency matrix
@@ -286,6 +296,9 @@ def generate_initial_population(G: nx.DiGraph, population_size: int) -> list:
 
 
 def plot_graph(G):
+    # TODO: add options to plot
+    #   - adjacency matrix alone ??
+    # (done?)  - how will i do to compare two graphs ?  comb of the two options + subplot ?
     colormap = ["red" if node == "generator" else "green" for node in G.nodes()]
     nx.draw(
         G,
@@ -491,6 +504,7 @@ if __name__ == "__main__":
     mutation_type = "random"
     pygag_population = popm_pygad
 
+    # TODO : add custom mutation function https://stackoverflow.com/a/66344562
     ga_instance = pygad.GA(
         num_generations=num_generations,
         num_parents_mating=num_parents_mating,
