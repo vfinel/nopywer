@@ -118,56 +118,82 @@ def mutation(population: list, ga_instance, plot: bool = True) -> list:
         output: a list of mutated flatten adjacency matrices representing the mutated population
 
     """
+    block_fig = False  # useful for debug
     s = int(len(population[0]) ** 0.5)
+    mutants = []
     for idx, individual in enumerate(population):
         # get adjacency matrix
-        grid = np.reshape(individual, (s, s))
+        grid_in = np.reshape(individual, (s, s))
         # grid0 = grid.copy()  # to plot !! deepcopy ?!??!
-        grid0 = copy.deepcopy(grid)
+        grid_out = copy.deepcopy(grid_in)
 
         # randomly selec a load, and connect it elsewhere
         mutate = True
         if mutate:
-            dest_idx = 1  # 1 = MoN
-            new_src = 3  # 3 = werhaus
-            dest_idx = random.randint(0, s - 1)
-            new_src = random.randint(0, s - 1)
-            grid[:, dest_idx] = np.zeros((1, s))  # reset
-            grid[new_src, dest_idx] = 1  # update
+            # dest_idx = 1  # 1 = MoN
+            # new_src = 3  # 3 = werhaus
+
+            # pick a destination (making sure it is not a generator)
+            old_src = []
+            while len(old_src) == 0:  # if we picked a generator, this will be true
+                dest_idx = random.randint(0, s - 1)
+                old_src = np.where(grid_in[:, dest_idx] == 1)[0]  # get src of dest
+
+            # assign a new src to the chosen load (dest)
+            new_src = old_src
+            k = 0
+            while (new_src == old_src) and (k < 1e5):
+                new_src = random.randint(0, s - 1)
+
+            assert new_src != old_src, "unable to find a new src"
+            # print(f"load {dest_idx} is now connected to {new_src} instead of {old_src}")
+            grid_out[:, dest_idx] = np.zeros((1, s))  # reset (rm old connection)
+            grid_out[new_src, dest_idx] = 1  # update (add new connection)
+            assert np.array_equal(grid_in, grid_out) is False, (
+                "why mutation didn't worked?"
+            )
             # TODO:
             #   - check if grid is valid, otherwise, reject mutation ?
             #   - do mutation but only with new_src that are close enough of the dest (eg, <150m)
 
         # update grid
-        population[idx] = grid.flatten()
+        mutants.append(grid_out.flatten())
 
         if plot:
             plt.figure(3)
             plt.clf()
             plt.subplot(1, 3, 1)
-            plt.imshow(grid0)
+            plt.imshow(grid_in)
             plt.xlabel("dest")
             plt.ylabel("src")
             label_adjacency_mtx()
             plt.title("original")
 
             plt.subplot(1, 3, 2)
-            plt.imshow(grid)
+            plt.imshow(grid_out)
             plt.xlabel("dest")
             plt.ylabel("src")
             label_adjacency_mtx()
             plt.title("mutation")
 
             plt.subplot(1, 3, 3)
-            plt.imshow(grid - grid0)
+            plt.imshow(grid_out - grid_in)
             plt.xlabel("dest")
             plt.ylabel("src")
             label_adjacency_mtx()
-            plt.title("diff")
+            plt.title("diff = out - in")
 
-            plt.show()
+            plt.show(block=block_fig)
 
-    return population
+        assert np.array_equal(grid_in, grid_out) is False, "why mutation didn't worked?"
+
+    all_eq = all(
+        [np.array_equal(population[i], mutants[i]) for i in range(len(population))]
+    )
+
+    assert all_eq is False, "why mutants and pop are all equal ?!"
+
+    return mutants
 
 
 def run_genetic_algorithm(grid, population_size, num_generations, mutation_rate):
