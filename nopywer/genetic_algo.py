@@ -529,11 +529,22 @@ if __name__ == "__main__":
 
     pop0_pygad = nx_to_pygad(population, nodes_list)
     popm_pygad = mutation(pop0_pygad, None, plot=False)
+    # gut feeling: many mutations are better
+    popm_pygad = mutation(popm_pygad, None, plot=False)
     popm_nx = [pygad_to_nx(p, nodes_list, nodes_attributes) for p in popm_pygad]
+
+    # TODO: why pop0 and popm are all equal ?!
+    eq_grids = [
+        np.array_equal(pop0_pygad[i], popm_pygad[i]) for i in range(len(pop0_pygad))
+    ]
+    # print(eq_grids)
+    all_eq = all(eq_grids)
+    assert all_eq is False, "why pop0 and popm are all equal ?!"
 
     s = len(nodes_attributes)
     for i, g in enumerate(population):
-        if True:
+        cond = i < 20
+        if cond:
             plt.figure(1)
             plt.clf()
             plt.subplot(1, 2, 1)
@@ -545,15 +556,36 @@ if __name__ == "__main__":
             grid = np.reshape(pop0_pygad[i], (s, s))
             plt.imshow(grid)
             label_adjacency_mtx()
-            plt.show()
+            plt.show(block=False)
 
-        if True:
+        if cond:
             # plot mutation exmple
             plt.figure(2)
             plt.clf()
+            plt.subplot(1, 1, 1)
             plot_graph(popm_nx[i])
-            plt.title(f"pop {i}")
-            plt.show()
+            plt.title(f"mutation example: popm {i}")
+            plt.show(block=False)
+
+        if cond:  # plot crossover (test)
+            offspring = crossover(pop0_pygad[i], popm_pygad[i])
+
+            plt.figure(4)
+            plt.clf()
+            plt.suptitle((f"crossover {i}"))
+
+            plt.subplot(1, 3, 1)
+            plot_graph(population[i])
+            plt.title(f"parent 1")
+
+            plt.subplot(1, 3, 2)
+            plot_graph(popm_nx[i])
+            plt.title(f"parent 2")
+
+            plt.subplot(1, 3, 3)
+            plot_graph(pygad_to_nx(offspring, nodes_list, nodes_attributes))
+            plt.title(f"offspring")
+            plt.show(block=True)
 
     """ build power grid from graph """
     CONSTANTS = npw.get_constant_parameters()
