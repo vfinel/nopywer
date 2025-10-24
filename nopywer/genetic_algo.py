@@ -101,10 +101,70 @@ def selection(population, fitness_scores, num_parents):
 
 
 def crossover(parent1, parent2):
-    """Performs crossover between two parents."""
-    # (Placeholder - replace with a crossover algorithm)
-    # For now, just return a random combination of the two parents.
-    offspring = random.sample(parent1 + parent2, len(parent1))
+    """Performs crossover between two parents.
+        - look at common features between parents --> will be given to offsprings
+        - look at diverging features --> select randomly one to give to offspring
+
+    TODO: how to do N parents ?
+    """
+    plot = True
+    """ get similarities and differences of parents """
+    # get adjacency matrices
+    s = int(parent1.size**0.5)
+    adj1 = np.reshape(parent1, (s, s))
+    adj2 = np.reshape(parent2, (s, s))
+    print(f"are parents equal? {np.array_equal(parent1, parent2)} --> ", end=" ")
+    if not np.array_equal(parent1, parent2):
+        print("cool")
+
+    else:
+        print("parents are not equal, mutation is not going to be interesting")
+
+    diff_mtx = np.not_equal(adj1, adj2)
+    diff_idx = np.where(diff_mtx)
+    n_diff = diff_mtx.sum() / 2  # /2 because to acount for swap
+
+    # TODO
+    """
+    create the offspring. it must have only the common features between all parents
+    eq_mtx = np.equal(adj1, adj2)
+    offspring = np.zeros(same size as parents)
+    offspring(eq_idx) = parent1(eq_idx)
+
+    for (ii, ) enumerate(each diff between parents):
+        # chose randomly between the feature of parent1 or parent1 
+        # ... 
+
+        # assign it to the offspring
+        offspring(diff_idx(ii)) = <parent chosen>(diff_idx(ii))
+    """
+    # offspring = adj1
+    if plot:
+        plt.figure(3)
+        plt.clf()
+        plt.subplot(1, 3, 1)
+        plt.imshow(adj1)
+        plt.xlabel("dest")
+        plt.ylabel("src")
+        label_adjacency_mtx()
+        plt.title("adj parent 1")
+
+        plt.subplot(1, 3, 2)
+        plt.imshow(adj2)
+        plt.xlabel("dest")
+        plt.ylabel("src")
+        label_adjacency_mtx()
+        plt.title("adj parent 2")
+
+        plt.subplot(1, 3, 3)
+        plt.imshow(diff_mtx)
+        plt.xlabel("dest")
+        plt.ylabel("src")
+        label_adjacency_mtx()
+        plt.title("diff mtx")
+
+        plt.show(block=True)
+
     return offspring
 
 
