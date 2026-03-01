@@ -51,6 +51,12 @@ def qgis2list(grid):
     without having to rerun everything.
     """
 
+    def _get_value(node, key):
+        """Support both legacy dict-based nodes and current Node objects."""
+        if isinstance(node, dict):
+            return node[key]
+        return getattr(node, key)
+
     # define all possible edges
     edges = []  # list of ('source', 'dest', distance)
     nodes = {}
@@ -58,18 +64,18 @@ def qgis2list(grid):
         QgsDistanceArea()
     )  # https://qgis.org/pyqgis/3.22/core/QgsDistanceArea.html
     for src_name, source in grid.items():
+        src_coordinates = _get_value(source, "coordinates")
         nodes[src_name] = {
-            "power": source["power"],
-            "cum_power": source["cum_power"],
-            "x": source[
-                "coordinates"
-            ].x(),  # https://qgis.org/pyqgis/3.38/core/QgsPointXY.html
-            "y": source["coordinates"].y(),
+            "power": _get_value(source, "power"),
+            "cum_power": _get_value(source, "cum_power"),
+            "x": src_coordinates.x(),  # https://qgis.org/pyqgis/3.38/core/QgsPointXY.html
+            "y": src_coordinates.y(),
         }
 
         for dst_name, dest in grid.items():
             if source != dest:
-                dist = qgsDist.measureLine(source["coordinates"], dest["coordinates"])
+                dst_coordinates = _get_value(dest, "coordinates")
+                dist = qgsDist.measureLine(src_coordinates, dst_coordinates)
                 edges.append((src_name, dst_name, dist))
                 # print(f'{source}-{dest} dist = {dist:.0f} m')
 
