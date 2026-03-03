@@ -10,4 +10,8 @@ dependencies = [
     "odfpy>=1.4",
     "pandas>=2.2",
     "pulp>=2.8",
+    "typer>=0.15",
 ]
+
+[project.scripts]
+nopywer = "main:main"
