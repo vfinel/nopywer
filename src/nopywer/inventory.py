@@ -41,70 +41,64 @@ def choose_cables_in_inventory(project_path: str, cables_dict: dict, sh_name: st
     if verbose >= 3:
         logger.debug(f"\t {df}")
 
-    for cable_layer_name in cables_dict:
-        logger.debug(f"\n\t\t layer: {cable_layer_name}")
+    sorted_cables = sorted(cables_dict.values(), key=lambda c: c.length_m, reverse=True)
 
-        cable_layer = sorted(cables_dict[cable_layer_name], key=lambda d: d.length, reverse=True)
-
-        for idx, cable in enumerate(cable_layer):
-            if verbose >= 2:
-                logger.debug(
-                    f"\n\t\t\t taking care of cable {idx + 1}/{len(cable_layer)}, "
-                    f"length {cable['length']} m"
-                )
-
-            if "3phases" in cable_layer_name:
-                n_phases = 3
-            elif "1phase" in cable_layer_name:
-                n_phases = 1
-            else:
-                raise ValueError(f"unable to find out number of phases of layer {cable_layer_name}")
-
-            if verbose >= 2:
-                logger.debug(f" n phases: {n_phases}")
-
-            compatible_rows = (
-                (df["number of phases"] == n_phases)
-                & (df["plugs&sockets [A]"] == cable.plugs_and_sockets)
-                & (df["section [mm2]"] == cable.area)
+    for idx, cable in enumerate(sorted_cables):
+        if verbose >= 2:
+            logger.debug(
+                f"\n\t\t\t taking care of cable {idx + 1}/{len(sorted_cables)}, "
+                f"length {cable.length_m} m"
             )
 
-            compatible_df = df[compatible_rows]
+        n_phases = 3 if cable.plugs_and_sockets_a > 16 else 1
+
+        if verbose >= 2:
+            logger.debug(f" n phases: {n_phases}")
+
+        compatible_rows = (
+            (df["number of phases"] == n_phases)
+            & (df["plugs&sockets [A]"] == cable.plugs_and_sockets_a)
+            & (df["section [mm2]"] == cable.area_mm2)
+        )
+
+        compatible_df = df[compatible_rows]
+        if verbose >= 2:
+            logger.debug(f"\t\t\t compatible cables dataframe: \n {compatible_df}")
+
+        comb = None
+        if compatible_df.empty:
             if verbose >= 2:
-                logger.debug(f"\t\t\t compatible cables dataframe: \n {compatible_df}")
+                logger.debug("DataFrame is empty --> no compatible cables in inventory!")
+        else:
+            list_of_cables = [
+                length
+                for qty, length in zip(compatible_df["quantity"], compatible_df["length [m]"])
+                for i in range(qty)
+            ]
 
-            comb = None
-            if compatible_df.empty:
-                if verbose >= 2:
-                    logger.debug("DataFrame is empty --> no compatible cables in inventory!")
-            else:
-                list_of_cables = [
-                    length
-                    for qty, length in zip(compatible_df["quantity"], compatible_df["length [m]"])
-                    for i in range(qty)
-                ]
+            target_sum = cable.length_m
+            comb = find_combinations(list_of_cables, target_sum)
+            if comb is None or verbose:
+                nodes = [cable.from_node, cable.to_node]
+                logger.debug(f"\t\t\t cable {nodes}: {comb}")
 
-                target_sum = cable.length
-                comb = find_combinations(list_of_cables, target_sum)
-                if comb is None or verbose:
-                    logger.debug(f"\t\t\t cable {cable.nodes}: {comb}")
+            if comb is not None:
+                for c in comb:
+                    df.loc[compatible_rows & (df["length [m]"] == c), "quantity"] -= 1
+                    if verbose >= 2:
+                        remaining = df.loc[
+                            compatible_rows & (df["length [m]"] == c), "quantity"
+                        ].values
+                        logger.debug(f"\t\t\t qty of {c}m remaining: {remaining}")
 
-                if comb is not None:
-                    for c in comb:
-                        df.loc[compatible_rows & (df["length [m]"] == c), "quantity"] -= 1
-                        if verbose >= 2:
-                            remaining = df.loc[
-                                compatible_rows & (df["length [m]"] == c), "quantity"
-                            ].values
-                            logger.debug(f"\t\t\t qty of {c}m remaining: {remaining}")
-
-            if comb is None:
-                unmatched.append(cable)
+        if comb is None:
+            unmatched.append(cable)
 
     logger.info("\t unmatched cables: ")
     for unm in unmatched:
+        nodes = [unm.from_node, unm.to_node]
         logger.info(
-            f"\t {unm.plugs_and_sockets}{'A':.<4} ({unm.length:.0f}m) {'-'.join(unm.nodes)} "
+            f"\t {unm.plugs_and_sockets_a}{'A':.<4} ({unm.length_m:.0f}m) {'-'.join(nodes)} "
         )
 
     return None

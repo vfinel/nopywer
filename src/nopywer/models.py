@@ -1,378 +1,50 @@
+from dataclasses import dataclass, field
+
 import numpy as np
 
 from .constants import RHO_COPPER
 
 
+@dataclass
+class PowerNode:
+    name: str
+    lon: float
+    lat: float
+    power_watts: float = 0.0
+    is_generator: bool = False
+    phase: int | str | list | None = None
+
+    parent: str | None = None
+    children: dict[str, str] = field(default_factory=dict)
+    deepness: int | None = None
+
+    cum_power: np.ndarray = field(default_factory=lambda: np.zeros(3))
+    power_per_phase: np.ndarray = field(default_factory=lambda: np.zeros(3))
+    voltage: float = 0.0
+    vdrop_percent: float = 0.0
+
+    cable_to_parent: str | None = None
+
+    distro: dict = field(default_factory=lambda: {"in": None, "out": {}})
+    distro_chosen: dict | str = field(default_factory=lambda: {"in": None, "out": {}})
+
+
+@dataclass
 class Cable:
-    # TODO:
-    #   - check attributes values (with properties setter) for each attribute
-    #   - add helpers strings
+    id: str
+    length_m: float
+    area_mm2: float = 2.5
+    plugs_and_sockets_a: float = 16.0
+    phase: int | str | list | None = None
 
-    # ensure that no attribues can de added without being declared here
-    __slots__ = (
-        "_length",
-        "_area",
-        "_plugs_and_sockets",
-        "_r",
-        "_phase",
-        "_nodes",
-        "_current",
-        "_vdrop_volts",
-        "_coordinates",
-        "_layer_name",
-        "_id",
-    )
+    from_node: str = ""
+    to_node: str = ""
+    from_coords: tuple[float, float] = (0.0, 0.0)
+    to_coords: tuple[float, float] = (0.0, 0.0)
 
-    rho = RHO_COPPER
-
-    def __init__(self, length: float, area: float, plugs_and_sockets: str):
-        self.length = length
-        self.area = area
-        self.plugs_and_sockets = plugs_and_sockets
-        self.nodes = []
-        self.current = []
-        self.phase = None
+    current_per_phase: list[float] = field(default_factory=list)
+    vdrop_volts: float = 0.0
 
     @property
-    def length(self):
-        """This is the documentation for the length property.
-        Note that length should be a float() and in meters.
-        """
-        return self._length
-
-    @length.setter
-    def length(self, value):
-        assert isinstance(value, float), f"cable length should be a float but is a {type(value)}"
-        assert value > 0, "cable length is equal to 0m. This cable cannot be created."
-        self._length = value
-
-    @property
-    def area(self):
-        """area of the cable, in squared millimeters"""
-        return self._area
-
-    @area.setter
-    def area(self, value):
-        assert isinstance(value, float), (
-            f"cable area should be a float but is {value} (which is a {type(value)})"
-        )
-        self._area = value
-
-    @property
-    def plugs_and_sockets(self):
-        """rating of plugs and sockets of the cable, in amps"""
-        return self._plugs_and_sockets
-
-    @plugs_and_sockets.setter
-    def plugs_and_sockets(self, value):
-        assert isinstance(value, (float, int)), (
-            f"cable plugs_and_sockets should be a float or int but is {value} "
-            f"(which is a {type(value)})"
-        )
-        self._plugs_and_sockets = value
-
-    @property
-    def nodes(self):
-        """list of nodes that are connected by this cable."""
-        return self._nodes
-
-    @nodes.setter
-    def nodes(self, value):
-        assert isinstance(value, list), (
-            f"cable nodes should be a list but is {value} (which is a {type(value)})"
-        )
-        self._nodes = value
-
-    @property
-    def phase(self):
-        """Phase flowing through this cable. 'T' for triphase, or an int for single phases."""
-        return self._phase
-
-    @phase.setter
-    def phase(self, value):
-        assert isinstance(
-            value,
-            (
-                type(None),  # for init
-                int,  # if connected to only 1-phase
-                str,  # if connected to another grid
-                list,  # if connected to multiple phases
-            ),
-        ), f"phase should be a (int, str, list, or None) but is {value} which is a {type(value)}"
-        self._phase = value
-
-    @property
-    def current(self):
-        """current flowing through this cable, in each phase, in amps"""
-        return self._current
-
-    @current.setter
-    def current(self, value):
-        assert isinstance(value, list), (
-            f"cable current should be a list (of floats) but is {value} (which is a {type(value)})"
-        )
-        self._current = value
-
-    @property
-    def r(self):
-        """resistance of the cable in Ohms"""
-        self._r = self.rho * self.length / self.area
-        return self._r
-
-    @r.setter
-    def r(self, value):
-        assert isinstance(value, float), (
-            f"cable resistance should be a float but is {value} (which is a {type(value)})"
-        )
-        self._r = value
-
-    @property
-    def vdrop_volts(self):
-        """voltage drop induced in this cable, in volts"""
-        return self._vdrop_volts
-
-    @vdrop_volts.setter
-    def vdrop_volts(self, value):
-        assert isinstance(value, float), (
-            f"cable vdrop_volts should be a float but is {value} (which is a {type(value)})"
-        )
-        self._vdrop_volts = value
-
-    @property
-    def coordinates(self):
-        """list of (lon, lat) coordinates of each extremity of the cable."""
-        return self._coordinates
-
-    @coordinates.setter
-    def coordinates(self, value):
-        assert isinstance(value, list), (
-            f"coordinates should be a list but got {value} instead, which is a {type(value)}"
-        )
-        self._coordinates = value
-
-    @property
-    def layer_name(self):
-        """str representing in which layer this cable is stored."""
-        return self._layer_name
-
-    @layer_name.setter
-    def layer_name(self, value):
-        assert isinstance(value, str), (
-            f"layer_name should be a str but got {value} instead, which is a {type(value)}"
-        )
-        self._layer_name = value
-
-    @property
-    def id(self):
-        """idx of the cable in the list of cables from the layer this cable is stored."""
-        return self._id
-
-    @id.setter
-    def id(self, value):
-        assert isinstance(value, int), (
-            f"id should be a str but got {value} instead, which is a {type(value)}"
-        )
-        self._id = value
-
-    def __str__(self):
-        return (
-            f"Cable {self.id + 1} from layer {self.layer_name}, "
-            f"between {self.nodes}. Length {self.length:.1f}m."
-        )
-
-
-class Node:
-    __slots__ = (
-        "_name",
-        "_parent",
-        "_children",
-        "_deepness",
-        "_cable",
-        "_cables",
-        "_power",
-        "_phase",
-        "_cum_power",
-        "_distro",
-        "_distro_chosen",
-        "_coordinates",
-        "_voltage",
-        "_vdrop_percent",
-    )
-
-    def __init__(
-        self,
-        name: str,
-    ):
-        self.name = name
-        self.parent = None
-        self.children = {}
-        self.deepness = None
-        self.cable = {}
-        self.cables = []
-        self.power = np.array([0.0] * 3)
-        self.phase = None
-        self.cum_power = np.array([0.0] * 3)
-        self.distro = {"in": None, "out": {}}
-        self.distro_chosen = {"in": None, "out": {}}
-        self.coordinates = None
-
-    @property
-    def name(self):
-        """name of that node"""
-        return self._name
-
-    @name.setter
-    def name(self, value):
-        assert isinstance(value, str), f"Node name must be a string, got {type(value)}"
-        self._name = value
-
-    @property
-    def coordinates(self):
-        """coordinates of the Node as a (lon, lat) tuple."""
-        return self._coordinates
-
-    @coordinates.setter
-    def coordinates(self, value):
-        assert isinstance(value, (tuple, list)) or value is None, (
-            "coordinates should be a (lon, lat) tuple or None"
-        )
-        self._coordinates = value
-
-    @property
-    def parent(self):
-        """name of this node's parent"""
-        return self._parent
-
-    @parent.setter
-    def parent(self, value):
-        assert isinstance(value, str) or value is None, "Parent must be a string or None"
-        self._parent = value
-
-    @property
-    def children(self):
-        """Dict of Node's children. Key = child name, value = cable to that child."""
-        return self._children
-
-    @children.setter
-    def children(self, value):
-        assert isinstance(value, dict), "Children must be a dict"
-        self._children = value
-
-    @property
-    def deepness(self):
-        """deepness of that node wrt the generator"""
-        return self._deepness
-
-    @deepness.setter
-    def deepness(self, value):
-        assert isinstance(value, int) or value is None, "Deepness must be int or None"
-        self._deepness = value
-
-    @property
-    def cable(self):
-        """dict containing information about the cable to parent
-        The dictionnary contains the keys
-            - 'layer' : str : name of the layer containing the cable
-            - 'idx': int: index of the cable in that layer
-        """
-        return self._cable
-
-    @cable.setter
-    def cable(self, value):
-        assert isinstance(value, dict), "'cable' must be dict"
-        self._cable = value
-
-    @property
-    def cables(self):
-        """List of cables connected to that Node (dicts, cf cable attribute)."""
-        return self._cables
-
-    @cables.setter
-    def cables(self, value):
-        assert isinstance(value, list), "'cables' must be list"
-        self._cables = value
-
-    @property
-    def phase(self):
-        return self._phase
-
-    @phase.setter
-    def phase(self, value):
-        assert isinstance(
-            value,
-            (
-                type(None),  # for init
-                int,  # if connected to only 1-phase
-                str,  # if connected to another grid
-                list,  # if connected to multiple phases
-            ),
-        ), f"phase should be a (int, str, list, or None) but is {value} which is a {type(value)}"
-        self._phase = value
-
-    @property
-    def power(self):
-        return self._power
-
-    @power.setter
-    def power(self, value):
-        assert isinstance(value, np.ndarray), "'power' must be a np.ndarray"
-        self._power = value
-
-    @property
-    def cum_power(self):
-        return self._cum_power
-
-    @cum_power.setter
-    def cum_power(self, value):
-        assert isinstance(value, np.ndarray), "'power' must be a np.ndarray"
-        self._cum_power = value
-
-    @property
-    def distro(self):
-        """Dict with 'in' and 'out' keys describing necessary inputs/outputs."""
-        return self._distro
-
-    @distro.setter
-    def distro(self, value):
-        assert isinstance(value, dict), "'distro' must be a dict"
-        self._distro = value
-
-    @property
-    def distro_chosen(self):
-        """Dict with 'in'/'out' keys for the chosen distro, or a string if none found."""
-        return self._distro_chosen
-
-    @distro_chosen.setter
-    def distro_chosen(self, value):
-        assert isinstance(value, (dict, str)), "'distro' must be a dict or str."
-        self._distro_chosen = value
-
-    @property
-    def voltage(self):
-        """voltage at the load, in Volts"""
-        return self._voltage
-
-    @voltage.setter
-    def voltage(self, value):
-        if isinstance(value, int):
-            value = float(value)
-
-        assert isinstance(value, float), f"voltage should be a int or float, got {type(value)}"
-        self._voltage = value
-
-    @property
-    def vdrop_percent(self):
-        """voltage drop at the load, in percents"""
-        return self._vdrop_percent
-
-    @vdrop_percent.setter
-    def vdrop_percent(self, value):
-        assert isinstance(value, float), f"voltage drop should be float, got {type(value)}"
-        self._vdrop_percent = value
-
-    def __str__(self):
-        return f"Node {self.name} (deepness: {self.deepness}, power: {self.power})"
-
-
-# class Distro:
-#     # use me for distros
+    def resistance(self) -> float:
+        return RHO_COPPER * self.length_m / self.area_mm2

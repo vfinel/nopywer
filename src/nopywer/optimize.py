@@ -8,13 +8,11 @@ import pulp
 
 from .geometry import geodesic_distance_m
 
-# ---------------------------------------------------------------------------
-# Prepare grid data for optimization
-# ---------------------------------------------------------------------------
-
 
 def grid2list(grid):
     """Extract nodes and edges from the grid for optimization.
+
+    Accepts a dict[str, PowerNode] (keyed by node name).
 
     Returns:
         nodes: dict with only the info needed for optimization
@@ -23,22 +21,20 @@ def grid2list(grid):
     edges = []
     nodes = {}
     for src_name, source in grid.items():
-        src_coords = source["coordinates"]
         nodes[src_name] = {
-            "power": source["power"],
-            "cum_power": source["cum_power"],
-            "x": src_coords[0],
-            "y": src_coords[1],
+            "power": source.power_per_phase,
+            "cum_power": source.cum_power,
+            "x": source.lon,
+            "y": source.lat,
         }
 
         for dst_name, dest in grid.items():
-            if source != dest:
-                dst_coords = dest["coordinates"]
+            if src_name != dst_name:
                 dist = geodesic_distance_m(
-                    src_coords[0],
-                    src_coords[1],
-                    dst_coords[0],
-                    dst_coords[1],
+                    source.lon,
+                    source.lat,
+                    dest.lon,
+                    dest.lat,
                 )
                 edges.append((src_name, dst_name, dist))
 
@@ -46,11 +42,6 @@ def grid2list(grid):
         pickle.dump([nodes, edges], f)
 
     return nodes, edges
-
-
-# ---------------------------------------------------------------------------
-# Optimal layout via LP (PuLP)
-# ---------------------------------------------------------------------------
 
 
 def find_optimal_layout(grid, edges):
@@ -72,7 +63,7 @@ def find_optimal_layout(grid, edges):
             "n_out": None,
             "parent": "",
             "children": [],
-            "power": np.sum(grid[node]["power"]),
+            "power": np.sum(grid[node].power_per_phase),
             "cum_power": pulp.LpVariable(
                 f"cum_power_{node}",
                 lowBound=0,
@@ -86,8 +77,8 @@ def find_optimal_layout(grid, edges):
     for n in nodes:
         n_out = pulp.lpSum([edges_conn[src, dst] for src, dst, _ in edges if src == n])
         n_in = pulp.lpSum([edges_conn[src, dst] for src, dst, _ in edges if dst == n])
-        grid[n]["n_out"] = n_out
-        grid[n]["n_in"] = n_in
+        nodes[n]["n_out"] = n_out
+        nodes[n]["n_in"] = n_in
         if n == "generator":
             prob += n_in == 0
             prob += n_out >= 1
@@ -149,8 +140,8 @@ def find_optimal_layout(grid, edges):
 
     G = nx.DiGraph()
     G.add_weighted_edges_from(edges_final)
-    pos = {name: (node["x"], node["y"]) for name, node in grid.items()}
-    colormap = ["red" if node == "generator" else "green" for node in G.nodes()]
+    pos = {name: (node.lon, node.lat) for name, node in grid.items()}
+    colormap = ["red" if name == "generator" else "green" for name in G.nodes()]
     nx.draw(
         G,
         pos,
@@ -166,11 +157,6 @@ def find_optimal_layout(grid, edges):
     plt.show()
 
     return edges_final
-
-
-# ---------------------------------------------------------------------------
-# Minimum spanning tree via LP (PuLP) with subtour elimination
-# ---------------------------------------------------------------------------
 
 
 def _all_subsets(xs):

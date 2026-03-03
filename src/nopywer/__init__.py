@@ -1,7 +1,7 @@
 from . import (
-    analysis as analysis,
     constants as constants,
     geometry as geometry,
+    grid as grid,
     inventory as inventory,
     io as io,
     models as models,
