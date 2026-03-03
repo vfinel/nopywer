@@ -36,9 +36,7 @@ def find_connections(grid, cables_dict):
                     if dist <= CONNECTION_THRESHOLD_M:
                         if node.name not in cable.nodes:
                             cable.nodes.append(node.name)
-                            node.cables.append(
-                                {"layer": layer_name, "idx": cable.id}
-                            )
+                            node.cables.append({"layer": layer_name, "idx": cable.id})
 
 
 def get_children(node_name: str, grid: dict, cables: dict) -> tuple[dict, dict]:
@@ -118,9 +116,7 @@ def cumulate_current(grid, cables_dict, dlist, v0, pf):
             grid[load].cum_power += grid[load].power
             grid[parent].cum_power += grid[load].cum_power
 
-            cable = cables_dict[grid[load].cable["layer"]][
-                grid[load].cable["idx"]
-            ]
+            cable = cables_dict[grid[load].cable["layer"]][grid[load].cable["idx"]]
             cable.current = list(grid[load].cum_power / v0 / pf)
 
             logger.debug(
@@ -142,49 +138,32 @@ def compute_distro_requirements(grid, cables_dict):
 
         if (load.parent is not None) and (len(load.parent) > 0):
             cable2parent_ref = load.cable
-            cable2parent = cables_dict[cable2parent_ref["layer"]][
-                cable2parent_ref["idx"]
-            ]
+            cable2parent = cables_dict[cable2parent_ref["layer"]][cable2parent_ref["idx"]]
             if "3phases" in cable2parent_ref["layer"]:
                 ph = "3P"
             elif "1phase" in cable2parent_ref["layer"]:
                 ph = "1P"
             else:
-                logger.info(
-                    "\t\t\t can't figure out if this cable is 3P or 1P"
-                )
+                logger.info("\t\t\t can't figure out if this cable is 3P or 1P")
 
             if cable2parent.plugs_and_sockets is None:
-                raise ValueError(
-                    "cable2parent.plugs_and_sockets is None"
-                )
-            load.distro["in"] = (
-                f"{ph} {cable2parent.plugs_and_sockets}A"
-            )
+                raise ValueError("cable2parent.plugs_and_sockets is None")
+            load.distro["in"] = f"{ph} {cable2parent.plugs_and_sockets}A"
 
         elif load.name == "generator":
             load.distro["in"] = "3P 125A"
 
         load.distro["out"] = {}
         if load.children is not None:
-            cables2children_ref = [
-                load.children[child]["cable"]
-                for child in load.children
-            ]
-            cables2children = [
-                cables_dict[c["layer"]][c["idx"]]
-                for c in cables2children_ref
-            ]
+            cables2children_ref = [load.children[child]["cable"] for child in load.children]
+            cables2children = [cables_dict[c["layer"]][c["idx"]] for c in cables2children_ref]
             for idx, cable in enumerate(cables2children):
                 if "3phases" in cables2children_ref[idx]["layer"]:
                     ph = "3P"
                 elif "1phase" in cables2children_ref[idx]["layer"]:
                     ph = "1P"
                 else:
-                    logger.info(
-                        "\t\t\t can't figure out if this cable"
-                        " is 3P or 1P"
-                    )
+                    logger.info("\t\t\t can't figure out if this cable is 3P or 1P")
 
                 desc = f"{ph} {cable.plugs_and_sockets}A"
                 if desc not in load.distro["out"]:
@@ -204,39 +183,21 @@ def compute_voltage_drop(grid, cables_dict, load=None):
         grid[load].vdrop_percent = 0.0
     else:
         parent = grid[load].parent
-        cable = cables_dict[grid[load].cable["layer"]][
-            grid[load].cable["idx"]
-        ]
+        cable = cables_dict[grid[load].cable["layer"]][grid[load].cable["idx"]]
         cable.vdrop_volts = _vdrop_coef * cable.r * np.max(cable.current)
         grid[load].voltage = grid[parent].voltage - cable.vdrop_volts
-        grid[load].vdrop_percent = (
-            100 * (V0 - grid[load].voltage) / _vdrop_ref
-        )
+        grid[load].vdrop_percent = 100 * (V0 - grid[load].voltage) / _vdrop_ref
 
-        logger.debug(
-            f"\t\t cable: length {cable.length:.0f}m, "
-            f"area: {cable.area:.1f}mm²"
-        )
-        logger.debug(
-            f"\t\t voltage at parent: {grid[parent].voltage:.0f}V"
-        )
-        logger.debug(
-            f"\t\t voltage at load: {grid[load].voltage:.0f}V"
-        )
-        logger.debug(
-            f"\t\t vdrop: {grid[load].vdrop_percent:.1f}%"
-        )
+        logger.debug(f"\t\t cable: length {cable.length:.0f}m, area: {cable.area:.1f}mm²")
+        logger.debug(f"\t\t voltage at parent: {grid[parent].voltage:.0f}V")
+        logger.debug(f"\t\t voltage at load: {grid[load].voltage:.0f}V")
+        logger.debug(f"\t\t vdrop: {grid[load].vdrop_percent:.1f}%")
 
         if grid[load].vdrop_percent > VDROP_THRESHOLD_PERCENT:
-            logger.info(
-                f"\t /!\\ vdrop of {grid[load].vdrop_percent:.1f}"
-                f" percent at {load}"
-            )
+            logger.info(f"\t /!\\ vdrop of {grid[load].vdrop_percent:.1f} percent at {load}")
 
     for child in grid[load].children:
-        grid, cables_dict = compute_voltage_drop(
-            grid, cables_dict, child
-        )
+        grid, cables_dict = compute_voltage_drop(grid, cables_dict, child)
 
     return grid, cables_dict
 
@@ -265,12 +226,10 @@ def print_grid_info(grid, cables_dict, phase_balance, has_no_phase, dlist):
     for deep in range(len(dlist)):
         logger.info(f"\t deepness {deep}")
         for load in dlist[deep]:
-            pwr_per_phase = np.round(
-                1e-3 * grid[load].cum_power, 1
-            ).tolist()
+            pwr_per_phase = np.round(1e-3 * grid[load].cum_power, 1).tolist()
             pwr_total = 1e-3 * np.sum(grid[load].cum_power)
             vdrop = grid[load].vdrop_percent
-            flag = " <<<<<<<<<<"if vdrop > 5 else ""
+            flag = " <<<<<<<<<<" if vdrop > 5 else ""
             logger.info(
                 f"\t\t {load:20} cum_power={pwr_per_phase}kW, "
                 f"total {pwr_total:5.1f}kW, vdrop {vdrop:.1f}%"
@@ -285,10 +244,7 @@ def print_grid_info(grid, cables_dict, phase_balance, has_no_phase, dlist):
         if is_unconnected and is_load and needs_power:
             logger.info(f"\t{load}")
 
-    logger.info(
-        f"\nLoads without a phase assigned: "
-        f"\n\t{has_no_phase} \n "
-    )
+    logger.info(f"\nLoads without a phase assigned: \n\t{has_no_phase} \n ")
 
     logger.info("total power on other grids: ")
     subgrid_dict = {"tot": 0.0, "msg": ""}
@@ -303,18 +259,13 @@ def print_grid_info(grid, cables_dict, phase_balance, has_no_phase, dlist):
 
         if g is not None:
             subgrid[g]["tot"] += grid[load].power
-            subgrid[g]["msg"] += (
-                f"\t\t {load} ({grid[load].power}W) \n"
-            )
+            subgrid[g]["msg"] += f"\t\t {load} ({grid[load].power}W) \n"
 
     for subgrid_name, subgrid_val in subgrid.items():
         tot = subgrid_val["tot"]
         if isinstance(tot, np.ndarray):
             tot = tot.sum()
-        logger.info(
-            f"\t {subgrid_name} grid: "
-            f"{tot / 1e3:.1f}kW / {tot / V0:.1f}A"
-        )
+        logger.info(f"\t {subgrid_name} grid: {tot / 1e3:.1f}kW / {tot / V0:.1f}A")
         logger.info(subgrid_val["msg"])
 
     logger.debug("\ndistro requirements:")
@@ -326,6 +277,4 @@ def print_grid_info(grid, cables_dict, phase_balance, has_no_phase, dlist):
             logger.debug(f"\t\t\t in: {distro['in']}")
             logger.debug("\t\t\t out: ")
             for desc in distro["out"]:
-                logger.debug(
-                    f"\t\t\t\t {desc}: {distro['out'][desc]}"
-                )
+                logger.debug(f"\t\t\t\t {desc}: {distro['out'][desc]}")

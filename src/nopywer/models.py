@@ -42,10 +42,8 @@ class Cable:
 
     @length.setter
     def length(self, value):
-        assert isinstance(value, float), (
-            f"cable length should be a float but is a {type(value)}"
-        )
-        assert value > 0, f"cable length is equal to 0m. This cable cannot be created."
+        assert isinstance(value, float), f"cable length should be a float but is a {type(value)}"
+        assert value > 0, "cable length is equal to 0m. This cable cannot be created."
         self._length = value
 
     @property
@@ -68,7 +66,8 @@ class Cable:
     @plugs_and_sockets.setter
     def plugs_and_sockets(self, value):
         assert isinstance(value, (float, int)), (
-            f"cable plugs_and_sockets should be a float or int but is {value} (which is a {type(value)})"
+            f"cable plugs_and_sockets should be a float or int but is {value} "
+            f"(which is a {type(value)})"
         )
         self._plugs_and_sockets = value
 
@@ -86,7 +85,7 @@ class Cable:
 
     @property
     def phase(self):
-        """Phase flowing through this cable. Can be 'T' for triphase, or an int for single phases."""
+        """Phase flowing through this cable. 'T' for triphase, or an int for single phases."""
         return self._phase
 
     @phase.setter
@@ -99,9 +98,7 @@ class Cable:
                 str,  # if connected to another grid
                 list,  # if connected to multiple phases
             ),
-        ), (
-            f"phase should be a (int, str, list, or None) but is {value} which is a {type(value)}"
-        )
+        ), f"phase should be a (int, str, list, or None) but is {value} which is a {type(value)}"
         self._phase = value
 
     @property
@@ -178,7 +175,10 @@ class Cable:
         self._id = value
 
     def __str__(self):
-        return f"Cable {self.id + 1} from layer {self.layer_name}, between {self.nodes}. Length {self.length:.1f}m."
+        return (
+            f"Cable {self.id + 1} from layer {self.layer_name}, "
+            f"between {self.nodes}. Length {self.length:.1f}m."
+        )
 
 
 class Node:
@@ -245,14 +245,12 @@ class Node:
 
     @parent.setter
     def parent(self, value):
-        assert isinstance(value, str) or value is None, (
-            "Parent must be a string or None"
-        )
+        assert isinstance(value, str) or value is None, "Parent must be a string or None"
         self._parent = value
 
     @property
     def children(self):
-        """ " dict containing Node's children. Each key is the name of one children, the value is the cable going to that children (cf cable attribute)"""
+        """Dict of Node's children. Key = child name, value = cable to that child."""
         return self._children
 
     @children.setter
@@ -286,7 +284,7 @@ class Node:
 
     @property
     def cables(self):
-        """list of cables connected to that Node. Cables are described as dictionnaries, cf cable attribute."""
+        """List of cables connected to that Node (dicts, cf cable attribute)."""
         return self._cables
 
     @cables.setter
@@ -308,9 +306,7 @@ class Node:
                 str,  # if connected to another grid
                 list,  # if connected to multiple phases
             ),
-        ), (
-            f"phase should be a (int, str, list, or None) but is {value} which is a {type(value)}"
-        )
+        ), f"phase should be a (int, str, list, or None) but is {value} which is a {type(value)}"
         self._phase = value
 
     @property
@@ -333,7 +329,7 @@ class Node:
 
     @property
     def distro(self):
-        """a dict with 'in' and 'out' keys describing the necessary inputs and ouputs for that node"""
+        """Dict with 'in' and 'out' keys describing necessary inputs/outputs."""
         return self._distro
 
     @distro.setter
@@ -343,8 +339,7 @@ class Node:
 
     @property
     def distro_chosen(self):
-        """a dict with 'in' and 'out' keys describing the distro chosen from the inventory
-        for that node. If it was not possible to find a corresponding distro, then distro_chosen is a string."""
+        """Dict with 'in'/'out' keys for the chosen distro, or a string if none found."""
         return self._distro_chosen
 
     @distro_chosen.setter
@@ -362,9 +357,7 @@ class Node:
         if isinstance(value, int):
             value = float(value)
 
-        assert isinstance(value, float), (
-            f"voltage should be a int or float, got {type(value)}"
-        )
+        assert isinstance(value, float), f"voltage should be a int or float, got {type(value)}"
         self._voltage = value
 
     @property
@@ -374,9 +367,7 @@ class Node:
 
     @vdrop_percent.setter
     def vdrop_percent(self, value):
-        assert isinstance(value, float), (
-            f"voltage drop should be float, got {type(value)}"
-        )
+        assert isinstance(value, float), f"voltage drop should be float, got {type(value)}"
         self._vdrop_percent = value
 
     def __str__(self):

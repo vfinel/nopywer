@@ -8,7 +8,6 @@ import pulp
 
 from .geometry import geodesic_distance_m
 
-
 # ---------------------------------------------------------------------------
 # Prepare grid data for optimization
 # ---------------------------------------------------------------------------
@@ -36,8 +35,10 @@ def grid2list(grid):
             if source != dest:
                 dst_coords = dest["coordinates"]
                 dist = geodesic_distance_m(
-                    src_coords[0], src_coords[1],
-                    dst_coords[0], dst_coords[1],
+                    src_coords[0],
+                    src_coords[1],
+                    dst_coords[0],
+                    dst_coords[1],
                 )
                 edges.append((src_name, dst_name, dist))
 
@@ -57,7 +58,10 @@ def find_optimal_layout(grid, edges):
 
     edges_conn = {
         (u, v): pulp.LpVariable(
-            f"{u}_{v}", lowBound=0, upBound=1, cat="Integer",
+            f"{u}_{v}",
+            lowBound=0,
+            upBound=1,
+            cat="Integer",
         )
         for u, v, _ in edges
     }
@@ -70,30 +74,24 @@ def find_optimal_layout(grid, edges):
             "children": [],
             "power": np.sum(grid[node]["power"]),
             "cum_power": pulp.LpVariable(
-                f"cum_power_{node}", lowBound=0, cat="Continuous",
+                f"cum_power_{node}",
+                lowBound=0,
+                cat="Continuous",
             ),
         }
 
     print("\t creating objective function")
-    prob += pulp.lpSum(
-        edges_conn[e[0], e[1]] * e[2] for e in edges
-    )
+    prob += pulp.lpSum(edges_conn[e[0], e[1]] * e[2] for e in edges)
 
     for n in nodes:
-        n_out = pulp.lpSum(
-            [edges_conn[src, dst] for src, dst, _ in edges if src == n]
-        )
-        n_in = pulp.lpSum(
-            [edges_conn[src, dst] for src, dst, _ in edges if dst == n]
-        )
+        n_out = pulp.lpSum([edges_conn[src, dst] for src, dst, _ in edges if src == n])
+        n_in = pulp.lpSum([edges_conn[src, dst] for src, dst, _ in edges if dst == n])
         grid[n]["n_out"] = n_out
         grid[n]["n_in"] = n_in
         if n == "generator":
             prob += n_in == 0
             prob += n_out >= 1
-            prob += nodes[n]["cum_power"] == sum(
-                [load["power"] for _, load in nodes.items()]
-            )
+            prob += nodes[n]["cum_power"] == sum([load["power"] for _, load in nodes.items()])
         else:
             prob += n_in == 1
 
@@ -111,7 +109,11 @@ def find_optimal_layout(grid, edges):
 
     # Flow conservation (subtour elimination)
     vars_f = pulp.LpVariable.dicts(
-        "Flow", (nodes, nodes), 0, None, pulp.LpInteger,
+        "Flow",
+        (nodes, nodes),
+        0,
+        None,
+        pulp.LpInteger,
     )
     n_nodes = len(nodes) - 1
     for d in nodes:
@@ -122,9 +124,7 @@ def find_optimal_layout(grid, edges):
     for o in nodes:
         if o != "generator":
             prob += (
-                pulp.lpSum(
-                    [vars_f[a][o] - vars_f[o][a] for a in nodes]
-                ) == 1,
+                pulp.lpSum([vars_f[a][o] - vars_f[o][a] for a in nodes]) == 1,
                 f"Flow_balance_{o}",
             )
 
@@ -143,26 +143,17 @@ def find_optimal_layout(grid, edges):
 
     print("\nloads info:")
     for n in nodes:
-        print(
-            f"\t{n} cum_power = "
-            f"{pulp.value(nodes[n]['cum_power'])}"
-        )
+        print(f"\t{n} cum_power = {pulp.value(nodes[n]['cum_power'])}")
 
-    edges_final = [
-        (e[0], e[1], e[2])
-        for e in edges
-        if edges_conn[e[0], e[1]]
-    ]
+    edges_final = [(e[0], e[1], e[2]) for e in edges if edges_conn[e[0], e[1]]]
 
     G = nx.DiGraph()
     G.add_weighted_edges_from(edges_final)
     pos = {name: (node["x"], node["y"]) for name, node in grid.items()}
-    colormap = [
-        "red" if node == "generator" else "green"
-        for node in G.nodes()
-    ]
+    colormap = ["red" if node == "generator" else "green" for node in G.nodes()]
     nx.draw(
-        G, pos,
+        G,
+        pos,
         with_labels=True,
         node_color=colormap,
         node_size=100,
@@ -170,11 +161,7 @@ def find_optimal_layout(grid, edges):
         horizontalalignment="left",
         font_size=8,
     )
-    labels = {
-        (e[0], e[1]): f"{e[2]:.0f}m"
-        for e in edges
-        if pulp.value(edges_conn[e[0], e[1]])
-    }
+    labels = {(e[0], e[1]): f"{e[2]:.0f}m" for e in edges if pulp.value(edges_conn[e[0], e[1]])}
     nx.draw_networkx_edge_labels(G, pos, edge_labels=labels)
     plt.show()
 
@@ -209,7 +196,10 @@ def minimum_spanning_tree(edges_with_cost):
             nodes_names.append(e)
 
         var_i = pulp.LpVariable(
-            f"BinaryVar_{s}_{e}", 0, 1, pulp.LpInteger,
+            f"BinaryVar_{s}_{e}",
+            0,
+            1,
+            pulp.LpInteger,
         )
         costs_to_sum.append(var_i * c)
         all_vars.append(var_i)
@@ -235,11 +225,7 @@ def minimum_spanning_tree(edges_with_cost):
     prob.solve()
 
     if pulp.LpStatus[prob.status] == "Optimal":
-        solution = [
-            v.name.split("_")[1:]
-            for v in prob.variables()
-            if v.varValue == 1.0
-        ]
+        solution = [v.name.split("_")[1:] for v in prob.variables() if v.varValue == 1.0]
         return {
             "possible": True,
             "solution": solution,

@@ -4,8 +4,8 @@ import json
 from pathlib import Path
 
 from .constants import EXTRA_CABLE_LENGTH_M
-from .models import Cable, Node
 from .geometry import geodesic_distance_m
+from .models import Cable, Node
 
 
 def load_grid_geojson(
@@ -56,14 +56,14 @@ def load_grid_geojson(
             length = float(props.get("length", 0) or 0)
             if length <= 0:
                 length = geodesic_distance_m(
-                    coords[0][0], coords[0][1],
-                    coords[-1][0], coords[-1][1],
+                    coords[0][0],
+                    coords[0][1],
+                    coords[-1][0],
+                    coords[-1][1],
                 )
             length += EXTRA_CABLE_LENGTH_M
 
-            layer = props.get("layer") or (
-                "3phases" if ps > 16 else "1phase"
-            )
+            layer = props.get("layer") or ("3phases" if ps > 16 else "1phase")
 
             cable = Cable(length=length, area=area, plugs_and_sockets=ps)
             cable.coordinates = [(c[0], c[1]) for c in coords]
@@ -85,47 +85,46 @@ def analysis_to_geojson(grid: dict, cables_dict: dict) -> dict:
 
     for cable_layer in cables_dict.values():
         for cable in cable_layer:
-            features.append({
-                "type": "Feature",
-                "geometry": {
-                    "type": "LineString",
-                    "coordinates": [list(c) for c in cable.coordinates],
-                },
-                "properties": {
-                    "layer": cable.layer_name,
-                    "nodes": cable.nodes,
-                    "length_m": round(cable.length, 1),
-                    "area_mm2": cable.area,
-                    "plugs_and_sockets_a": cable.plugs_and_sockets,
-                    "current_a": (
-                        [round(c, 2) for c in cable.current]
-                        if cable.current else []
-                    ),
-                    "vdrop_volts": round(cable.vdrop_volts, 2),
-                },
-            })
+            features.append(
+                {
+                    "type": "Feature",
+                    "geometry": {
+                        "type": "LineString",
+                        "coordinates": [list(c) for c in cable.coordinates],
+                    },
+                    "properties": {
+                        "layer": cable.layer_name,
+                        "nodes": cable.nodes,
+                        "length_m": round(cable.length, 1),
+                        "area_mm2": cable.area,
+                        "plugs_and_sockets_a": cable.plugs_and_sockets,
+                        "current_a": (
+                            [round(c, 2) for c in cable.current] if cable.current else []
+                        ),
+                        "vdrop_volts": round(cable.vdrop_volts, 2),
+                    },
+                }
+            )
 
     for node in grid.values():
         coords = list(node.coordinates) if node.coordinates else [0, 0]
-        features.append({
-            "type": "Feature",
-            "geometry": {
-                "type": "Point",
-                "coordinates": coords,
-            },
-            "properties": {
-                "name": node.name,
-                "type": "generator" if node.name == "generator" else "load",
-                "power_watts": round(float(node.power.sum()), 1),
-                "cum_power_watts": round(float(node.cum_power.sum()), 1),
-                "voltage": round(
-                    getattr(node, "voltage", 0.0), 1
-                ),
-                "vdrop_percent": round(
-                    getattr(node, "vdrop_percent", 0.0), 2
-                ),
-                "distro": node.distro,
-            },
-        })
+        features.append(
+            {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": coords,
+                },
+                "properties": {
+                    "name": node.name,
+                    "type": "generator" if node.name == "generator" else "load",
+                    "power_watts": round(float(node.power.sum()), 1),
+                    "cum_power_watts": round(float(node.cum_power.sum()), 1),
+                    "voltage": round(getattr(node, "voltage", 0.0), 1),
+                    "vdrop_percent": round(getattr(node, "vdrop_percent", 0.0), 2),
+                    "distro": node.distro,
+                },
+            }
+        )
 
     return {"type": "FeatureCollection", "features": features}
