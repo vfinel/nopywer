@@ -3,6 +3,7 @@ import logging
 from pathlib import Path
 from typing import Annotated
 
+import numpy as np
 import typer
 
 import nopywer as npw
@@ -31,7 +32,7 @@ def run_analysis(grid, cables_dict):
     npw.compute_distro_requirements(grid, cables_dict)
     grid, cables_dict = npw.compute_voltage_drop(grid, cables_dict)
 
-    return grid, cables_dict
+    return grid, cables_dict, dlist
 
 
 @app.command()
@@ -52,11 +53,29 @@ def analyze_grid(
         bool,
         typer.Option(help="Write results back to the input GeoJSON"),
     ] = False,
+    verbose: Annotated[
+        bool,
+        typer.Option("--verbose", "-v", help="Print detailed grid info"),
+    ] = False,
 ):
+    if verbose:
+        logging.basicConfig(level=logging.INFO)
+
     nodes, cables_dict = npw.load_grid_geojson(input)
     grid = {n.name: n for n in nodes}
 
-    grid, cables_dict = run_analysis(grid, cables_dict)
+    grid, cables_dict, dlist = run_analysis(grid, cables_dict)
+
+    if verbose:
+        cum = grid["generator"].cum_power
+        phase_balance = 100 * np.std(cum) / np.mean(cum)
+        has_no_phase = [
+            name for name, node in grid.items()
+            if name != "generator" and node.phase is None
+        ]
+        npw.print_grid_info(
+            grid, cables_dict, phase_balance, has_no_phase, dlist,
+        )
 
     if inventory:
         project_folder = str(input.parent)
