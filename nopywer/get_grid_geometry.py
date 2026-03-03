@@ -32,6 +32,7 @@
 # imports
 import json  # to print: print(json.dumps(cables_dict, sort_keys=True, indent=4))
 from qgis.core import QgsDistanceArea, QgsUnitTypes, QgsFeature
+from .constants import EXTRA_CABLE_LENGTH_M
 from .get_layer import get_layer
 from .get_coordinates import get_coordinates
 from .get_children import get_children
@@ -61,7 +62,7 @@ def get_load_name(load: QgsFeature) -> str:
     return load_name
 
 
-def get_cables_info(project, cables_layers_list, extra_cable_length) -> dict:
+def get_cables_info(project, cables_layers_list) -> dict:
     """get cables info (layers' CRS and cables attributes"""
 
     cables_dict = {}
@@ -104,7 +105,7 @@ def get_cables_info(project, cables_layers_list, extra_cable_length) -> dict:
             try:
                 # check attributes before getting them ?
                 cable_nopywer = Cable(
-                    length=cable_length + extra_cable_length,
+                    length=cable_length + EXTRA_CABLE_LENGTH_M,
                     area=cable_qgis.attribute("area"),
                     plugs_and_sockets=cable_qgis.attribute(r"plugs&sockets"),
                 )
@@ -177,11 +178,11 @@ def is_load_connected(cable, load, qgsDist):
 
 
 def find_connections(
-    project, loads_layers_list, cables_layers_list, extra_cable_length
+    project, loads_layers_list, cables_layers_list
 ) -> tuple[dict, dict]:
     verbose = 0
     qgsDist = QgsDistanceArea()
-    cables_dict = get_cables_info(project, cables_layers_list, extra_cable_length)
+    cables_dict = get_cables_info(project, cables_layers_list)
     nodes_dict = get_loads_info(project, loads_layers_list)
 
     # find connections : for each node, loop through all cables until you find close enough to the load
@@ -306,7 +307,6 @@ def get_grid_geometry(project, param: dict):
         project,
         loads_layers_list,
         cables_layers_list,
-        param["extra_cable_length"],
     )
 
     # 2. find connections between nodes to get the "flow direction":

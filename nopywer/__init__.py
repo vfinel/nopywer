@@ -12,7 +12,7 @@ from .get_grid_geometry import get_grid_geometry, compute_distro_requirements
 from .read_spreadsheet import read_spreadsheet
 from .inspect_cable_layer import inspect_cable_layers
 from .get_user_parameters import get_user_parameters
-from .constants import V0, PF, RHO_COPPER, VDROP_THRESHOLD_PERCENT
+from .constants import V0, PF, RHO_COPPER, VDROP_THRESHOLD_PERCENT, EXTRA_CABLE_LENGTH_M
 from .compute_voltage_drop import compute_voltage_drop
 from .print_grid_info import print_grid_info
 from .update_layers import update_1phase_layers, update_load_layers

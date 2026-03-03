@@ -15,12 +15,6 @@ phase_balance_spreadsheet:
 
 inventory: ./power/norg_power_inventory.ods
 
-extra_cable_length: 10
-
-grid_src: compute
-
 update:
   qgis_layers: False
-  phase_balance_spreadsheet: False 
-
-
+  phase_balance_spreadsheet: False

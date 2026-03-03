@@ -12,3 +12,7 @@ RHO_COPPER = 1 / 26  # [Ω·mm²/m]
 
 # Max acceptable voltage drop per NF C 15-100 / IEC 60364
 VDROP_THRESHOLD_PERCENT = 5.0
+
+# Slack added to straight-line map distance: accounts for routing around
+# obstacles, coiling at both ends, and terrain detours
+EXTRA_CABLE_LENGTH_M = 10.0  # [m]
