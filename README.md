@@ -12,9 +12,9 @@ Contributions are welcome and encouraged! Please see the [CONTRIBUTING.md](CONTR
 
 
 ### Configuration to run nopywer outside QGIS 
-To run outside QGIS, it is necessary to use a virtual environment with ```conda```.
+To run outside QGIS, it is necessary to use a virtual environment with ```uv```.
 ```
-conda create -n "nopywer" --channel conda-forge --file requirements.yaml
+uv sync
 ```
 
 ### Configuration to run nopywer from QGIS python console 
