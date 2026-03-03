@@ -1,7 +1,7 @@
 [project]
 name = "nopywer"
 version = "0.1.0"
-description = "Power grid analysis tool for QGIS"
+description = "Power grid analysis tool"
 requires-python = ">=3.12"
 license = "GPL-3.0-or-later"
 dependencies = [

@@ -4,7 +4,7 @@ from pprint import pprint
 import pulp
 import matplotlib.pyplot as plt
 import networkx as nx
-from qgis.core import QgsDistanceArea
+from nopywer.geometry import geodesic_distance_m
 from nopywer.minimum_spanning_tree2 import minimum_spanning_tree
 
 
@@ -34,44 +34,32 @@ def phase_assignment_greedy(grid: dict):
     return loads
 
 
-def qgis2list(grid):
-    """this functions:
-    - takes the 'grid' object from QGIS,
-    - compute two new objects:
-            - 'nodes': very similar to 'grid' but:
-                    - with only necessary info for optim
-                    - without QGIS objects, so it can be saved as a pickle
+def grid2list(grid):
+    """Extract nodes and edges from the grid for optimization.
 
-            - edges: all possible connections between two loads
-                    note that it could be smarter, eg consider user input:
-                    (ban some connections, compute distances from possible
-                    layout on the map rather than direct distance, ...)
-
-    Saving the nodes and edges as pickles allows to run the optimization stuff
-    without having to rerun everything.
+    Returns:
+        nodes: dict with only the info needed for optimization
+        edges: all possible connections between two loads with geodesic distances
     """
-
-    # define all possible edges
-    edges = []  # list of ('source', 'dest', distance)
+    edges = []
     nodes = {}
-    qgsDist = (
-        QgsDistanceArea()
-    )  # https://qgis.org/pyqgis/3.22/core/QgsDistanceArea.html
     for src_name, source in grid.items():
+        src_coords = source["coordinates"]
         nodes[src_name] = {
             "power": source["power"],
             "cum_power": source["cum_power"],
-            "x": source[
-                "coordinates"
-            ].x(),  # https://qgis.org/pyqgis/3.38/core/QgsPointXY.html
-            "y": source["coordinates"].y(),
+            "x": src_coords[0],
+            "y": src_coords[1],
         }
 
         for dst_name, dest in grid.items():
             if source != dest:
-                dist = qgsDist.measureLine(source["coordinates"], dest["coordinates"])
+                dst_coords = dest["coordinates"]
+                dist = geodesic_distance_m(
+                    src_coords[0], src_coords[1],
+                    dst_coords[0], dst_coords[1],
+                )
                 edges.append((src_name, dst_name, dist))
-                # print(f'{source}-{dest} dist = {dist:.0f} m')
 
     with open("grid.pkl", "wb") as f:
         pickle.dump([nodes, edges], f)

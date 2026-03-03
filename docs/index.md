@@ -1,12 +1,11 @@
 This page is the documentation of [https://github.com/vfinel/nopywer/](https://github.com/vfinel/nopywer/)
 
-[nopywer](https://github.com/vfinel/nopywer/) is a python package that integrates with [QGIS](https://qgis.org/) to design 3-phases, islanded power grids using automatic grid design features and analysis tools. 
+[nopywer](https://github.com/vfinel/nopywer/) is a python package to design 3-phases, islanded power grids using automatic grid design features and analysis tools. 
 
 Nopywer key features include:
 - Design power grids using graph optimization algorithms.
 - Analyze current flow and voltage drop to ensure safe grid operation.
 - Verify material availability against inventory to plan construction.
-- Integrate with QGIS for bidirectional synchronization with maps.
 
 Nopywer has been successfully used to design several power grids, as illustred by the following figure.
 

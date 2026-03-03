@@ -155,7 +155,7 @@ class Cable:
 
     @property
     def layer_name(self):
-        """str representing in which QGIS layer this cable is stored."""
+        """str representing in which layer this cable is stored."""
         return self._layer_name
 
     @layer_name.setter
@@ -167,7 +167,7 @@ class Cable:
 
     @property
     def id(self):
-        """idx of the cable in the list of cables from the QGIS layer this cable is stored."""
+        """idx of the cable in the list of cables from the layer this cable is stored."""
         return self._id
 
     @id.setter
@@ -274,7 +274,7 @@ class Node:
     def cable(self):
         """dict containing information about the cable to parent
         The dictionnary contains the keys
-            - 'layer' : str : name of the qgis layer containing the cable
+            - 'layer' : str : name of the layer containing the cable
             - 'idx': int: index of the cable in that layer
         """
         return self._cable
