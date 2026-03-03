@@ -1,12 +1,14 @@
 import numpy as np
-from .logger_config import logger
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def cumulate_current(grid, cables_dict, dlist, V0, PF):
-    logger.trace("\ncumulate_current.py:")
+    logger.debug("\ncumulate_current.py:")
 
     for deepness in range(len(dlist) - 1, 0, -1):
-        logger.trace(f"\tdeepness: {deepness}")
+        logger.debug(f"\tdeepness: {deepness}")
 
         loads = dlist[deepness]
         for load in loads:
@@ -22,12 +24,12 @@ def cumulate_current(grid, cables_dict, dlist, V0, PF):
             # store current TODO: constant power or constant voltage ?
             cable.current = list(grid[load].cum_power / V0 / PF)
 
-            logger.trace(
+            logger.debug(
                 f"\t\t{load} cumulated power: {np.array2string(1e-3 * grid[load].cum_power, precision=1, floatmode='fixed')}kW"
             )
 
     load = "generator"
-    logger.trace(
+    logger.debug(
         f"\t{load} cumulated power: {np.array2string(1e-3 * grid[load].cum_power, precision=1, floatmode='fixed')}kW"
     )
 

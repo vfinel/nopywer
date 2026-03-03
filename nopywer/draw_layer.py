@@ -13,7 +13,9 @@ from qgis.core import (
 
 from qgis.utils import iface
 from qgis.PyQt.QtCore import QMetaType
-from .logger_config import logger
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def draw_point_layer(project: QgsProject):

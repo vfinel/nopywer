@@ -3,7 +3,9 @@ from .get_layer import get_layer
 from .get_grid_geometry import get_load_name
 from qgis.PyQt.QtCore import QVariant
 from qgis.core import QgsField
-from .logger_config import logger
+import logging
+
+logger = logging.getLogger(__name__)
 
 # based on https://gis.stackexchange.com/questions/428973/writing-list-as-attribute-field-in-pyqgis
 

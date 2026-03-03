@@ -1,5 +1,7 @@
 from qgis.core import QgsProject
-from .logger_config import logger
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def get_layer(project, layer_name: str):

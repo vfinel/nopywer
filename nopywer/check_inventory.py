@@ -3,7 +3,9 @@ import numpy as np
 import os
 import pandas as pd
 import re
-from .logger_config import logger
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def find_combinations(arr: list, target_sum, th: float = 5.0):

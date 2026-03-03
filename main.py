@@ -1,3 +1,4 @@
+import logging
 import os
 from pathlib import Path
 
@@ -5,7 +6,8 @@ import numpy as np
 from qgis.core import QgsApplication, QgsProject
 
 import nopywer as npw
-from nopywer.logger_config import logger
+
+logger = logging.getLogger(__name__)
 
 
 def load_qgis_project(project_file: str) -> QgsApplication:

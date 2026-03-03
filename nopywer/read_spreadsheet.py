@@ -1,7 +1,9 @@
 import pandas as pd
 import numpy as np
 import os
-from .logger_config import logger
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def read_spreadsheet(

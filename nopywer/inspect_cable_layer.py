@@ -1,5 +1,7 @@
 from .get_layer import get_layer
-from .logger_config import logger
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def inspect_cable_layers(project, cables_layers_list, cables_nopywer: dict):

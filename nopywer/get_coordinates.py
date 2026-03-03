@@ -1,5 +1,7 @@
 from qgis.core import QgsWkbTypes
-from .logger_config import logger
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def get_coordinates(feature):
@@ -12,37 +14,37 @@ def get_coordinates(feature):
     # fetch geometry
     geom = feature.geometry()
     geomSingleType = QgsWkbTypes.isSingleType(geom.wkbType())
-    logger.trace(f"{geom.type() = }, {geom.wkbType():}")
+    logger.debug(f"{geom.type() = }, {geom.wkbType():}")
 
     if geom.type() == QgsWkbTypes.PointGeometry:  # == 0
         # the geometry type can be of single or multi type
         if geomSingleType:
             x = geom.asPoint()
-            logger.trace(f"Point: {x}")
+            logger.debug(f"Point: {x}")
 
         else:
             x = geom.asMultiPoint()
-            logger.trace(f"MultiPoint: {x}")
+            logger.debug(f"MultiPoint: {x}")
 
     elif geom.type() == QgsWkbTypes.LineGeometry:  # == 1
         if geomSingleType:
             x = geom.asPolyline()
-            logger.trace(f"Line:  {x}, length: {geom.length()}")
+            logger.debug(f"Line:  {x}, length: {geom.length()}")
 
         else:
             x = geom.asMultiPolyline()
-            logger.trace(f"MultiLine:  {x}, length: {geom.length()}")
+            logger.debug(f"MultiLine:  {x}, length: {geom.length()}")
             # first point: x[0][0]
             # last point:  x[0][-1]
 
     elif geom.type() == QgsWkbTypes.PolygonGeometry:  # == 2
         if geomSingleType:
             x = geom.asPolygon()
-            logger.trace(f"Polygon: {x}, Area: {geom.area()}")
+            logger.debug(f"Polygon: {x}, Area: {geom.area()}")
 
         else:
             x = geom.asMultiPolygon()
-            logger.trace(f"MultiPolygon: {x}, Area: {geom.area()}")
+            logger.debug(f"MultiPolygon: {x}, Area: {geom.area()}")
 
     else:
         raise ValueError(

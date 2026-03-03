@@ -1,6 +1,8 @@
 import numpy as np
 from .get_constant_parameters import get_constant_parameters
-from .logger_config import logger
+import logging
+
+logger = logging.getLogger(__name__)
 
 # --- constant data
 th_percent = 5  # vdrop threshold in %, above with a message is printed

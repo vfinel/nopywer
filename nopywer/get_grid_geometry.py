@@ -37,7 +37,9 @@ from .get_coordinates import get_coordinates
 from .get_children import get_children
 from .core_objects import Cable, Node
 import traceback
-from .logger_config import logger
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def get_load_name(load: QgsFeature) -> str:
@@ -53,8 +55,8 @@ def get_load_name(load: QgsFeature) -> str:
     load_name = load_name.replace("  ", " ")  # avoid double blanks
 
     # attrs is a list containing all the attribute values of this feature
-    logger.trace(f"\n\t {load.id() = }")
-    logger.trace(f"\t {load.attributes() = }")
+    logger.debug(f"\n\t {load.id() = }")
+    logger.debug(f"\t {load.attributes() = }")
 
     return load_name
 
@@ -122,12 +124,12 @@ def get_cables_info(project, cables_layers_list, extra_cable_length) -> dict:
 
 def get_loads_info(project, loads_layers_list) -> dict:
     """get loads info"""
-    logger.trace("get_loads_info:")
+    logger.debug("get_loads_info:")
 
     nodes_dict = {}
     for load_layer_name in loads_layers_list:
         load_layer = get_layer(project, load_layer_name)
-        logger.trace(f"loads layer = {load_layer}")
+        logger.debug(f"loads layer = {load_layer}")
 
         field = "name"
         assert field in load_layer.fields().names(), (
@@ -136,7 +138,7 @@ def get_loads_info(project, loads_layers_list) -> dict:
 
         for load in load_layer.getFeatures():
             load_name = get_load_name(load)
-            logger.trace(f"\t load {load_name}")
+            logger.debug(f"\t load {load_name}")
 
             # init a Node for that node
             nodes_dict[load_name] = Node(name=load_name)
@@ -167,7 +169,7 @@ def is_load_connected(cable, load, qgsDist):
     dmin = min(elist)
     is_load_connected = dmin <= thres
     if is_load_connected:
-        logger.trace(
+        logger.debug(
             f'\t\t in cable layer "{cable._layer_name}", cable {cable._id} is connected to "{load.name}"'
         )
 
