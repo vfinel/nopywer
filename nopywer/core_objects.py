@@ -1,5 +1,4 @@
 import numpy as np
-from qgis.core import QgsPointXY
 
 from .constants import RHO_COPPER
 
@@ -144,14 +143,13 @@ class Cable:
 
     @property
     def coordinates(self):
-        """list of QgsPointXY coordinates of each extremities of the cables
-        Note that the cable can have more than 2 extremities if doing angles."""
+        """list of (lon, lat) coordinates of each extremity of the cable."""
         return self._coordinates
 
     @coordinates.setter
     def coordinates(self, value):
         assert isinstance(value, list), (
-            f"coordinates should be a list of QgsPointXY values but got {value} instead, which is a {type(value)}"
+            f"coordinates should be a list but got {value} instead, which is a {type(value)}"
         )
         self._coordinates = value
 
@@ -230,13 +228,13 @@ class Node:
 
     @property
     def coordinates(self):
-        """coordinates of the Node, has a QgsPointXY"""
+        """coordinates of the Node as a (lon, lat) tuple."""
         return self._coordinates
 
     @coordinates.setter
     def coordinates(self, value):
-        assert isinstance(value, QgsPointXY) or value is None, (
-            "coordinates should be a QgsPointXY"
+        assert isinstance(value, (tuple, list)) or value is None, (
+            "coordinates should be a (lon, lat) tuple or None"
         )
         self._coordinates = value
 

@@ -16,3 +16,6 @@ VDROP_THRESHOLD_PERCENT = 5.0
 # Slack added to straight-line map distance: accounts for routing around
 # obstacles, coiling at both ends, and terrain detours
 EXTRA_CABLE_LENGTH_M = 10.0  # [m]
+
+# Max distance to snap a cable endpoint to a node
+CONNECTION_THRESHOLD_M = 5.0  # [m]
