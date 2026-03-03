@@ -6,8 +6,7 @@ from typing import Annotated
 import numpy as np
 import typer
 
-import nopywer as npw
-from nopywer.constants import PF, V0
+import nopywer
 
 logger = logging.getLogger(__name__)
 
@@ -15,22 +14,25 @@ app = typer.Typer()
 
 
 def run_analysis(grid, cables_dict):
-    npw.find_connections(grid, cables_dict)
-    npw.get_children("generator", grid, cables_dict)
-    dlist = npw.compute_deepness_list(grid)
+    nopywer.analysis.find_connections(grid, cables_dict)
+    nopywer.analysis.get_children("generator", grid, cables_dict)
+    dlist = nopywer.analysis.compute_deepness_list(grid)
 
-    for load in grid.keys():
+    for load in grid:
         if load != "generator":
             parent = grid[load].parent
             if parent is not None:
                 cable2parent = grid[parent].children[load]["cable"]
                 grid[load].cable = cable2parent
 
-    grid, cables_dict = npw.cumulate_current(
-        grid, cables_dict, dlist, V0, PF
+    grid, cables_dict = nopywer.analysis.cumulate_current(
+        grid, cables_dict, dlist,
+        nopywer.constants.V0, nopywer.constants.PF,
     )
-    npw.compute_distro_requirements(grid, cables_dict)
-    grid, cables_dict = npw.compute_voltage_drop(grid, cables_dict)
+    nopywer.analysis.compute_distro_requirements(grid, cables_dict)
+    grid, cables_dict = nopywer.analysis.compute_voltage_drop(
+        grid, cables_dict,
+    )
 
     return grid, cables_dict, dlist
 
@@ -45,9 +47,11 @@ def analyze_grid(
         Path | None,
         typer.Option("--output", "-o", help="Output GeoJSON file"),
     ] = None,
-    inventory: Annotated[
+    inventory_file: Annotated[
         Path | None,
-        typer.Option(help="Equipment inventory spreadsheet (.ods)"),
+        typer.Option(
+            "--inventory", help="Equipment inventory spreadsheet (.ods)",
+        ),
     ] = None,
     do_update: Annotated[
         bool,
@@ -61,7 +65,7 @@ def analyze_grid(
     if verbose:
         logging.basicConfig(level=logging.INFO)
 
-    nodes, cables_dict = npw.load_grid_geojson(input)
+    nodes, cables_dict = nopywer.io.load_grid_geojson(input)
     grid = {n.name: n for n in nodes}
 
     grid, cables_dict, dlist = run_analysis(grid, cables_dict)
@@ -73,20 +77,20 @@ def analyze_grid(
             name for name, node in grid.items()
             if name != "generator" and node.phase is None
         ]
-        npw.print_grid_info(
+        nopywer.analysis.print_grid_info(
             grid, cables_dict, phase_balance, has_no_phase, dlist,
         )
 
-    if inventory:
+    if inventory_file:
         project_folder = str(input.parent)
-        npw.choose_cables_in_inventory(
-            project_folder, cables_dict, str(inventory)
+        nopywer.inventory.choose_cables_in_inventory(
+            project_folder, cables_dict, str(inventory_file),
         )
-        npw.choose_distros_in_inventory(
-            project_folder, grid, str(inventory)
+        nopywer.inventory.choose_distros_in_inventory(
+            project_folder, grid, str(inventory_file),
         )
 
-    result = npw.analysis_to_geojson(grid, cables_dict)
+    result = nopywer.io.analysis_to_geojson(grid, cables_dict)
 
     if do_update:
         with open(input, "w") as f:

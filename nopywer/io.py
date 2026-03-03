@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 from .constants import EXTRA_CABLE_LENGTH_M
-from .core_objects import Cable, Node
+from .models import Cable, Node
 from .geometry import geodesic_distance_m
 
 
