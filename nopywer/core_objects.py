@@ -1,6 +1,8 @@
 import numpy as np
 from qgis.core import QgsPointXY
 
+from .constants import RHO_COPPER
+
 
 class Cable:
     # TODO:
@@ -22,7 +24,7 @@ class Cable:
         "_id",
     )
 
-    rho = 1 / 26  # resistivity of copper cables in [ohm/m*mm²] R = rho*L/area
+    rho = RHO_COPPER
 
     def __init__(self, length: float, area: float, plugs_and_sockets: str):
         self.length = length

@@ -1,15 +1,13 @@
-import json
-import numpy as np
-from .get_constant_parameters import get_constant_parameters
 import logging
+
+import numpy as np
+
+from .constants import V0, PF
 
 logger = logging.getLogger(__name__)
 
 
 def print_grid_info(grid, cables_dict, phase_balance, has_no_phase, dlist):
-    CONSTANTS = get_constant_parameters()
-    V0 = CONSTANTS["V0"]
-    PF = CONSTANTS["PF"]
 
     logger.info("\n === info about the grid === \n")
 

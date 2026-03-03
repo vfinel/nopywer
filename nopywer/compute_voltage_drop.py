@@ -1,20 +1,13 @@
-import numpy as np
-from .get_constant_parameters import get_constant_parameters
 import logging
+
+import numpy as np
+
+from .constants import V0, VDROP_THRESHOLD_PERCENT
 
 logger = logging.getLogger(__name__)
 
-# --- constant data
-th_percent = 5  # vdrop threshold in %, above with a message is printed
-CONSTANTS = get_constant_parameters()
-V0 = CONSTANTS["V0"]
-
-
-# --- parameters
 vdrop_ref = np.sqrt(3) * V0
-vdrop_coef = 1  # np.sqrt(3) # todo: change coef for 1-phase vs 3-phase https://drive.google.com/file/d/14_rlY05iPmopzXP5nSGixhvf_KH9mJ0p/view
-
-verbose = 0
+vdrop_coef = 1  # todo: change coef for 1-phase vs 3-phase
 
 
 def compute_voltage_drop(grid: dict, cables_dict: dict, load=None):
@@ -43,7 +36,7 @@ def compute_voltage_drop(grid: dict, cables_dict: dict, load=None):
             f"\t\t grid[load]['vdrop_percent']: {grid[load].vdrop_percent:.1f}%"
         )
 
-        if grid[load].vdrop_percent > th_percent:
+        if grid[load].vdrop_percent > VDROP_THRESHOLD_PERCENT:
             logger.info(
                 f"\t /!\\ vdrop of {grid[load].vdrop_percent:.1f} percent at {load}"
             )

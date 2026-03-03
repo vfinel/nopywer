@@ -6,6 +6,7 @@ import numpy as np
 from qgis.core import QgsApplication, QgsProject
 
 import nopywer as npw
+from nopywer.constants import V0, PF
 
 logger = logging.getLogger(__name__)
 
@@ -30,10 +31,6 @@ def load_qgis_project(project_file: str) -> QgsApplication:
 def run_analysis(param: dict) -> tuple[dict, dict]:
     qgs_project = QgsProject.instance()
     project_folder = os.path.dirname(qgs_project.absoluteFilePath())
-
-    constants = npw.get_constant_parameters()
-    V0 = constants["V0"]
-    PF = constants["PF"]
 
     cables_dict, grid, dlist = npw.get_grid_geometry(qgs_project, param)
 
