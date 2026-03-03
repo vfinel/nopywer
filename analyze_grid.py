@@ -35,7 +35,7 @@ def run_analysis(grid, cables_dict):
 
 
 @app.command()
-def main(
+def analyze_grid(
     input: Annotated[
         Path,
         typer.Argument(help="Input GeoJSON file with nodes and cables"),

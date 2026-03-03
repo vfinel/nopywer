@@ -14,4 +14,4 @@ dependencies = [
 ]
 
 [project.scripts]
-nopywer = "main:main"
+nopywer-analyze = "analyze_grid:app"
