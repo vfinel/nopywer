@@ -5,12 +5,14 @@ description = "Power grid analysis and optimization tool for festival sites"
 requires-python = ">=3.12"
 license = "GPL-3.0-or-later"
 dependencies = [
+    "fastapi>=0.115",
     "networkx>=3.4",
     "numpy>=2.0",
     "odfpy>=1.4",
     "pandas>=2.2",
     "pyproj>=3.6",
     "typer>=0.15",
+    "uvicorn>=0.34",
 ]
 
 [dependency-groups]
@@ -21,6 +23,7 @@ dev = [
 
 [project.scripts]
 nopywer-analyze = "nopywer.cli:app"
+nopywer-server = "nopywer.api:run"
 
 [build-system]
 requires = ["hatchling"]

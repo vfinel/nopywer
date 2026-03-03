@@ -11,13 +11,16 @@ from .models import Cable, PowerNode
 logger = logging.getLogger(__name__)
 
 
-def load_geojson(path: str | Path) -> tuple[dict[str, PowerNode], dict[str, Cable]]:
-    """Parse a GeoJSON file containing Point (nodes) and LineString (cables).
+def load_geojson(source: str | Path | dict) -> tuple[dict[str, PowerNode], dict[str, Cable]]:
+    """Parse a GeoJSON FeatureCollection (file path or dict).
 
     Returns (nodes_dict, cables_dict).
     """
-    with open(path) as f:
-        fc = json.load(f)
+    if isinstance(source, dict):
+        fc = source
+    else:
+        with open(source) as f:
+            fc = json.load(f)
 
     nodes: list[PowerNode] = []
     cables: list[Cable] = []
@@ -197,3 +200,57 @@ def print_grid_info(
             logger.debug("\t\t\t out: ")
             for desc, count in distro["out"].items():
                 logger.debug(f"\t\t\t\t {desc}: {count}")
+
+
+def layout_to_geojson(
+    cables: list[Cable],
+    nodes: dict[str, PowerNode],
+) -> dict:
+    """Convert optimized cable layout to a GeoJSON FeatureCollection."""
+    features: list[dict] = []
+
+    for cable in cables:
+        max_current = max(cable.current_per_phase) if cable.current_per_phase else 0.0
+        cum_power_w = max_current * V0 * PF * 3
+
+        ph = "3P" if cable.plugs_and_sockets_a > 16 else "1P"
+        cable_type = f"{ph} {cable.plugs_and_sockets_a:.0f}A — {cable.area_mm2}mm²"
+
+        features.append(
+            {
+                "type": "Feature",
+                "geometry": {
+                    "type": "LineString",
+                    "coordinates": [list(cable.from_coords), list(cable.to_coords)],
+                },
+                "properties": {
+                    "id": cable.id,
+                    "from": cable.from_node,
+                    "to": cable.to_node,
+                    "length_m": round(cable.length_m, 1),
+                    "area_mm2": cable.area_mm2,
+                    "plugs_and_sockets_a": cable.plugs_and_sockets_a,
+                    "cable_type": cable_type,
+                    "current_a": round(max_current, 1),
+                    "cum_power_kw": round(cum_power_w / 1000, 2),
+                },
+            }
+        )
+
+    for node in nodes.values():
+        features.append(
+            {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [node.lon, node.lat],
+                },
+                "properties": {
+                    "name": node.name,
+                    "type": "generator" if node.is_generator else "load",
+                    "power_watts": node.power_watts,
+                },
+            }
+        )
+
+    return {"type": "FeatureCollection", "features": features}
