@@ -66,10 +66,3 @@ def get_children(node_name: str, grid: dict, cables: dict) -> tuple[dict, dict]:
         grid, kids = get_children(child, grid, cables)
 
     return grid, children_dict
-
-
-# ---------
-
-if __name__ == "__main__":
-    # test:
-    grid, children_dict = get_children("generator", nodes_dict, cables_dict)

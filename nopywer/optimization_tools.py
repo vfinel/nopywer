@@ -8,32 +8,6 @@ from nopywer.geometry import geodesic_distance_m
 from nopywer.minimum_spanning_tree2 import minimum_spanning_tree
 
 
-def phase_assignment_greedy(grid: dict):
-    """
-    each item has the foloowing:
-    - 'power' (or 'cum_power')
-            - name
-            - ....
-    """
-    phases = [{"total_load": 0}, {"total_load": 0}, {"total_load": 0}]
-
-    loads_unsorted = {key: value["power"].sum() for key, value in grid.items()}
-    loads = dict(sorted(loads_unsorted.items(), key=lambda x: x[1], reverse=True))
-    for key, value in loads.items():
-        assigned_phase = min(range(len(phases)), key=lambda i: phases[i]["total_load"])
-        # grid[key]['assigned_phase'] = assigned_phase
-        phases[assigned_phase]["total_load"] += value
-        print(f"{key}: {value:.0f}W, phase {assigned_phase}")
-
-    print(f"\ntotal on phases: {phases}")
-    phase_balance = 100 * np.std(
-        grid["generator"]["cum_power"] / np.mean(grid["generator"]["cum_power"])
-    )
-    print(f"balance : {phase_balance:.1f}%")
-
-    return loads
-
-
 def grid2list(grid):
     """Extract nodes and edges from the grid for optimization.
 
