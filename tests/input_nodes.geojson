@@ -1,0 +1,815 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.138464932641509,
+          41.70066854632285
+        ]
+      },
+      "properties": {
+        "name": "MiddleOfNowhere",
+        "power": 8300.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.137879652831478,
+          41.7008596039798
+        ]
+      },
+      "properties": {
+        "name": "NoInfo/Ice",
+        "power": 2489.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.137329960382992,
+          41.70109095318956
+        ]
+      },
+      "properties": {
+        "name": "Werkhaus",
+        "power": 5282.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.13665890443399,
+          41.70131487330722
+        ]
+      },
+      "properties": {
+        "name": "Cantina (Cantina)",
+        "power": 4460.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.136354966884593,
+          41.700651065766074
+        ]
+      },
+      "properties": {
+        "name": "toolhaus",
+        "power": 3340.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.136075607508836,
+          41.70113479538608
+        ]
+      },
+      "properties": {
+        "name": "production",
+        "power": 11085.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.13709553752102,
+          41.70053910616153
+        ]
+      },
+      "properties": {
+        "name": "Kunsthaus",
+        "power": 3170.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.137185016826846,
+          41.70085650841904
+        ]
+      },
+      "properties": {
+        "name": "malfare",
+        "power": 10370.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.137889717750607,
+          41.70121609813784
+        ]
+      },
+      "properties": {
+        "name": "generator",
+        "power": 0,
+        "type": "generator"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.137092621102908,
+          41.70038656610599
+        ]
+      },
+      "properties": {
+        "name": "Swiss Camp",
+        "power": 1840.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.137791038785941,
+          41.70155383234283
+        ]
+      },
+      "properties": {
+        "name": "NIMBY",
+        "power": 7360.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.137967862317445,
+          41.70165498843007
+        ]
+      },
+      "properties": {
+        "name": "Jugaton",
+        "power": 3680.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.137499598926543,
+          41.701263307068864
+        ]
+      },
+      "properties": {
+        "name": "Why Not?",
+        "power": 1840.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.136850621282869,
+          41.69966999243487
+        ]
+      },
+      "properties": {
+        "name": "It's A Grey Area",
+        "power": 1840.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.137285930416049,
+          41.70065526429824
+        ]
+      },
+      "properties": {
+        "name": "Ohana House",
+        "power": 60.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.137001721971925,
+          41.700133470839425
+        ]
+      },
+      "properties": {
+        "name": "Le Gratin",
+        "power": 1840.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.137124644449325,
+          41.700669066078476
+        ]
+      },
+      "properties": {
+        "name": "welfare (malfare)",
+        "power": 1730.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.137228142727426,
+          41.70075879293105
+        ]
+      },
+      "properties": {
+        "name": "guardshack (malfare)",
+        "power": 480.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.137338011431298,
+          41.700861693596636
+        ]
+      },
+      "properties": {
+        "name": "meeting point (malfare)",
+        "power": 250.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.136527711861485,
+          41.70121465703139
+        ]
+      },
+      "properties": {
+        "name": "Fridge Truck",
+        "power": 1000.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.13633563273172,
+          41.701240803092176
+        ]
+      },
+      "properties": {
+        "name": "Spoonhaus",
+        "power": 3100.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.13703184052096,
+          41.70085490156822
+        ]
+      },
+      "properties": {
+        "name": "geeks (malfare)",
+        "power": 2009.9999999999998,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.13753610736274,
+          41.70097149720083
+        ]
+      },
+      "properties": {
+        "name": "La Gloria",
+        "power": 200.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.1378895911691,
+          41.70093875712556
+        ]
+      },
+      "properties": {
+        "name": "Mirror Mirror",
+        "power": 1000.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.138290040113264,
+          41.70038536889206
+        ]
+      },
+      "properties": {
+        "name": "IN PIPO VERITAS",
+        "power": 200.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.138176689457527,
+          41.70079958084273
+        ]
+      },
+      "properties": {
+        "name": "FuturePost",
+        "power": 90.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.138014100044825,
+          41.70056826001327
+        ]
+      },
+      "properties": {
+        "name": "Asking for the Moon",
+        "power": 2800.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.138630763225975,
+          41.70108711430072
+        ]
+      },
+      "properties": {
+        "name": "Stellari",
+        "power": 450.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.138794048407902,
+          41.70055789195216
+        ]
+      },
+      "properties": {
+        "name": "Reflexions",
+        "power": 200.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.13745192719807,
+          41.70000877913336
+        ]
+      },
+      "properties": {
+        "name": "House/divided",
+        "power": 72.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.139201486985532,
+          41.70042796019878
+        ]
+      },
+      "properties": {
+        "name": "Flaming Trampoline",
+        "power": 2000.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.138843868573105,
+          41.700243203210235
+        ]
+      },
+      "properties": {
+        "name": "The Lighthouse of Now Here",
+        "power": 300.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.136651238470535,
+          41.70125112770749
+        ]
+      },
+      "properties": {
+        "name": "ctna distri",
+        "power": 0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.138170806900046,
+          41.70169600486254
+        ]
+      },
+      "properties": {
+        "name": "Camp Cambio",
+        "power": 3680.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.13706427454291,
+          41.701538577656684
+        ]
+      },
+      "properties": {
+        "name": "Hippie Soup",
+        "power": 400.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.138730420353917,
+          41.701816544441286
+        ]
+      },
+      "properties": {
+        "name": "Dusty Dreamers",
+        "power": 3680.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.139529553798557,
+          41.699320900045976
+        ]
+      },
+      "properties": {
+        "name": "Prueba",
+        "power": 0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.139147972124852,
+          41.699303125511555
+        ]
+      },
+      "properties": {
+        "name": "Distro9",
+        "power": 0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.139612540124887,
+          41.69903408359696
+        ]
+      },
+      "properties": {
+        "name": "Belly_Town",
+        "power": 1750.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.140680099905884,
+          41.69870856078255
+        ]
+      },
+      "properties": {
+        "name": "why_do_you_ask",
+        "power": 1750.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.140565492131559,
+          41.699155193916646
+        ]
+      },
+      "properties": {
+        "name": "tranquilo_barrio",
+        "power": 1750.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.140300454363422,
+          41.69844032442045
+        ]
+      },
+      "properties": {
+        "name": "wonderever",
+        "power": 1750.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.1398045802918,
+          41.698459593265184
+        ]
+      },
+      "properties": {
+        "name": "oasis_playground",
+        "power": 1750.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.139683595664872,
+          41.69882771242752
+        ]
+      },
+      "properties": {
+        "name": "planet_pulpo",
+        "power": 0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.13968428935679,
+          41.69890207583
+        ]
+      },
+      "properties": {
+        "name": "planet_pulpo",
+        "power": 1750.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.140099325342189,
+          41.69891184739122
+        ]
+      },
+      "properties": {
+        "name": "distro_6",
+        "power": 0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.14008806611491,
+          41.69890835913876
+        ]
+      },
+      "properties": {
+        "name": "distro_6",
+        "power": 0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.140125446209285,
+          41.69886493724708
+        ]
+      },
+      "properties": {
+        "name": "distro6",
+        "power": 1000.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.139812126316262,
+          41.69949550981731
+        ]
+      },
+      "properties": {
+        "name": "distro2",
+        "power": 1000.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.140002061219199,
+          41.69989440078072
+        ]
+      },
+      "properties": {
+        "name": "glitch",
+        "power": 1750.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.140085145401042,
+          41.69950970944825
+        ]
+      },
+      "properties": {
+        "name": "curious_creatures",
+        "power": 8800.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.139791392317396,
+          41.699457923057295
+        ]
+      },
+      "properties": {
+        "name": "distro4",
+        "power": 1000.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.139812126316262,
+          41.69949550981731
+        ]
+      },
+      "properties": {
+        "name": "distro9",
+        "power": 1000.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.139204705713902,
+          41.699524644763024
+        ]
+      },
+      "properties": {
+        "name": "distro10",
+        "power": 1000.0,
+        "type": "load"
+      }
+    }
+  ]
+}
