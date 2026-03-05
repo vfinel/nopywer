@@ -85,51 +85,8 @@ def load_geojson(source: str | Path | dict) -> tuple[dict[str, PowerNode], dict[
 
 def to_geojson(nodes: dict[str, PowerNode], cables: dict[str, Cable]) -> dict:
     """Serialize analysis results to a GeoJSON FeatureCollection."""
-    features: list[dict] = []
-
-    for cable in cables.values():
-        features.append(
-            {
-                "type": "Feature",
-                "geometry": {
-                    "type": "LineString",
-                    "coordinates": [list(cable.from_coords), list(cable.to_coords)],
-                },
-                "properties": {
-                    "nodes": [cable.from_node, cable.to_node],
-                    "length_m": round(cable.length_m, 1),
-                    "area_mm2": cable.area_mm2,
-                    "plugs_and_sockets_a": cable.plugs_and_sockets_a,
-                    "current_a": (
-                        [round(c, 2) for c in cable.current_per_phase]
-                        if cable.current_per_phase
-                        else []
-                    ),
-                    "vdrop_volts": round(cable.vdrop_volts, 2),
-                },
-            }
-        )
-
-    for node in nodes.values():
-        features.append(
-            {
-                "type": "Feature",
-                "geometry": {
-                    "type": "Point",
-                    "coordinates": [node.lon, node.lat],
-                },
-                "properties": {
-                    "name": node.name,
-                    "type": "generator" if node.is_generator else "load",
-                    "power_watts": round(float(node.power_per_phase.sum()), 1),
-                    "cum_power_watts": round(float(node.cum_power.sum()), 1),
-                    "voltage": round(node.voltage, 1),
-                    "vdrop_percent": round(node.vdrop_percent, 2),
-                    "distro": node.distro,
-                },
-            }
-        )
-
+    features = [c.to_geojson() for c in cables.values()]
+    features += [n.to_geojson() for n in nodes.values()]
     return {"type": "FeatureCollection", "features": features}
 
 
@@ -211,9 +168,10 @@ def layout_to_geojson(
 
     for cable in cables:
         max_current = max(cable.current_per_phase) if cable.current_per_phase else 0.0
-        cum_power_w = max_current * V0 * PF * 3
+        n_ph = type(cable).num_phases
+        cum_power_w = max_current * V0 * PF * n_ph
 
-        ph = "3P" if cable.plugs_and_sockets_a > 16 else "1P"
+        ph = f"{n_ph}P"
         cable_type = f"{ph} {cable.plugs_and_sockets_a:.0f}A — {cable.area_mm2}mm²"
 
         features.append(
@@ -227,7 +185,7 @@ def layout_to_geojson(
                     "id": cable.id,
                     "from": cable.from_node,
                     "to": cable.to_node,
-                    "length_m": round(cable.length_m, 1),
+                    "length_m": cable.length_m,
                     "area_mm2": cable.area_mm2,
                     "plugs_and_sockets_a": cable.plugs_and_sockets_a,
                     "cable_type": cable_type,
@@ -237,20 +195,5 @@ def layout_to_geojson(
             }
         )
 
-    for node in nodes.values():
-        features.append(
-            {
-                "type": "Feature",
-                "geometry": {
-                    "type": "Point",
-                    "coordinates": [node.lon, node.lat],
-                },
-                "properties": {
-                    "name": node.name,
-                    "type": "generator" if node.is_generator else "load",
-                    "power_watts": node.power_watts,
-                },
-            }
-        )
-
+    features += [n.to_geojson() for n in nodes.values()]
     return {"type": "FeatureCollection", "features": features}
