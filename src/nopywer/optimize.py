@@ -12,37 +12,9 @@ import networkx as nx
 
 from .constants import EXTRA_CABLE_LENGTH_M, PF, V0
 from .geometry import geodesic_distance_m
-from .models import Cable, PowerNode
-
-_CABLE_TIERS: list[tuple[int, float, int, str]] = [
-    (16, 2.5, 16, "1P 16A 2.5mm²"),
-    (32, 6.0, 32, "3P 32A 6mm²"),
-    (63, 16.0, 63, "3P 63A 16mm²"),
-    (125, 35.0, 125, "3P 125A 35mm²"),
-]
-
-_TIER_COST_PER_M: dict[int, float] = {16: 1.0, 32: 3.0, 63: 8.0, 125: 20.0}
+from .models import Cable, PowerNode, pick_cable_for
 
 _CANDIDATE_K = 15
-
-
-def _size_cable(power_watts: float) -> tuple[float, float, str]:
-    """Pick cable area and plug rating for the given power.
-
-    Per-phase current on a balanced 3-phase system:
-        I_phase = P / (3 x V_phase x PF)
-    """
-    per_phase = power_watts / (3 * V0 * PF)
-    for max_a, area, plugs, label in _CABLE_TIERS:
-        if per_phase <= max_a:
-            return area, float(plugs), label
-    last = _CABLE_TIERS[-1]
-    return last[1], float(last[2]), last[3]
-
-
-def _tier_cost(power_watts: float) -> float:
-    _, plugs, _ = _size_cable(power_watts)
-    return _TIER_COST_PER_M.get(int(plugs), 20.0)
 
 
 def optimize_layout(
@@ -126,7 +98,7 @@ def _tree_cost(
 ) -> float:
     cum = _cum_power_map(tree, all_nodes, root)
     return sum(
-        dist_graph[s][d]["weight"] * _tier_cost(cum[d])
+        dist_graph[s][d]["weight"] * pick_cable_for(cum[d]).tier_cost
         for s, d in tree.edges()
         if "__super" not in s and "__super" not in d
     )
@@ -228,13 +200,19 @@ def _compute_power_flow(cables: list[Cable], all_nodes: dict[str, PowerNode]) ->
     for r in roots:
         walk(r)
 
-    for cable in cables:
+    for i, cable in enumerate(cables):
         power = cum.get(cable.to_node, 0.0)
-        area, plugs, _ = _size_cable(power)
-        cable.area_mm2 = area
-        cable.plugs_and_sockets_a = plugs
-        per_phase = power / (3 * V0 * PF)
-        cable.current_per_phase = [round(per_phase, 2)] * 3
+        cable_cls = pick_cable_for(power)
+        per_phase = power / (cable_cls.num_phases * V0 * PF)
+        cables[i] = cable_cls(
+            id=cable.id,
+            length_m=cable.length_m,
+            from_node=cable.from_node,
+            to_node=cable.to_node,
+            from_coords=cable.from_coords,
+            to_coords=cable.to_coords,
+            current_per_phase=[round(per_phase, 2)] * cable_cls.num_phases,
+        )
 
 
 def layout_to_networkx(

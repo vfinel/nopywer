@@ -211,9 +211,10 @@ def layout_to_geojson(
 
     for cable in cables:
         max_current = max(cable.current_per_phase) if cable.current_per_phase else 0.0
-        cum_power_w = max_current * V0 * PF * 3
+        n_ph = type(cable).num_phases
+        cum_power_w = max_current * V0 * PF * n_ph
 
-        ph = "3P" if cable.plugs_and_sockets_a > 16 else "1P"
+        ph = f"{n_ph}P"
         cable_type = f"{ph} {cable.plugs_and_sockets_a:.0f}A — {cable.area_mm2}mm²"
 
         features.append(
