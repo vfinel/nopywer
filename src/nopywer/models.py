@@ -29,6 +29,24 @@ class PowerNode:
     distro: dict = field(default_factory=lambda: {"in": None, "out": {}})
     distro_chosen: dict | str = field(default_factory=lambda: {"in": None, "out": {}})
 
+    def to_geojson(self) -> dict:
+        return {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [self.lon, self.lat],
+            },
+            "properties": {
+                "name": self.name,
+                "type": "generator" if self.is_generator else "load",
+                "power_watts": round(float(self.power_per_phase.sum()), 1),
+                "cum_power_watts": round(float(self.cum_power.sum()), 1),
+                "voltage": round(self.voltage, 1),
+                "vdrop_percent": round(self.vdrop_percent, 2),
+                "distro": self.distro,
+            },
+        }
+
 
 @dataclass
 class Cable:
@@ -53,6 +71,24 @@ class Cable:
     @property
     def resistance(self) -> float:
         return RHO_COPPER * self.length_m / self.area_mm2
+
+    def to_geojson(self) -> dict:
+        return {
+            "type": "Feature",
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [list(self.from_coords), list(self.to_coords)],
+            },
+            "properties": {
+                "id": self.id,
+                "nodes": [self.from_node, self.to_node],
+                "length_m": round(self.length_m, 1),
+                "area_mm2": self.area_mm2,
+                "plugs_and_sockets_a": self.plugs_and_sockets_a,
+                "current_a": self.current_per_phase,
+                "vdrop_volts": round(self.vdrop_volts, 2),
+            },
+        }
 
 
 @dataclass
