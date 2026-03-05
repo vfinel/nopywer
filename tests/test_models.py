@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 
 from nopywer.models import (
+    Cable,
     Cable16A,
     Cable32A,
     Cable63A,
@@ -89,3 +90,22 @@ def test_power_node_to_geojson():
 def test_generator_node_to_geojson():
     node = PowerNode(name="generator", lon=0.0, lat=0.0, is_generator=True)
     assert node.to_geojson()["properties"]["type"] == "generator"
+
+
+def test_cable_rounds_on_set():
+    cable = Cable(id="c", length_m=12.3456)
+    assert cable.length_m == 12.3
+
+    cable.vdrop_volts = 1.23456
+    assert cable.vdrop_volts == 1.23
+
+    cable.current_per_phase = [10.556, 10.556, 10.556]
+    assert cable.current_per_phase == [10.56, 10.56, 10.56]
+
+
+def test_power_node_rounds_on_set():
+    node = PowerNode(name="n", lon=0.0, lat=0.0, voltage=228.777)
+    assert node.voltage == 228.8
+
+    node.vdrop_percent = 1.23456
+    assert node.vdrop_percent == 1.23

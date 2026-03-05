@@ -185,7 +185,7 @@ def layout_to_geojson(
                     "id": cable.id,
                     "from": cable.from_node,
                     "to": cable.to_node,
-                    "length_m": round(cable.length_m, 1),
+                    "length_m": cable.length_m,
                     "area_mm2": cable.area_mm2,
                     "plugs_and_sockets_a": cable.plugs_and_sockets_a,
                     "cable_type": cable_type,

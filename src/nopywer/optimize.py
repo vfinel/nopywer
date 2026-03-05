@@ -211,7 +211,7 @@ def _compute_power_flow(cables: list[Cable], all_nodes: dict[str, PowerNode]) ->
             to_node=cable.to_node,
             from_coords=cable.from_coords,
             to_coords=cable.to_coords,
-            current_per_phase=[round(per_phase, 2)] * cable_cls.num_phases,
+            current_per_phase=[per_phase] * cable_cls.num_phases,
         )
 
 
