@@ -1,6 +1,6 @@
 # nopywer /noʊ.paɪ.wɛr/
 
-Pronounced "no-pie-wer" (as in no + python + software)
+Pronounced "no-pie-wer" (as in no + python + power)
 
 Visit the homepage of the project: https://vfinel.github.io/nopywer/
 
