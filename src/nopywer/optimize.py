@@ -1,11 +1,14 @@
 """Optimal cable layout via MST + cost-based local search.
 
 Phase 1 -- build a minimum spanning tree (MST) that minimises total cable
-length.  Phase 2 -- iteratively re-parent nodes so that the total *cable cost*
+length.
+
+Phase 2 -- iteratively re-parent nodes so that the total *cable cost*
 (length x price-per-metre, where price depends on cable thickness / power
-flowing through it) is minimised.  This naturally produces a shallower, more
-star-like topology with fewer heavy cables, matching real-world power
-distribution practice.
+flowing through it) is minimised.
+
+This naturally produces a shallower, more star-like topology with fewer
+heavy cables, matching real-world power distribution practices.
 """
 
 import networkx as nx
@@ -14,45 +17,34 @@ from .constants import EXTRA_CABLE_LENGTH_M, PF, V0
 from .geometry import geodesic_distance_m
 from .models import Cable, PowerNode, pick_cable_for
 
-_CANDIDATE_K = 15
-
 
 def optimize_layout(
     nodes: list[PowerNode],
     extra_cable_m: float = EXTRA_CABLE_LENGTH_M,
 ) -> list[Cable]:
-    """Find an optimal cable tree connecting *nodes*.
+    """Compute a cable layout in a few simple steps.
 
-    Returns sized Cable objects ready for analysis.
+    1. Build the complete distance graph between coordinates
+    2. Extract the minimum spanning tree, minimizing total length
+    3. Root that tree from the generator (BFS traversal)
+    4. Re-parent nodes to reduce total cable cost.
+    5. Convert the final tree into sized cables and compute power flow.
     """
     generators = [n for n in nodes if n.is_generator]
-    loads = [n for n in nodes if not n.is_generator]
-
     if not generators:
         raise ValueError("At least one generator is required")
-    if not loads:
-        return []
+    if len(generators) > 1:
+        raise ValueError("Only one generator is supported for now")
 
-    all_nodes = {n.name: n for n in nodes}
+    nodes_by_name = {n.name: n for n in nodes}
     dist_graph = _build_distance_graph(nodes)
 
-    use_super = len(generators) > 1
-    if use_super:
-        super_name = "__super_gen__"
-        for g in generators:
-            dist_graph.add_edge(super_name, g.name, weight=0.0)
-        gen_root = super_name
-    else:
-        gen_root = generators[0].name
-
     mst = nx.minimum_spanning_tree(dist_graph)
-    tree = nx.bfs_tree(mst, gen_root)
-    tree = _reduce_cable_cost(tree, dist_graph, all_nodes, gen_root)
+    tree = nx.bfs_tree(mst, generators[0].name)
+    tree = _reduce_cable_cost(tree, dist_graph, nodes_by_name, generators[0].name)
 
     cables: list[Cable] = []
     for i, (src, dst) in enumerate(tree.edges()):
-        if use_super and "__super" in (src, dst):
-            continue
         d = dist_graph[src][dst]["weight"]
         cables.append(
             Cable(
@@ -60,13 +52,12 @@ def optimize_layout(
                 length_m=d + extra_cable_m,
                 from_node=src,
                 to_node=dst,
-                from_coords=(all_nodes[src].lon, all_nodes[src].lat),
-                to_coords=(all_nodes[dst].lon, all_nodes[dst].lat),
+                from_coords=(nodes_by_name[src].lon, nodes_by_name[src].lat),
+                to_coords=(nodes_by_name[dst].lon, nodes_by_name[dst].lat),
             )
         )
 
-    _compute_power_flow(cables, all_nodes)
-    return cables
+    return _compute_power_flow(cables, nodes_by_name)
 
 
 def _build_distance_graph(nodes: list[PowerNode]) -> nx.Graph:
@@ -80,12 +71,12 @@ def _build_distance_graph(nodes: list[PowerNode]) -> nx.Graph:
 
 
 def _cum_power_map(
-    tree: nx.DiGraph, all_nodes: dict[str, PowerNode], root: str
+    tree: nx.DiGraph, nodes_by_name: dict[str, PowerNode], root: str
 ) -> dict[str, float]:
     order = list(reversed(list(nx.bfs_tree(tree, root))))
     cum: dict[str, float] = {}
     for node in order:
-        own = all_nodes[node].power_watts if node in all_nodes else 0.0
+        own = nodes_by_name[node].power_watts if node in nodes_by_name else 0.0
         cum[node] = own + sum(cum.get(ch, 0.0) for ch in tree.successors(node))
     return cum
 
@@ -98,9 +89,7 @@ def _tree_cost(
 ) -> float:
     cum = _cum_power_map(tree, all_nodes, root)
     return sum(
-        dist_graph[s][d]["weight"] * pick_cable_for(cum[d]).tier_cost
-        for s, d in tree.edges()
-        if "__super" not in s and "__super" not in d
+        dist_graph[s][d]["weight"] * pick_cable_for(cum[d]).tier_cost for s, d in tree.edges()
     )
 
 
@@ -109,17 +98,33 @@ def _reduce_cable_cost(
     dist_graph: nx.Graph,
     all_nodes: dict[str, PowerNode],
     root: str,
-    max_rounds: int = 20,
+    max_rounds: int = 10,  # arbitrary, just to avoid infinite loops
 ) -> nx.DiGraph:
-    """Re-parent nodes to minimise total cable cost (length x tier price)."""
-    nearest = _precompute_nearest(dist_graph, _CANDIDATE_K)
-    best = _tree_cost(tree, dist_graph, all_nodes, root)
+    """Lower total cable cost by trying simple local rewires.
+
+    Nodes are visited from the leaves back toward the generator so child
+    subtrees are mostly settled before their parents are tested.
+
+    For each node, candidate parents are taken from:
+    - its 15 closest nodes in the distance graph
+    - the generator
+    - a few ancestors of its current parent
+
+    Descendants and the current parent are excluded to avoid cycles and
+    pointless no-op moves.
+
+    Why 15? It is a heuristic: enough nearby options to try useful rewires,
+    but still cheap to evaluate.
+    """
+    # For each node name, store a list of the 15 closest node names.
+    node_to_neighbors = _precompute_nearest(dist_graph, 15)
+    # Current best total tree cost: sum(length x cable price) over all edges.
+    total_tree_cost = _tree_cost(tree, dist_graph, all_nodes, root)
 
     for _ in range(max_rounds):
         improved = False
-        order = list(reversed(list(nx.bfs_tree(tree, root))))
-
-        for node in order:
+        reversed_order = list(reversed(list(nx.bfs_tree(tree, root))))
+        for node in reversed_order:
             if node == root:
                 continue
 
@@ -127,7 +132,7 @@ def _reduce_cable_cost(
             desc = set(nx.descendants(tree, node))
             desc.add(node)
 
-            candidates = _gather_candidates(node, cur_parent, root, desc, nearest, tree)
+            candidates = _gather_candidates(node, cur_parent, root, desc, node_to_neighbors, tree)
             best_cand = cur_parent
 
             for cand in candidates:
@@ -137,8 +142,8 @@ def _reduce_cable_cost(
                 tree.remove_edge(cand, node)
                 tree.add_edge(cur_parent, node)
 
-                if c < best - 0.01:
-                    best = c
+                if c < total_tree_cost - 0.01:  # at least 1% better !
+                    total_tree_cost = c
                     best_cand = cand
 
             if best_cand != cur_parent:
@@ -172,7 +177,7 @@ def _gather_candidates(
     cands.update(nearest.get(node, []))
     cands.add(root)
     ancestor = cur_parent
-    for _ in range(5):
+    for _ in range(5):  # try more than 1 or 2 ancestors but not the entire way
         preds = list(tree.predecessors(ancestor))
         if not preds:
             break
@@ -183,7 +188,7 @@ def _gather_candidates(
     return list(cands)
 
 
-def _compute_power_flow(cables: list[Cable], all_nodes: dict[str, PowerNode]) -> None:
+def _compute_power_flow(cables: list[Cable], nodes_by_name: dict[str, PowerNode]) -> list[Cable]:
     children_of: dict[str, list[str]] = {}
     for c in cables:
         children_of.setdefault(c.from_node, []).append(c.to_node)
@@ -191,7 +196,7 @@ def _compute_power_flow(cables: list[Cable], all_nodes: dict[str, PowerNode]) ->
     cum: dict[str, float] = {}
 
     def walk(name: str) -> float:
-        own = all_nodes[name].power_watts if name in all_nodes else 0.0
+        own = nodes_by_name[name].power_watts if name in nodes_by_name else 0.0
         total = own + sum(walk(ch) for ch in children_of.get(name, []))
         cum[name] = total
         return total
@@ -213,19 +218,4 @@ def _compute_power_flow(cables: list[Cable], all_nodes: dict[str, PowerNode]) ->
             to_coords=cable.to_coords,
             current_per_phase=[per_phase] * cable_cls.num_phases,
         )
-
-
-def layout_to_networkx(
-    cables: list[Cable],
-    nodes: dict[str, PowerNode] | None = None,
-) -> nx.DiGraph:
-    """Convert optimizer output to a NetworkX DiGraph for visualization."""
-    g = nx.DiGraph()
-    for cable in cables:
-        g.add_edge(cable.from_node, cable.to_node, weight=cable.length_m)
-    if nodes:
-        for name, node in nodes.items():
-            g.nodes[name]["pos"] = (node.lon, node.lat)
-            g.nodes[name]["power"] = node.power_watts
-            g.nodes[name]["is_generator"] = node.is_generator
-    return g
+    return cables
