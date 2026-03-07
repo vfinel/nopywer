@@ -5,21 +5,22 @@ description = "Power grid analysis and optimization tool for festival sites"
 requires-python = ">=3.12"
 license = "GPL-3.0-or-later"
 dependencies = [
-    "fastapi>=0.115",
-    "networkx>=3.4",
-    "numpy>=2.0",
+    "fastapi>=0.135",
+    "networkx>=3.6",
+    "numpy>=2.4",
     "odfpy>=1.4",
-    "pandas>=2.2",
-    "pyproj>=3.6",
-    "typer>=0.15",
-    "uvicorn>=0.34",
+    "pandas>=3.0",
+    "pyproj>=3.7",
+    "typer>=0.24",
+    "uvicorn>=0.41",
 ]
 
 [dependency-groups]
 dev = [
-    "pre-commit>=4.0",
-    "pytest>=8.0",
-    "ruff>=0.9",
+    "httpx",
+    "pre-commit>=4.5",
+    "pytest>=9.0",
+    "ruff>=0.15",
 ]
 
 [project.scripts]

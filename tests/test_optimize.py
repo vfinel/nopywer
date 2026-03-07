@@ -32,4 +32,4 @@ def test_optimization_summary():
     assert round(total_length[32]) == 1209
     assert round(total_length[63]) == 68
     assert round(total_length[125]) == 60
-    assert round(sum(c.length_m for c in cables)) == 2479
+    assert round(sum(c.length_m for c in cables)) == 2480

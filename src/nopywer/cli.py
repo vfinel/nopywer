@@ -16,17 +16,18 @@ app = typer.Typer()
 def analyze_grid(
     input: Annotated[
         Path,
-        typer.Argument(help="Input GeoJSON file with nodes and cables"),
+        typer.Argument(help="Input GeoJSON file with nodes and cables", envvar="NOPYWER_INPUT"),
     ],
     output: Annotated[
         Path | None,
-        typer.Option("--output", "-o", help="Output GeoJSON file"),
+        typer.Option("--output", "-o", help="Output GeoJSON file", envvar="NOPYWER_OUTPUT"),
     ] = None,
     inventory_file: Annotated[
-        Path | None,
+        str | None,
         typer.Option(
             "--inventory",
-            help="Equipment inventory spreadsheet (.ods)",
+            help="Equipment inventory spreadsheet",
+            envvar="NOPYWER_INVENTORY",
         ),
     ] = None,
     do_update: Annotated[
@@ -45,16 +46,11 @@ def analyze_grid(
     grid.analyze()
 
     if verbose:
-        nopywer.io.print_grid_info(grid.nodes, grid.cables, grid.dlist)
+        nopywer.io.print_grid_info(grid.nodes, grid.cables, grid.tree)
 
     if inventory_file:
-        project_folder = str(input.parent)
-        nopywer.inventory.choose_cables_in_inventory(
-            project_folder, grid.cables, str(inventory_file)
-        )
-        nopywer.inventory.choose_distros_in_inventory(
-            project_folder, grid.nodes, str(inventory_file)
-        )
+        nopywer.inventory.choose_cables_in_inventory(inventory_file, grid.cables)
+        nopywer.inventory.choose_distros_in_inventory(inventory_file, grid.nodes)
 
     result = nopywer.io.to_geojson(grid.nodes, grid.cables)
 

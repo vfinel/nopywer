@@ -13,14 +13,12 @@ from .models import Cable, PowerNode
 
 logger = logging.getLogger(__name__)
 
-_vdrop_ref = np.sqrt(3) * V0
-
 
 @dataclass
 class PowerGrid:
     nodes: dict[str, PowerNode]
     cables: dict[str, Cable]
-    dlist: list[list[str]] = field(default_factory=list, repr=False)
+    tree: list[list[str]] = field(default_factory=list, repr=False)
 
     @classmethod
     def from_geojson(cls, path: str | Path) -> "PowerGrid":
@@ -46,23 +44,19 @@ class PowerGrid:
         ]
 
     def analyze(self) -> None:
-        """Run the full analysis: connections, tree, currents, distros, vdrop."""
         self._snap_cables_to_nodes()
-        self.dlist = self._build_tree()
+        self.tree = self._build_tree()
         self._cumulate_current()
         self._compute_distro_requirements()
         self._compute_voltage_drop("generator")
 
     def to_geojson(self) -> dict:
-        """Serialize analysis results to a GeoJSON FeatureCollection."""
         return to_geojson(self.nodes, self.cables)
 
     def print_info(self) -> None:
-        """Log a human-readable grid summary."""
-        print_grid_info(self.nodes, self.cables, self.dlist)
+        print_grid_info(self.nodes, self.cables, self.tree)
 
     def _snap_cables_to_nodes(self) -> None:
-        """Match cable endpoints to nearest nodes within CONNECTION_THRESHOLD_M."""
         for cable in self.cables.values():
             for attr, endpoint in [
                 ("from_node", cable.from_coords),
@@ -77,7 +71,6 @@ class PowerGrid:
                         break
 
     def _build_node_cables(self) -> dict[str, list[str]]:
-        """Return mapping {node_name: [cable_id, ...]}."""
         node_cables: dict[str, list[str]] = defaultdict(list)
         for cable_id, cable in self.cables.items():
             if cable.from_node:
@@ -87,13 +80,11 @@ class PowerGrid:
         return dict(node_cables)
 
     def _build_tree(self) -> list[list[str]]:
-        """Build parent/child tree from generator. Returns depth list."""
         node_cables = self._build_node_cables()
         self._assign_children("generator", node_cables)
         return self._compute_dlist()
 
     def _assign_children(self, node_name: str, node_cables: dict[str, list[str]]) -> None:
-        """Recursively assign children, parents, depth, and cable_to_parent."""
         node = self.nodes[node_name]
 
         if node.children:
@@ -128,8 +119,7 @@ class PowerGrid:
         for child_name in children:
             self._assign_children(child_name, node_cables)
 
-    def _compute_dlist(self) -> list[list[str]]:
-        """Return node names grouped by depth level (no None entries)."""
+    def _compute_tree(self) -> list[list[str]]:
         dmax = max(
             (n.deepness for n in self.nodes.values() if n.deepness is not None),
             default=0,
@@ -141,9 +131,8 @@ class PowerGrid:
         return dlist
 
     def _cumulate_current(self) -> None:
-        """Propagate power from leaves to generator, compute cable currents."""
-        for depth in range(len(self.dlist) - 1, 0, -1):
-            for name in self.dlist[depth]:
+        for depth in range(len(self.tree) - 1, 0, -1):
+            for name in self.tree[depth]:
                 node = self.nodes[name]
                 parent = self.nodes[node.parent]
                 node.cum_power += node.power_per_phase
@@ -163,7 +152,6 @@ class PowerGrid:
         )
 
     def _compute_distro_requirements(self) -> None:
-        """Determine input/output distro requirements for each node."""
         logger.info("compute_distro_requirements...")
         for node in self.nodes.values():
             logger.debug(f"\t\t {node.name}:")
@@ -184,7 +172,6 @@ class PowerGrid:
                     node.distro["out"][desc] = node.distro["out"].get(desc, 0) + 1
 
     def _compute_voltage_drop(self, node_name: str) -> None:
-        """Recursively compute voltage drop from generator towards leaves."""
         node = self.nodes[node_name]
 
         if node_name == "generator":
@@ -195,7 +182,7 @@ class PowerGrid:
             cable = self.cables[node.cable_to_parent]
             cable.vdrop_volts = cable.resistance * np.max(cable.current_per_phase)
             node.voltage = parent.voltage - cable.vdrop_volts
-            node.vdrop_percent = 100 * (V0 - node.voltage) / _vdrop_ref
+            node.vdrop_percent = 100 * (V0 - node.voltage) / V0
 
             logger.debug(f"\t\t cable: length {cable.length_m:.0f}m, area: {cable.area_mm2:.1f}mm²")
             logger.debug(f"\t\t voltage at parent: {parent.voltage:.0f}V")
