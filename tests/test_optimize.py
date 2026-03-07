@@ -3,9 +3,10 @@ from collections import Counter
 from pathlib import Path
 
 from nopywer.io import load_geojson
+from nopywer.models import PowerGrid
 from nopywer.optimize import optimize_layout
 
-FIXTURES = Path(__file__).parent
+FIXTURES = Path(__file__).parent / "fixtures"
 
 
 def test_optimization_summary():
@@ -14,7 +15,8 @@ def test_optimization_summary():
         input_geojson = json.load(f)
 
     nodes, _ = load_geojson(input_geojson)
-    cables = optimize_layout(list(nodes.values()))
+    grid = optimize_layout(PowerGrid(nodes=nodes, cables={}))
+    cables = list(grid.cables.values())
 
     count = Counter(int(c.plugs_and_sockets_a) for c in cables)
     total_length = {}

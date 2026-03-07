@@ -6,28 +6,11 @@ from fastapi.testclient import TestClient
 from nopywer.api import app
 
 client = TestClient(app)
+FIXTURES = Path(__file__).parent / "fixtures"
 
 
-def _point(
-    name: str,
-    lon: float = 0.0,
-    lat: float = 0.0,
-    power: float = 0.0,
-) -> dict:
-    return {
-        "type": "Feature",
-        "geometry": {"type": "Point", "coordinates": [lon, lat]},
-        "properties": {"name": name, "power": power},
-    }
-
-
-def _optimize_request(*features: dict) -> dict:
-    return {
-        "nodes_geojson": {
-            "type": "FeatureCollection",
-            "features": list(features),
-        }
-    }
+def _fixture_geojson(name: str) -> dict:
+    return json.loads((FIXTURES / name).read_text())
 
 
 def _frontend_power_nodes() -> dict:
@@ -43,7 +26,10 @@ def _frontend_power_nodes() -> dict:
 
 
 def test_optimize_returns_400_when_geojson_has_no_valid_nodes():
-    response = client.post("/api/v1/optimize", json=_optimize_request())
+    response = client.post(
+        "/api/v1/optimize",
+        json={"nodes_geojson": _fixture_geojson("api_empty.geojson")},
+    )
 
     assert response.status_code == 400
     assert response.json() == {"detail": "No valid nodes found in GeoJSON"}
@@ -52,19 +38,17 @@ def test_optimize_returns_400_when_geojson_has_no_valid_nodes():
 def test_optimize_returns_400_when_no_generator_is_provided():
     response = client.post(
         "/api/v1/optimize",
-        json=_optimize_request(_point("load_a", power=1000.0)),
+        json={"nodes_geojson": _fixture_geojson("api_no_generator.geojson")},
     )
 
     assert response.status_code == 400
-    assert response.json() == {
-        "detail": ("At least one generator is required (name must contain 'generator')")
-    }
+    assert response.json() == {"detail": "At least one generator is required"}
 
 
 def test_optimize_returns_400_when_no_load_is_provided():
     response = client.post(
         "/api/v1/optimize",
-        json=_optimize_request(_point("generator")),
+        json={"nodes_geojson": _fixture_geojson("api_only_generator.geojson")},
     )
 
     assert response.status_code == 400

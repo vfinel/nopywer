@@ -6,7 +6,8 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from .constants import EXTRA_CABLE_LENGTH_M
-from .io import layout_to_geojson, load_geojson
+from .io import load_geojson
+from .models import PowerGrid
 from .optimize import optimize_layout
 
 app = FastAPI(title="nopywer", version="1.0.0")
@@ -48,26 +49,24 @@ def optimize(req: OptimizeRequest):
     if not nodes:
         raise HTTPException(400, "No valid nodes found in GeoJSON")
 
-    generators = [n for n in nodes.values() if n.is_generator]
-    if not generators:
-        raise HTTPException(
-            400,
-            "At least one generator is required (name must contain 'generator')",
-        )
+    try:
+        grid = PowerGrid(nodes=nodes, cables={})
+    except ValueError as exc:
+        raise HTTPException(400, str(exc))
 
-    loads = [n for n in nodes.values() if not n.is_generator]
+    loads = [n for n in grid.nodes.values() if not n.is_generator]
     if not loads:
         raise HTTPException(400, "At least one load is required")
 
-    cables = optimize_layout(
-        list(nodes.values()),
-        extra_cable_m=req.extra_cable_m,
-    )
+    grid = optimize_layout(grid, extra_cable_m=req.extra_cable_m)
 
     return OptimizeResponse(
-        cables_geojson=layout_to_geojson(cables, nodes),
-        total_cable_length_m=round(sum(c.length_m for c in cables), 1),
-        num_cables=len(cables),
+        cables_geojson=grid.to_geojson(),
+        total_cable_length_m=round(
+            sum(c.length_m for c in grid.cables.values()),
+            1,
+        ),
+        num_cables=len(grid.cables),
     )
 
 

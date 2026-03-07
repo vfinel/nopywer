@@ -26,7 +26,7 @@ def find_combinations(arr: list, target_sum, th: float = 5.0):
     return output
 
 
-def choose_cables_in_inventory(inventory_file: str, cables_dict: dict) -> None:
+def choose_cables(inventory_file: str, cables_dict: dict) -> None:
     verbose = 1
     unmatched = []
     logger.info(f"\nReading cables inventory from {inventory_file}")
@@ -151,7 +151,7 @@ def distro_serie_to_dict(serie: pd.core.series.Series) -> dict:
     return distro_dict
 
 
-def choose_distros_in_inventory(inventory_file: str, grid: dict) -> None:
+def choose_distros(inventory_file: str, grid: dict) -> None:
     """Match distro requirements against inventory spreadsheet."""
     verbose = 0
     expected_cols = [

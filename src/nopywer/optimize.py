@@ -15,13 +15,13 @@ import networkx as nx
 
 from .constants import EXTRA_CABLE_LENGTH_M, PF, V0
 from .geometry import geodesic_distance_m
-from .models import Cable, PowerNode, pick_cable_for
+from .models import Cable, PowerGrid, PowerNode, pick_cable_for
 
 
 def optimize_layout(
-    nodes: list[PowerNode],
+    grid: PowerGrid,
     extra_cable_m: float = EXTRA_CABLE_LENGTH_M,
-) -> list[Cable]:
+) -> PowerGrid:
     """Compute a cable layout in a few simple steps.
 
     1. Build the complete distance graph between coordinates
@@ -30,18 +30,13 @@ def optimize_layout(
     4. Re-parent nodes to reduce total cable cost.
     5. Convert the final tree into sized cables and compute power flow.
     """
-    generators = [n for n in nodes if n.is_generator]
-    if not generators:
-        raise ValueError("At least one generator is required")
-    if len(generators) > 1:
-        raise ValueError("Only one generator is supported for now")
-
-    nodes_by_name = {n.name: n for n in nodes}
+    nodes = list(grid.nodes.values())
+    nodes_by_name = grid.nodes
     dist_graph = _build_distance_graph(nodes)
 
     mst = nx.minimum_spanning_tree(dist_graph)
-    tree = nx.bfs_tree(mst, generators[0].name)
-    tree = _reduce_cable_cost(tree, dist_graph, nodes_by_name, generators[0].name)
+    tree = nx.bfs_tree(mst, grid.generator.name)
+    tree = _reduce_cable_cost(tree, dist_graph, nodes_by_name, grid.generator.name)
 
     cables: list[Cable] = []
     for i, (src, dst) in enumerate(tree.edges()):
@@ -57,7 +52,8 @@ def optimize_layout(
             )
         )
 
-    return _compute_power_flow(cables, nodes_by_name)
+    grid.cables = {cable.id: cable for cable in _compute_power_flow(cables, nodes_by_name)}
+    return grid
 
 
 def _build_distance_graph(nodes: list[PowerNode]) -> nx.Graph:

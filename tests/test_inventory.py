@@ -3,8 +3,8 @@ from pathlib import Path
 import pandas as pd
 
 from nopywer.inventory import (
-    choose_cables_in_inventory,
-    choose_distros_in_inventory,
+    choose_cables,
+    choose_distros,
 )
 from nopywer.models import Cable32A, PowerNode
 
@@ -42,7 +42,7 @@ def test_choose_cables_in_inventory_nominal_case(tmp_path, caplog):
     }
 
     caplog.set_level("INFO", logger="nopywer.inventory")
-    choose_cables_in_inventory(str(inventory_file), cables)
+    choose_cables(str(inventory_file), cables)
 
     assert "Reading cables inventory" in caplog.text
     assert "generator-load_a" not in caplog.text
@@ -79,7 +79,7 @@ def test_choose_distros_in_inventory_nominal_case(tmp_path):
         )
     }
 
-    updated_grid = choose_distros_in_inventory(str(inventory_file), grid)
+    updated_grid = choose_distros(str(inventory_file), grid)
 
     assert updated_grid["load_a"].distro_chosen == {
         "in": "3P - 63A",

@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import ClassVar
 
 import numpy as np
@@ -89,6 +90,11 @@ class Cable:
         return RHO_COPPER * self.length_m / self.area_mm2
 
     def to_geojson(self) -> dict:
+        max_current = max(self.current_per_phase) if self.current_per_phase else 0.0
+        cum_power_w = max_current * V0 * PF * type(self).num_phases
+        cable_type = (
+            f"{type(self).num_phases}P {self.plugs_and_sockets_a:.0f}A — {self.area_mm2}mm²"
+        )
         return {
             "type": "Feature",
             "geometry": {
@@ -98,10 +104,14 @@ class Cable:
             "properties": {
                 "id": self.id,
                 "nodes": [self.from_node, self.to_node],
+                "from": self.from_node,
+                "to": self.to_node,
                 "length_m": self.length_m,
                 "area_mm2": self.area_mm2,
                 "plugs_and_sockets_a": self.plugs_and_sockets_a,
-                "current_a": self.current_per_phase,
+                "cable_type": cable_type,
+                "current_a": round(max_current, 1),
+                "cum_power_kw": round(cum_power_w / 1000, 2),
                 "vdrop_volts": self.vdrop_volts,
             },
         }
@@ -155,3 +165,31 @@ def pick_cable_for(power_watts: float) -> type[Cable]:
         if power_watts / (cable_cls.num_phases * V0 * PF) <= cable_cls.max_current_a:
             return cable_cls
     return _CABLE_TYPES[-1]
+
+
+@dataclass
+class PowerGrid:
+    nodes: dict[str, PowerNode]
+    cables: dict[str, Cable]
+    generator: PowerNode = field(init=False, repr=False)
+    tree: list[list[str]] = field(default_factory=list, repr=False)
+
+    def __post_init__(self) -> None:
+        generators = [node for node in self.nodes.values() if node.is_generator]
+        if not generators:
+            raise ValueError("At least one generator is required")
+        if len(generators) > 1:
+            raise ValueError("Only one generator is supported for now")
+        self.generator = generators[0]
+
+    @classmethod
+    def from_geojson(cls, source: str | Path | dict) -> "PowerGrid":
+        from .io import load_geojson
+
+        nodes, cables = load_geojson(source)
+        return cls(nodes=nodes, cables=cables)
+
+    def to_geojson(self) -> dict:
+        features = [cable.to_geojson() for cable in self.cables.values()]
+        features += [node.to_geojson() for node in self.nodes.values()]
+        return {"type": "FeatureCollection", "features": features}

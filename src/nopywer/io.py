@@ -83,29 +83,22 @@ def load_geojson(source: str | Path | dict) -> tuple[dict[str, PowerNode], dict[
     return {n.name: n for n in nodes}, {c.id: c for c in cables}
 
 
-def to_geojson(nodes: dict[str, PowerNode], cables: dict[str, Cable]) -> dict:
-    """Serialize analysis results to a GeoJSON FeatureCollection."""
-    features = [c.to_geojson() for c in cables.values()]
-    features += [n.to_geojson() for n in nodes.values()]
-    return {"type": "FeatureCollection", "features": features}
-
-
 def print_grid_info(
     nodes: dict[str, PowerNode],
     cables: dict[str, Cable],
     dlist: list[list[str]],
+    generator: PowerNode,
 ) -> None:
     """Log a human-readable grid summary."""
-    gen = nodes["generator"]
     logger.info("\n === info about the grid === \n")
     logger.info(
         f"total power: "
-        f"{1e-3 * np.sum(gen.cum_power):.0f}kW \t "
-        f"{np.round(1e-3 * gen.cum_power, 1)}kW "
-        f"/ {np.round(gen.cum_power / PF / V0)}A"
+        f"{1e-3 * np.sum(generator.cum_power):.0f}kW \t "
+        f"{np.round(1e-3 * generator.cum_power, 1)}kW "
+        f"/ {np.round(generator.cum_power / PF / V0)}A"
     )
 
-    cum = gen.cum_power
+    cum = generator.cum_power
     pb = float(100 * np.std(cum) / np.mean(cum))
     flag = " <<<<<<<<<<" if pb > 5 else ""
     logger.info(f"phase balance: {pb:.1f} % {flag}")
@@ -157,43 +150,3 @@ def print_grid_info(
             logger.debug("\t\t\t out: ")
             for desc, count in distro["out"].items():
                 logger.debug(f"\t\t\t\t {desc}: {count}")
-
-
-def layout_to_geojson(
-    cables: list[Cable],
-    nodes: dict[str, PowerNode],
-) -> dict:
-    """Convert optimized cable layout to a GeoJSON FeatureCollection."""
-    features: list[dict] = []
-
-    for cable in cables:
-        max_current = max(cable.current_per_phase) if cable.current_per_phase else 0.0
-        n_ph = type(cable).num_phases
-        cum_power_w = max_current * V0 * PF * n_ph
-
-        ph = f"{n_ph}P"
-        cable_type = f"{ph} {cable.plugs_and_sockets_a:.0f}A — {cable.area_mm2}mm²"
-
-        features.append(
-            {
-                "type": "Feature",
-                "geometry": {
-                    "type": "LineString",
-                    "coordinates": [list(cable.from_coords), list(cable.to_coords)],
-                },
-                "properties": {
-                    "id": cable.id,
-                    "from": cable.from_node,
-                    "to": cable.to_node,
-                    "length_m": cable.length_m,
-                    "area_mm2": cable.area_mm2,
-                    "plugs_and_sockets_a": cable.plugs_and_sockets_a,
-                    "cable_type": cable_type,
-                    "current_a": round(max_current, 1),
-                    "cum_power_kw": round(cum_power_w / 1000, 2),
-                },
-            }
-        )
-
-    features += [n.to_geojson() for n in nodes.values()]
-    return {"type": "FeatureCollection", "features": features}

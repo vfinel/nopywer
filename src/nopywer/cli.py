@@ -5,7 +5,10 @@ from typing import Annotated
 
 import typer
 
-import nopywer
+from . import inventory
+from .analyze import analyze
+from .io import print_grid_info
+from .models import PowerGrid
 
 logger = logging.getLogger(__name__)
 
@@ -42,17 +45,17 @@ def analyze_grid(
     if verbose:
         logging.basicConfig(level=logging.INFO)
 
-    grid = nopywer.grid.PowerGrid.from_geojson(input)
-    grid.analyze()
+    grid = PowerGrid.from_geojson(input)
+    analyze(grid)
 
     if verbose:
-        nopywer.io.print_grid_info(grid.nodes, grid.cables, grid.tree)
+        print_grid_info(grid.nodes, grid.cables, grid.tree, grid.generator)
 
     if inventory_file:
-        nopywer.inventory.choose_cables_in_inventory(inventory_file, grid.cables)
-        nopywer.inventory.choose_distros_in_inventory(inventory_file, grid.nodes)
+        inventory.choose_cables(inventory_file, grid.cables)
+        inventory.choose_distros(inventory_file, grid.nodes)
 
-    result = nopywer.io.to_geojson(grid.nodes, grid.cables)
+    result = grid.to_geojson()
 
     if do_update:
         with open(input, "w") as f:

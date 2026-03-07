@@ -7,6 +7,7 @@ from nopywer.models import (
     Cable32A,
     Cable63A,
     Cable125A,
+    PowerGrid,
     PowerNode,
     pick_cable_for,
 )
@@ -52,10 +53,14 @@ def test_cable_to_geojson():
     props = gj["properties"]
     assert props["id"] == "c1"
     assert props["nodes"] == ["gen", "load_a"]
+    assert props["from"] == "gen"
+    assert props["to"] == "load_a"
     assert props["length_m"] == 25.5
     assert props["area_mm2"] == 6.0
     assert props["plugs_and_sockets_a"] == 32.0
-    assert props["current_a"] == [10.5, 10.5, 10.5]
+    assert props["cable_type"] == "3P 32A — 6.0mm²"
+    assert props["current_a"] == 10.5
+    assert props["cum_power_kw"] == 6.52
     assert props["vdrop_volts"] == 1.23
 
 
@@ -90,6 +95,31 @@ def test_power_node_to_geojson():
 def test_generator_node_to_geojson():
     node = PowerNode(name="generator", lon=0.0, lat=0.0, is_generator=True)
     assert node.to_geojson()["properties"]["type"] == "generator"
+
+
+def test_power_grid_resolves_generator_once():
+    generator = PowerNode(name="generator", lon=0.0, lat=0.0, is_generator=True)
+    load = PowerNode(name="load_a", lon=1.0, lat=1.0)
+
+    grid = PowerGrid(nodes={"generator": generator, "load_a": load}, cables={})
+
+    assert grid.generator is generator
+
+
+def test_power_grid_to_geojson_includes_nodes_and_cables():
+    generator = PowerNode(name="generator", lon=0.0, lat=0.0, is_generator=True)
+    load = PowerNode(name="load_a", lon=1.0, lat=1.0)
+    cable = Cable(id="c1", length_m=10.0, from_node="generator", to_node="load_a")
+
+    grid = PowerGrid(
+        nodes={"generator": generator, "load_a": load},
+        cables={"c1": cable},
+    )
+
+    geojson = grid.to_geojson()
+
+    assert geojson["type"] == "FeatureCollection"
+    assert len(geojson["features"]) == 3
 
 
 def test_cable_rounds_on_set():
