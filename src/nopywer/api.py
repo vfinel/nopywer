@@ -44,7 +44,10 @@ def optimize(req: OptimizeRequest):
     if not loads:
         raise HTTPException(400, "At least one load is required")
 
-    cables = optimize_layout(list(nodes.values()), extra_cable_m=req.extra_cable_m)
+    cables = optimize_layout(
+        list(nodes.values()),
+        extra_cable_m=req.extra_cable_m,
+    )
 
     return OptimizeResponse(
         cables_geojson=layout_to_geojson(cables, nodes),

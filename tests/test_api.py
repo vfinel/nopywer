@@ -5,7 +5,12 @@ from nopywer.api import app
 client = TestClient(app)
 
 
-def _point(name: str, lon: float = 0.0, lat: float = 0.0, power: float = 0.0) -> dict:
+def _point(
+    name: str,
+    lon: float = 0.0,
+    lat: float = 0.0,
+    power: float = 0.0,
+) -> dict:
     return {
         "type": "Feature",
         "geometry": {"type": "Point", "coordinates": [lon, lat]},

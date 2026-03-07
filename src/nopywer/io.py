@@ -44,7 +44,7 @@ def load_geojson(source: str | Path | dict) -> tuple[dict[str, PowerNode], dict[
                 lon=coords[0],
                 lat=coords[1],
                 power_watts=power,
-                is_generator=(name == "generator"),
+                is_generator=("generator" in name),
                 phase=phase,
             )
             if isinstance(phase, int) and 1 <= phase <= 3:
