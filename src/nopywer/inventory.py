@@ -1,5 +1,4 @@
 import logging
-import os
 import re
 from itertools import combinations
 
@@ -27,15 +26,14 @@ def find_combinations(arr: list, target_sum, th: float = 5.0):
     return output
 
 
-def choose_cables_in_inventory(project_path: str, cables_dict: dict, sh_name: str) -> None:
+def choose_cables_in_inventory(inventory_file: str, cables_dict: dict) -> None:
     verbose = 1
     unmatched = []
-    logger.info("\nReading cables inventory")
+    logger.info(f"\nReading cables inventory from {inventory_file}")
     df = pd.read_excel(
-        os.path.join(project_path, sh_name),
-        sheet_name="cables",
+        inventory_file,
+        sheet_name="cables",  # TODO: make this configurable ?
         skiprows=0,
-        engine="odf",
     )
 
     if verbose >= 3:
@@ -153,7 +151,7 @@ def distro_serie_to_dict(serie: pd.core.series.Series) -> dict:
     return distro_dict
 
 
-def choose_distros_in_inventory(project_path: str, grid: dict, sh_name: str) -> None:
+def choose_distros_in_inventory(inventory_file: str, grid: dict) -> None:
     """Match distro requirements against inventory spreadsheet."""
     verbose = 0
     expected_cols = [
@@ -168,12 +166,11 @@ def choose_distros_in_inventory(project_path: str, grid: dict, sh_name: str) -> 
         "how many distros",
     ]
 
-    logger.info("\nReading distros inventory")
+    logger.info(f"\nReading distros inventory from {inventory_file}")
     df = pd.read_excel(
-        os.path.join(project_path, sh_name),
-        sheet_name="distros",
+        inventory_file,
+        sheet_name="distros",  # TODO: make this configurable ?
         skiprows=0,
-        engine="odf",
     )
 
     if verbose >= 2:

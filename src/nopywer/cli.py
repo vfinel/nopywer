@@ -23,10 +23,10 @@ def analyze_grid(
         typer.Option("--output", "-o", help="Output GeoJSON file"),
     ] = None,
     inventory_file: Annotated[
-        Path | None,
+        str | None,
         typer.Option(
             "--inventory",
-            help="Equipment inventory spreadsheet (.ods)",
+            help="Equipment inventory spreadsheet",
         ),
     ] = None,
     do_update: Annotated[
@@ -48,13 +48,8 @@ def analyze_grid(
         nopywer.io.print_grid_info(grid.nodes, grid.cables, grid.dlist)
 
     if inventory_file:
-        project_folder = str(input.parent)
-        nopywer.inventory.choose_cables_in_inventory(
-            project_folder, grid.cables, str(inventory_file)
-        )
-        nopywer.inventory.choose_distros_in_inventory(
-            project_folder, grid.nodes, str(inventory_file)
-        )
+        nopywer.inventory.choose_cables_in_inventory(inventory_file, grid.cables)
+        nopywer.inventory.choose_distros_in_inventory(inventory_file, grid.nodes)
 
     result = nopywer.io.to_geojson(grid.nodes, grid.cables)
 
