@@ -30,6 +30,23 @@ nopywer-analyze input.geojson
 
 See `nopywer-analyze --help` for all options.
 
+### Environment variables
+
+`nopywer-analyze` also reads these environment variables:
+
+- `NOPYWER_INPUT`: input GeoJSON path
+- `NOPYWER_OUTPUT`: output GeoJSON path
+- `NOPYWER_INVENTORY`: inventory spreadsheet path
+
+Example:
+
+```bash
+export NOPYWER_INPUT=input.geojson
+export NOPYWER_OUTPUT=output.geojson
+export NOPYWER_INVENTORY=inventory.xlsx
+nopywer-analyze
+```
+
 To start the companion API server:
 
 ```bash

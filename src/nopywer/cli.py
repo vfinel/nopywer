@@ -16,17 +16,18 @@ app = typer.Typer()
 def analyze_grid(
     input: Annotated[
         Path,
-        typer.Argument(help="Input GeoJSON file with nodes and cables"),
+        typer.Argument(help="Input GeoJSON file with nodes and cables", envvar="NOPYWER_INPUT"),
     ],
     output: Annotated[
         Path | None,
-        typer.Option("--output", "-o", help="Output GeoJSON file"),
+        typer.Option("--output", "-o", help="Output GeoJSON file", envvar="NOPYWER_OUTPUT"),
     ] = None,
     inventory_file: Annotated[
         str | None,
         typer.Option(
             "--inventory",
             help="Equipment inventory spreadsheet",
+            envvar="NOPYWER_INVENTORY",
         ),
     ] = None,
     do_update: Annotated[
