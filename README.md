@@ -25,7 +25,7 @@ A spreadsheet can optionally be provided for equipment inventory.
 ## Usage
 
 ```bash
-nopywer-analyze input.geojson
+nopywer-analyze tests/fixtures/analyze_input.geojson -v
 ```
 
 See `nopywer-analyze --help` for all options.
