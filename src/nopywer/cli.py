@@ -45,7 +45,7 @@ def analyze_grid(
     grid.analyze()
 
     if verbose:
-        nopywer.io.print_grid_info(grid.nodes, grid.cables, grid.dlist)
+        nopywer.io.print_grid_info(grid.nodes, grid.cables, grid.tree)
 
     if inventory_file:
         nopywer.inventory.choose_cables_in_inventory(inventory_file, grid.cables)
