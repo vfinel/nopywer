@@ -107,6 +107,8 @@ class Cable:
         }
 
 
+# tier costs are approximative but not completely off
+# A 32A cable costs about 3 times more per meter than a 16A cable, and so on.
 @dataclass
 class Cable16A(Cable):
     tier_cost: ClassVar[float] = 1.0
