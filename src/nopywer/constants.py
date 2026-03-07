@@ -5,9 +5,11 @@ V0 = 230  # [V]
 # (lighting, fridges, sound systems)
 PF = 0.9
 
-# Effective copper resistivity accounting for temperature rise (~70 °C)
-# and connector contact resistance. Textbook value at 20 °C is 1/56;
-# 1/26 is the de-rated value commonly used for installation sizing.
+# Conservative resistance coefficient for field cable sizing.
+# This intentionally overestimates copper-only resistance to provide margin
+# under real-world deployment conditions. Has been found in Rich's old notes,
+# probably comes from measurements they did.
+# For reference, physical value is 1 / 58 ^^
 RHO_COPPER = 1 / 26  # [Ω·mm²/m]
 
 # Max acceptable voltage drop per NF C 15-100 / IEC 60364
