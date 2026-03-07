@@ -53,6 +53,12 @@ To start the companion API server:
 nopywer-server
 ```
 
+Opening [`http://localhost:8042/`](http://localhost:8042/) shows a minimal embedded map.
+
+<p align="center">
+  <img src="docs/frontend.png" alt="nopywer frontend map screenshot" width="720" />
+</p>
+
 ## Contributing
 
 Contributions are welcome! See also [CONTRIBUTING.md](docs/CONTRIBUTING.md) for guidelines on reporting bugs, suggesting features, and submitting PRs.
