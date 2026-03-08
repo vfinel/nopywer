@@ -1,0 +1,37 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [0.0, 0.0]
+      },
+      "properties": {
+        "name": "Smurf Village Generator",
+        "power": 0.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [0.0001, 0.0]
+      },
+      "properties": {
+        "name": "Load A",
+        "power": 1000.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [[0.0, 0.0], [0.0001, 0.0]]
+      },
+      "properties": {
+        "length": 10.0
+      }
+    }
+  ]
+}

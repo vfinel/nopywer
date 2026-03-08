@@ -1,28 +1,31 @@
 # Contributing to Nopywer
 
-Thank you for your interest in contributing to Nopywer! Contributions from the community are essential for its growth and improvement.
+Thank you for your interest in contributing to Nopywer!
 
-This document provides guidelines to help you get started.
-
+For development setup, linting, testing, and CI details, see the [README](../README.md#contributing).
 
 ## How Can I Contribute?
 
 ### Share nopywer around you
-Nopywer aims to be useful to others, and for that, it needs visibility. If you like the project, please consider supporting the project in the following ways:
-> - Star the project
-> - Mention the project on your social networkds, at local meetups and to your friends/colleagues
-> - Refer this project in your project's readme
 
+If you like the project, please consider:
+- Starring the repository
+- Mentioning the project on your social networks, at local meetups, or to colleagues
+- Referencing this project in your own readme
 
 ### Reporting Bugs
-If you encounter any bugs while using Nopywer, please report them by [opening an issue](https://github.com/vfinel/nopywer/issues). Include as much detail as possible to help us understand and fix the issue.
+
+Please report bugs by [opening an issue](https://github.com/vfinel/nopywer/issues). Include as much detail as possible (console output, input data if applicable).
 
 ### Suggesting Enhancements
-We welcome suggestions for new features and improvements! Please submit your ideas by [opening an issue](https://github.com/vfinel/nopywer/issues) with the "enhancement" label.
 
-### Submitting Your Changes
+Submit ideas by [opening an issue](https://github.com/vfinel/nopywer/issues) with the "enhancement" label.
+
+### Submitting Changes
+
 1. Fork the repository
-2. Make changes in your fork
-3. Submit a Pull Request 
+2. Create a branch, make your changes
+3. Make sure `uv run ruff check .` and `uv run pytest` pass
+4. Submit a Pull Request
 
-See GitHub page [Creating a pull request from a fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request-from-a-fork) for more details.
+See [Creating a pull request from a fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request-from-a-fork) for details.

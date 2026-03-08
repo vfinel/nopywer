@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>nopywer frontend companion</title>
+        <link
+            rel="stylesheet"
+            href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+            crossorigin=""
+        />
+        <link rel="stylesheet" href="./style.css" />
+    </head>
+    <body>
+        <main class="layout">
+            <section class="panel">
+                <p class="eyebrow">nopywer companion</p>
+                <h1>Frontend for development only</h1>
+                <p class="description">
+                    Minimal embedded map for <code>nopywer</code>.
+                </p>
+                <div class="actions">
+                    <button id="optimize-button" type="button">Optimize power layout</button>
+                    <button id="reset-button" type="button" class="secondary">Reset view</button>
+                </div>
+                <dl class="stats">
+                    <div>
+                        <dt>Power nodes</dt>
+                        <dd id="node-count">-</dd>
+                    </div>
+                    <div>
+                        <dt>Optimizer</dt>
+                        <dd id="optimizer-status">idle</dd>
+                    </div>
+                </dl>
+                <p id="message" class="message">
+                    Waiting for the bundled power nodes dataset.
+                </p>
+            </section>
+            <div id="map" aria-label="Power nodes map"></div>
+        </main>
+
+        <script
+            src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            crossorigin=""
+        ></script>
+        <script src="./app.js"></script>
+    </body>
+</html>

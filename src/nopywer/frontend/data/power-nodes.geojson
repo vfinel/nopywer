@@ -1,0 +1,719 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.012601724790615,
+          41.69369570931962
+        ]
+      },
+      "properties": {
+        "name": "Smurfberry Square",
+        "power": 8300.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.013187004600646,
+          41.69388676697657
+        ]
+      },
+      "properties": {
+        "name": "Frostroot Pond",
+        "power": 2489.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.013736697049132,
+          41.69411811618633
+        ]
+      },
+      "properties": {
+        "name": "Windmill Workshop",
+        "power": 5282.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.014407752998134,
+          41.694342036303986
+        ]
+      },
+      "properties": {
+        "name": "Bluecap Cantina",
+        "power": 4460.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.014711690547531,
+          41.69367822876284
+        ]
+      },
+      "properties": {
+        "name": "Handy Smurf Shed",
+        "power": 3340.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.014991049923288,
+          41.69416195838285
+        ]
+      },
+      "properties": {
+        "name": "Sarsaparilla Depot",
+        "power": 11085.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.013971119911104,
+          41.693566269158296
+        ]
+      },
+      "properties": {
+        "name": "Painter's Nook",
+        "power": 3170.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.013881640605278,
+          41.693883671415804
+        ]
+      },
+      "properties": {
+        "name": "Meadowfare Crossing",
+        "power": 10370.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.013176939681517,
+          41.69424326113461
+        ]
+      },
+      "properties": {
+        "name": "Smurf Village Generator",
+        "power": 0.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.013974036329216,
+          41.69341372910276
+        ]
+      },
+      "properties": {
+        "name": "Alpine Mushroom Camp",
+        "power": 1840.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.013275618646183,
+          41.6945809953396
+        ]
+      },
+      "properties": {
+        "name": "Lantern Courtyard",
+        "power": 7360.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.013098795114679,
+          41.69468215142684
+        ]
+      },
+      "properties": {
+        "name": "Jolly Barrel Yard",
+        "power": 3680.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.013567058505581,
+          41.69429047006563
+        ]
+      },
+      "properties": {
+        "name": "Whysmurf Way",
+        "power": 1840.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.014216036149255,
+          41.69269715543164
+        ]
+      },
+      "properties": {
+        "name": "Greyroot Terrace",
+        "power": 1840.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.013780727016075,
+          41.69368242729501
+        ]
+      },
+      "properties": {
+        "name": "Blossom Burrow",
+        "power": 60.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.014064935460199,
+          41.69316063383619
+        ]
+      },
+      "properties": {
+        "name": "Gratin Grove",
+        "power": 1840.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.013942012982799,
+          41.69369622907524
+        ]
+      },
+      "properties": {
+        "name": "Wellness Wagon",
+        "power": 1730.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.013838514704698,
+          41.693785955927815
+        ]
+      },
+      "properties": {
+        "name": "Guardhouse Gate",
+        "power": 480.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.013728646000826,
+          41.693888856593404
+        ]
+      },
+      "properties": {
+        "name": "Talking Oak Circle",
+        "power": 250.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.014538945570639,
+          41.69424182002816
+        ]
+      },
+      "properties": {
+        "name": "Coldberry Cellar",
+        "power": 1000.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.014731024700404,
+          41.694267966088944
+        ]
+      },
+      "properties": {
+        "name": "Spoon Sprout House",
+        "power": 3100.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.014034816911164,
+          41.69388206456499
+        ]
+      },
+      "properties": {
+        "name": "Geekstone Workshop",
+        "power": 2010.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.013530550069384,
+          41.6939986601976
+        ]
+      },
+      "properties": {
+        "name": "Gloria Garden",
+        "power": 200.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.013177066263024,
+          41.69396592012233
+        ]
+      },
+      "properties": {
+        "name": "Mirror Pond",
+        "power": 1000.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.01277661731886,
+          41.693412531888825
+        ]
+      },
+      "properties": {
+        "name": "Veritas Square",
+        "power": 200.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.012889967974597,
+          41.693826743839494
+        ]
+      },
+      "properties": {
+        "name": "Tomorrow Post",
+        "power": 90.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.013052557387299,
+          41.69359542301004
+        ]
+      },
+      "properties": {
+        "name": "Moonask Ridge",
+        "power": 2800.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.012435894206149,
+          41.69411427729749
+        ]
+      },
+      "properties": {
+        "name": "Starcap Terrace",
+        "power": 450.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.012272609024222,
+          41.693585054948926
+        ]
+      },
+      "properties": {
+        "name": "Reflection Brook",
+        "power": 200.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.013614730234054,
+          41.69303594213013
+        ]
+      },
+      "properties": {
+        "name": "Split Cottage Lane",
+        "power": 72.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.011865170446592,
+          41.69345512319555
+        ]
+      },
+      "properties": {
+        "name": "Bouncecap Meadow",
+        "power": 2000.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.012222788859019,
+          41.693270366207
+        ]
+      },
+      "properties": {
+        "name": "Lighthouse Knoll",
+        "power": 300.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.014415418961589,
+          41.69427829070426
+        ]
+      },
+      "properties": {
+        "name": "Cratewheel Yard",
+        "power": 0.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.012895850532078,
+          41.69472316785931
+        ]
+      },
+      "properties": {
+        "name": "Rainbow Camp",
+        "power": 3680.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.014002382889214,
+          41.69456574065345
+        ]
+      },
+      "properties": {
+        "name": "Soupkettle Corner",
+        "power": 400.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.012336237078207,
+          41.694843707438054
+        ]
+      },
+      "properties": {
+        "name": "Dreamdust Field",
+        "power": 3680.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.011537103633567,
+          41.69234806304274
+        ]
+      },
+      "properties": {
+        "name": "Practice Patch",
+        "power": 0.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.011918685307272,
+          41.69233028850832
+        ]
+      },
+      "properties": {
+        "name": "Ninth Lantern Well",
+        "power": 0.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.011454117307237,
+          41.69206124659373
+        ]
+      },
+      "properties": {
+        "name": "Roundbelly Row",
+        "power": 1750.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.01038655752624,
+          41.69173572377932
+        ]
+      },
+      "properties": {
+        "name": "Question Trail",
+        "power": 1750.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.010501165300565,
+          41.69218235691341
+        ]
+      },
+      "properties": {
+        "name": "Tranquil Grove",
+        "power": 1750.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.010766203068702,
+          41.69146748741722
+        ]
+      },
+      "properties": {
+        "name": "Wonder Hollow",
+        "power": 1750.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.011262077140324,
+          41.69148675626195
+        ]
+      },
+      "properties": {
+        "name": "Playground Glade",
+        "power": 1750.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.011383061767252,
+          41.69185487542429
+        ]
+      },
+      "properties": {
+        "name": "Octopus Garden",
+        "power": 0.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.010967332089935,
+          41.69193901038799
+        ]
+      },
+      "properties": {
+        "name": "Pebble Depot Six",
+        "power": 0.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.010941211222839,
+          41.69189210024385
+        ]
+      },
+      "properties": {
+        "name": "Lantern House Six",
+        "power": 1000.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.011254531115862,
+          41.69252267281408
+        ]
+      },
+      "properties": {
+        "name": "Second Pump House",
+        "power": 1000.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.011064596212925,
+          41.69292156377749
+        ]
+      },
+      "properties": {
+        "name": "Glimmer Glen",
+        "power": 1750.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.010981512031082,
+          41.69253687244502
+        ]
+      },
+      "properties": {
+        "name": "Curious Hollow",
+        "power": 8800.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.011275265114728,
+          41.69248508605406
+        ]
+      },
+      "properties": {
+        "name": "Fourth Pump House",
+        "power": 1000.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.011861951718222,
+          41.69255180775979
+        ]
+      },
+      "properties": {
+        "name": "Tenth Pump House",
+        "power": 1000.0
+      }
+    }
+  ]
+}
