@@ -28,7 +28,7 @@ import math
 from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Protocol
 
 import networkx as nx
 
@@ -36,6 +36,10 @@ from .constants import EXTRA_CABLE_LENGTH_M, PF, RHO_COPPER, V0
 from .geometry import geodesic_distance_m
 from .io import load_geojson
 from .models import Cable, PowerGrid, PowerNode
+
+
+class OptimiseLayoutFn(Protocol):
+    def __call__(self, grid: PowerGrid, **kwargs: Any) -> PowerGrid: ...
 
 
 @dataclass(frozen=True)
