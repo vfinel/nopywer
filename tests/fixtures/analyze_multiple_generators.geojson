@@ -1,0 +1,37 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [0.0, 0.0]
+      },
+      "properties": {
+        "name": "Generator A",
+        "power": 0.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [1.0, 1.0]
+      },
+      "properties": {
+        "name": "Generator B",
+        "power": 0.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [[0.0, 0.0], [1.0, 1.0]]
+      },
+      "properties": {
+        "length": 10.0
+      }
+    }
+  ]
+}

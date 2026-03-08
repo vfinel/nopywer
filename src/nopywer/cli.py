@@ -5,7 +5,10 @@ from typing import Annotated
 
 import typer
 
-import nopywer
+from . import inventory
+from .analyze import analyze
+from .io import print_grid_info
+from .models import PowerGrid
 
 logger = logging.getLogger(__name__)
 
@@ -16,17 +19,18 @@ app = typer.Typer()
 def analyze_grid(
     input: Annotated[
         Path,
-        typer.Argument(help="Input GeoJSON file with nodes and cables"),
+        typer.Argument(help="Input GeoJSON file with nodes and cables", envvar="NOPYWER_INPUT"),
     ],
     output: Annotated[
         Path | None,
-        typer.Option("--output", "-o", help="Output GeoJSON file"),
+        typer.Option("--output", "-o", help="Output GeoJSON file", envvar="NOPYWER_OUTPUT"),
     ] = None,
     inventory_file: Annotated[
-        Path | None,
+        str | None,
         typer.Option(
             "--inventory",
-            help="Equipment inventory spreadsheet (.ods)",
+            help="Equipment inventory spreadsheet",
+            envvar="NOPYWER_INVENTORY",
         ),
     ] = None,
     do_update: Annotated[
@@ -41,22 +45,17 @@ def analyze_grid(
     if verbose:
         logging.basicConfig(level=logging.INFO)
 
-    grid = nopywer.grid.PowerGrid.from_geojson(input)
-    grid.analyze()
+    grid = PowerGrid.from_geojson(input)
+    analyze(grid)
 
     if verbose:
-        nopywer.io.print_grid_info(grid.nodes, grid.cables, grid.dlist)
+        print_grid_info(grid.nodes, grid.cables, grid.tree, grid.generator)
 
     if inventory_file:
-        project_folder = str(input.parent)
-        nopywer.inventory.choose_cables_in_inventory(
-            project_folder, grid.cables, str(inventory_file)
-        )
-        nopywer.inventory.choose_distros_in_inventory(
-            project_folder, grid.nodes, str(inventory_file)
-        )
+        inventory.choose_cables(inventory_file, grid.cables)
+        inventory.choose_distros(inventory_file, grid.nodes)
 
-    result = nopywer.io.to_geojson(grid.nodes, grid.cables)
+    result = grid.to_geojson()
 
     if do_update:
         with open(input, "w") as f:

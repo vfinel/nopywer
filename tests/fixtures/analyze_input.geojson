@@ -1,0 +1,60 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [0.0, 0.0]
+      },
+      "properties": {
+        "name": "Village Generator",
+        "power": 0.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [0.0001, 0.0]
+      },
+      "properties": {
+        "name": "Load A",
+        "power": 3000.0,
+        "phase": 1
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [0.0002, 0.0]
+      },
+      "properties": {
+        "name": "Load B",
+        "power": 6000.0,
+        "phase": 2
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [[0.0, 0.0], [0.0001, 0.0]]
+      },
+      "properties": {
+        "length": 10.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [[0.0001, 0.0], [0.0002, 0.0]]
+      },
+      "properties": {
+        "length": 12.0
+      }
+    }
+  ]
+}

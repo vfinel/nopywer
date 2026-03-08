@@ -1,4 +1,6 @@
-# nopywer
+# nopywer 
+
+Pronounced /noʊ.paɪ.wɛr/: "no-pie-wer" (as in <u>no</u>+ <u>py</u>thon + po<u>wer</u>)
 
 Visit the homepage of the project: https://vfinel.github.io/nopywer/
 
@@ -9,6 +11,7 @@ Nopywer analyses power grids to compute current flowing through cables, 3-phase 
 Requires Python ≥ 3.12 and [uv](https://docs.astral.sh/uv/).
 
 ```bash
+uv venv
 uv sync
 ```
 
@@ -16,26 +19,45 @@ This installs all runtime and dev dependencies (ruff, pytest, pre-commit…) in 
 
 ### Input data
 
-Nopywer reads a GeoJSON file containing nodes and cables. A spreadsheet (`.ods`) can optionally be provided for equipment inventory.
-
-The spreadsheet must comply with the following rules:
-- `.ods` format
-- Columns: `Project` (must match node names), `which phase(1, 2, 3, T, U or Y)`, `worstcase power [W]`
-- No notes or comments on cells
+Nopywer reads a GeoJSON file containing nodes and cables.
+A spreadsheet can optionally be provided for equipment inventory.
 
 ## Usage
 
 ```bash
-nopywer-analyze input.geojson
+nopywer-analyze tests/fixtures/analyze_input.geojson -v
 ```
 
 See `nopywer-analyze --help` for all options.
 
-To start the optimization API server:
+### Environment variables
+
+`nopywer-analyze` also reads these environment variables:
+
+- `NOPYWER_INPUT`: input GeoJSON path
+- `NOPYWER_OUTPUT`: output GeoJSON path
+- `NOPYWER_INVENTORY`: inventory spreadsheet path
+
+Example:
+
+```bash
+export NOPYWER_INPUT=input.geojson
+export NOPYWER_OUTPUT=output.geojson
+export NOPYWER_INVENTORY=inventory.xlsx
+nopywer-analyze
+```
+
+To start the companion API server:
 
 ```bash
 nopywer-server
 ```
+
+Opening [`http://localhost:8042/`](http://localhost:8042/) shows a minimal embedded map.
+
+<p align="center">
+  <img src="docs/frontend.png" alt="nopywer frontend map screenshot" width="720" />
+</p>
 
 ## Contributing
 
@@ -72,9 +94,6 @@ A GitHub Actions workflow runs on every pull request and on pushes to `main`/`de
 ## Troubleshooting
 
 If you have errors, please reach out (include the complete console output).
-
-- Loads not using power appear on the "on map but missing on spreadsheet" list → add them to the spreadsheet
-- Loads not using power appear on the "on spreadsheet but missing on map" list → remove them from the spreadsheet
 
 ## Disclaimer
 

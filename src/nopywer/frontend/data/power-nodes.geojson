@@ -6,14 +6,13 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -0.138464932641509,
-          41.70066854632285
+          0.012601724790615,
+          41.69369570931962
         ]
       },
       "properties": {
-        "name": "MiddleOfNowhere",
-        "power": 8300.0,
-        "type": "load"
+        "name": "Smurfberry Square",
+        "power": 8300.0
       }
     },
     {
@@ -21,14 +20,13 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -0.137879652831478,
-          41.7008596039798
+          0.013187004600646,
+          41.69388676697657
         ]
       },
       "properties": {
-        "name": "NoInfo/Ice",
-        "power": 2489.0,
-        "type": "load"
+        "name": "Frostroot Pond",
+        "power": 2489.0
       }
     },
     {
@@ -36,14 +34,13 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -0.137329960382992,
-          41.70109095318956
+          0.013736697049132,
+          41.69411811618633
         ]
       },
       "properties": {
-        "name": "Werkhaus",
-        "power": 5282.0,
-        "type": "load"
+        "name": "Windmill Workshop",
+        "power": 5282.0
       }
     },
     {
@@ -51,14 +48,13 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -0.13665890443399,
-          41.70131487330722
+          0.014407752998134,
+          41.694342036303986
         ]
       },
       "properties": {
-        "name": "Cantina (Cantina)",
-        "power": 4460.0,
-        "type": "load"
+        "name": "Bluecap Cantina",
+        "power": 4460.0
       }
     },
     {
@@ -66,14 +62,13 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -0.136354966884593,
-          41.700651065766074
+          0.014711690547531,
+          41.69367822876284
         ]
       },
       "properties": {
-        "name": "toolhaus",
-        "power": 3340.0,
-        "type": "load"
+        "name": "Handy Smurf Shed",
+        "power": 3340.0
       }
     },
     {
@@ -81,14 +76,13 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -0.136075607508836,
-          41.70113479538608
+          0.014991049923288,
+          41.69416195838285
         ]
       },
       "properties": {
-        "name": "production",
-        "power": 11085.0,
-        "type": "load"
+        "name": "Sarsaparilla Depot",
+        "power": 11085.0
       }
     },
     {
@@ -96,14 +90,13 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -0.13709553752102,
-          41.70053910616153
+          0.013971119911104,
+          41.693566269158296
         ]
       },
       "properties": {
-        "name": "Kunsthaus",
-        "power": 3170.0,
-        "type": "load"
+        "name": "Painter's Nook",
+        "power": 3170.0
       }
     },
     {
@@ -111,14 +104,13 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -0.137185016826846,
-          41.70085650841904
+          0.013881640605278,
+          41.693883671415804
         ]
       },
       "properties": {
-        "name": "malfare",
-        "power": 10370.0,
-        "type": "load"
+        "name": "Meadowfare Crossing",
+        "power": 10370.0
       }
     },
     {
@@ -126,14 +118,13 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -0.137889717750607,
-          41.70121609813784
+          0.013176939681517,
+          41.69424326113461
         ]
       },
       "properties": {
-        "name": "generator",
-        "power": 0,
-        "type": "generator"
+        "name": "Smurf Village Generator",
+        "power": 0.0
       }
     },
     {
@@ -141,14 +132,13 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -0.137092621102908,
-          41.70038656610599
+          0.013974036329216,
+          41.69341372910276
         ]
       },
       "properties": {
-        "name": "Swiss Camp",
-        "power": 1840.0,
-        "type": "load"
+        "name": "Alpine Mushroom Camp",
+        "power": 1840.0
       }
     },
     {
@@ -156,14 +146,13 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -0.137791038785941,
-          41.70155383234283
+          0.013275618646183,
+          41.6945809953396
         ]
       },
       "properties": {
-        "name": "NIMBY",
-        "power": 7360.0,
-        "type": "load"
+        "name": "Lantern Courtyard",
+        "power": 7360.0
       }
     },
     {
@@ -171,14 +160,13 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -0.137967862317445,
-          41.70165498843007
+          0.013098795114679,
+          41.69468215142684
         ]
       },
       "properties": {
-        "name": "Jugaton",
-        "power": 3680.0,
-        "type": "load"
+        "name": "Jolly Barrel Yard",
+        "power": 3680.0
       }
     },
     {
@@ -186,14 +174,13 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -0.137499598926543,
-          41.701263307068864
+          0.013567058505581,
+          41.69429047006563
         ]
       },
       "properties": {
-        "name": "Why Not?",
-        "power": 1840.0,
-        "type": "load"
+        "name": "Whysmurf Way",
+        "power": 1840.0
       }
     },
     {
@@ -201,14 +188,13 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -0.136850621282869,
-          41.69966999243487
+          0.014216036149255,
+          41.69269715543164
         ]
       },
       "properties": {
-        "name": "It's A Grey Area",
-        "power": 1840.0,
-        "type": "load"
+        "name": "Greyroot Terrace",
+        "power": 1840.0
       }
     },
     {
@@ -216,14 +202,13 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -0.137285930416049,
-          41.70065526429824
+          0.013780727016075,
+          41.69368242729501
         ]
       },
       "properties": {
-        "name": "Ohana House",
-        "power": 60.0,
-        "type": "load"
+        "name": "Blossom Burrow",
+        "power": 60.0
       }
     },
     {
@@ -231,14 +216,13 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -0.137001721971925,
-          41.700133470839425
+          0.014064935460199,
+          41.69316063383619
         ]
       },
       "properties": {
-        "name": "Le Gratin",
-        "power": 1840.0,
-        "type": "load"
+        "name": "Gratin Grove",
+        "power": 1840.0
       }
     },
     {
@@ -246,14 +230,13 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -0.137124644449325,
-          41.700669066078476
+          0.013942012982799,
+          41.69369622907524
         ]
       },
       "properties": {
-        "name": "welfare (malfare)",
-        "power": 1730.0,
-        "type": "load"
+        "name": "Wellness Wagon",
+        "power": 1730.0
       }
     },
     {
@@ -261,14 +244,13 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -0.137228142727426,
-          41.70075879293105
+          0.013838514704698,
+          41.693785955927815
         ]
       },
       "properties": {
-        "name": "guardshack (malfare)",
-        "power": 480.0,
-        "type": "load"
+        "name": "Guardhouse Gate",
+        "power": 480.0
       }
     },
     {
@@ -276,14 +258,13 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -0.137338011431298,
-          41.700861693596636
+          0.013728646000826,
+          41.693888856593404
         ]
       },
       "properties": {
-        "name": "meeting point (malfare)",
-        "power": 250.0,
-        "type": "load"
+        "name": "Talking Oak Circle",
+        "power": 250.0
       }
     },
     {
@@ -291,14 +272,13 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -0.136527711861485,
-          41.70121465703139
+          0.014538945570639,
+          41.69424182002816
         ]
       },
       "properties": {
-        "name": "Fridge Truck",
-        "power": 1000.0,
-        "type": "load"
+        "name": "Coldberry Cellar",
+        "power": 1000.0
       }
     },
     {
@@ -306,14 +286,13 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -0.13633563273172,
-          41.701240803092176
+          0.014731024700404,
+          41.694267966088944
         ]
       },
       "properties": {
-        "name": "Spoonhaus",
-        "power": 3100.0,
-        "type": "load"
+        "name": "Spoon Sprout House",
+        "power": 3100.0
       }
     },
     {
@@ -321,14 +300,13 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -0.13703184052096,
-          41.70085490156822
+          0.014034816911164,
+          41.69388206456499
         ]
       },
       "properties": {
-        "name": "geeks (malfare)",
-        "power": 2009.9999999999998,
-        "type": "load"
+        "name": "Geekstone Workshop",
+        "power": 2010.0
       }
     },
     {
@@ -336,14 +314,13 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -0.13753610736274,
-          41.70097149720083
+          0.013530550069384,
+          41.6939986601976
         ]
       },
       "properties": {
-        "name": "La Gloria",
-        "power": 200.0,
-        "type": "load"
+        "name": "Gloria Garden",
+        "power": 200.0
       }
     },
     {
@@ -351,14 +328,13 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -0.1378895911691,
-          41.70093875712556
+          0.013177066263024,
+          41.69396592012233
         ]
       },
       "properties": {
-        "name": "Mirror Mirror",
-        "power": 1000.0,
-        "type": "load"
+        "name": "Mirror Pond",
+        "power": 1000.0
       }
     },
     {
@@ -366,14 +342,13 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -0.138290040113264,
-          41.70038536889206
+          0.01277661731886,
+          41.693412531888825
         ]
       },
       "properties": {
-        "name": "IN PIPO VERITAS",
-        "power": 200.0,
-        "type": "load"
+        "name": "Veritas Square",
+        "power": 200.0
       }
     },
     {
@@ -381,14 +356,13 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -0.138176689457527,
-          41.70079958084273
+          0.012889967974597,
+          41.693826743839494
         ]
       },
       "properties": {
-        "name": "FuturePost",
-        "power": 90.0,
-        "type": "load"
+        "name": "Tomorrow Post",
+        "power": 90.0
       }
     },
     {
@@ -396,14 +370,13 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -0.138014100044825,
-          41.70056826001327
+          0.013052557387299,
+          41.69359542301004
         ]
       },
       "properties": {
-        "name": "Asking for the Moon",
-        "power": 2800.0,
-        "type": "load"
+        "name": "Moonask Ridge",
+        "power": 2800.0
       }
     },
     {
@@ -411,14 +384,13 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -0.138630763225975,
-          41.70108711430072
+          0.012435894206149,
+          41.69411427729749
         ]
       },
       "properties": {
-        "name": "Stellari",
-        "power": 450.0,
-        "type": "load"
+        "name": "Starcap Terrace",
+        "power": 450.0
       }
     },
     {
@@ -426,14 +398,13 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -0.138794048407902,
-          41.70055789195216
+          0.012272609024222,
+          41.693585054948926
         ]
       },
       "properties": {
-        "name": "Reflexions",
-        "power": 200.0,
-        "type": "load"
+        "name": "Reflection Brook",
+        "power": 200.0
       }
     },
     {
@@ -441,14 +412,13 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -0.13745192719807,
-          41.70000877913336
+          0.013614730234054,
+          41.69303594213013
         ]
       },
       "properties": {
-        "name": "House/divided",
-        "power": 72.0,
-        "type": "load"
+        "name": "Split Cottage Lane",
+        "power": 72.0
       }
     },
     {
@@ -456,14 +426,13 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -0.139201486985532,
-          41.70042796019878
+          0.011865170446592,
+          41.69345512319555
         ]
       },
       "properties": {
-        "name": "Flaming Trampoline",
-        "power": 2000.0,
-        "type": "load"
+        "name": "Bouncecap Meadow",
+        "power": 2000.0
       }
     },
     {
@@ -471,14 +440,13 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -0.138843868573105,
-          41.700243203210235
+          0.012222788859019,
+          41.693270366207
         ]
       },
       "properties": {
-        "name": "The Lighthouse of Now Here",
-        "power": 300.0,
-        "type": "load"
+        "name": "Lighthouse Knoll",
+        "power": 300.0
       }
     },
     {
@@ -486,14 +454,13 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -0.136651238470535,
-          41.70125112770749
+          0.014415418961589,
+          41.69427829070426
         ]
       },
       "properties": {
-        "name": "ctna distri",
-        "power": 0,
-        "type": "load"
+        "name": "Cratewheel Yard",
+        "power": 0.0
       }
     },
     {
@@ -501,14 +468,13 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -0.138170806900046,
-          41.70169600486254
+          0.012895850532078,
+          41.69472316785931
         ]
       },
       "properties": {
-        "name": "Camp Cambio",
-        "power": 3680.0,
-        "type": "load"
+        "name": "Rainbow Camp",
+        "power": 3680.0
       }
     },
     {
@@ -516,14 +482,13 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -0.13706427454291,
-          41.701538577656684
+          0.014002382889214,
+          41.69456574065345
         ]
       },
       "properties": {
-        "name": "Hippie Soup",
-        "power": 400.0,
-        "type": "load"
+        "name": "Soupkettle Corner",
+        "power": 400.0
       }
     },
     {
@@ -531,14 +496,13 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -0.138730420353917,
-          41.701816544441286
+          0.012336237078207,
+          41.694843707438054
         ]
       },
       "properties": {
-        "name": "Dusty Dreamers",
-        "power": 3680.0,
-        "type": "load"
+        "name": "Dreamdust Field",
+        "power": 3680.0
       }
     },
     {
@@ -546,14 +510,13 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -0.139529553798557,
-          41.699320900045976
+          0.011537103633567,
+          41.69234806304274
         ]
       },
       "properties": {
-        "name": "Prueba",
-        "power": 0,
-        "type": "load"
+        "name": "Practice Patch",
+        "power": 0.0
       }
     },
     {
@@ -561,14 +524,13 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -0.139147972124852,
-          41.699303125511555
+          0.011918685307272,
+          41.69233028850832
         ]
       },
       "properties": {
-        "name": "Distro9",
-        "power": 0,
-        "type": "load"
+        "name": "Ninth Lantern Well",
+        "power": 0.0
       }
     },
     {
@@ -576,14 +538,13 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -0.139612540124887,
-          41.69903408359696
+          0.011454117307237,
+          41.69206124659373
         ]
       },
       "properties": {
-        "name": "Belly_Town",
-        "power": 1750.0,
-        "type": "load"
+        "name": "Roundbelly Row",
+        "power": 1750.0
       }
     },
     {
@@ -591,14 +552,13 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -0.140680099905884,
-          41.69870856078255
+          0.01038655752624,
+          41.69173572377932
         ]
       },
       "properties": {
-        "name": "why_do_you_ask",
-        "power": 1750.0,
-        "type": "load"
+        "name": "Question Trail",
+        "power": 1750.0
       }
     },
     {
@@ -606,14 +566,13 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -0.140565492131559,
-          41.699155193916646
+          0.010501165300565,
+          41.69218235691341
         ]
       },
       "properties": {
-        "name": "tranquilo_barrio",
-        "power": 1750.0,
-        "type": "load"
+        "name": "Tranquil Grove",
+        "power": 1750.0
       }
     },
     {
@@ -621,14 +580,13 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -0.140300454363422,
-          41.69844032442045
+          0.010766203068702,
+          41.69146748741722
         ]
       },
       "properties": {
-        "name": "wonderever",
-        "power": 1750.0,
-        "type": "load"
+        "name": "Wonder Hollow",
+        "power": 1750.0
       }
     },
     {
@@ -636,14 +594,13 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -0.1398045802918,
-          41.698459593265184
+          0.011262077140324,
+          41.69148675626195
         ]
       },
       "properties": {
-        "name": "oasis_playground",
-        "power": 1750.0,
-        "type": "load"
+        "name": "Playground Glade",
+        "power": 1750.0
       }
     },
     {
@@ -651,14 +608,13 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -0.139683595664872,
-          41.69882771242752
+          0.011383061767252,
+          41.69185487542429
         ]
       },
       "properties": {
-        "name": "planet_pulpo",
-        "power": 0,
-        "type": "load"
+        "name": "Octopus Garden",
+        "power": 0.0
       }
     },
     {
@@ -666,14 +622,13 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -0.13968428935679,
-          41.69890207583
+          0.010967332089935,
+          41.69193901038799
         ]
       },
       "properties": {
-        "name": "planet_pulpo",
-        "power": 1750.0,
-        "type": "load"
+        "name": "Pebble Depot Six",
+        "power": 0.0
       }
     },
     {
@@ -681,14 +636,13 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -0.140099325342189,
-          41.69891184739122
+          0.010941211222839,
+          41.69189210024385
         ]
       },
       "properties": {
-        "name": "distro_6",
-        "power": 0,
-        "type": "load"
+        "name": "Lantern House Six",
+        "power": 1000.0
       }
     },
     {
@@ -696,14 +650,13 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -0.14008806611491,
-          41.69890835913876
+          0.011254531115862,
+          41.69252267281408
         ]
       },
       "properties": {
-        "name": "distro_6",
-        "power": 0,
-        "type": "load"
+        "name": "Second Pump House",
+        "power": 1000.0
       }
     },
     {
@@ -711,14 +664,13 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -0.140125446209285,
-          41.69886493724708
+          0.011064596212925,
+          41.69292156377749
         ]
       },
       "properties": {
-        "name": "distro6",
-        "power": 1000.0,
-        "type": "load"
+        "name": "Glimmer Glen",
+        "power": 1750.0
       }
     },
     {
@@ -726,14 +678,13 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -0.139812126316262,
-          41.69949550981731
+          0.010981512031082,
+          41.69253687244502
         ]
       },
       "properties": {
-        "name": "distro2",
-        "power": 1000.0,
-        "type": "load"
+        "name": "Curious Hollow",
+        "power": 8800.0
       }
     },
     {
@@ -741,14 +692,13 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -0.140002061219199,
-          41.69989440078072
+          0.011275265114728,
+          41.69248508605406
         ]
       },
       "properties": {
-        "name": "glitch",
-        "power": 1750.0,
-        "type": "load"
+        "name": "Fourth Pump House",
+        "power": 1000.0
       }
     },
     {
@@ -756,59 +706,13 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -0.140085145401042,
-          41.69950970944825
+          0.011861951718222,
+          41.69255180775979
         ]
       },
       "properties": {
-        "name": "curious_creatures",
-        "power": 8800.0,
-        "type": "load"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          -0.139791392317396,
-          41.699457923057295
-        ]
-      },
-      "properties": {
-        "name": "distro4",
-        "power": 1000.0,
-        "type": "load"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          -0.139812126316262,
-          41.69949550981731
-        ]
-      },
-      "properties": {
-        "name": "distro9",
-        "power": 1000.0,
-        "type": "load"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          -0.139204705713902,
-          41.699524644763024
-        ]
-      },
-      "properties": {
-        "name": "distro10",
-        "power": 1000.0,
-        "type": "load"
+        "name": "Tenth Pump House",
+        "power": 1000.0
       }
     }
   ]
