@@ -13,12 +13,12 @@ Nopywer key features include:
 Nopywer has been successfully used to design several power grids, as illustred by the following figure.
 
 ![alt text](nopywer_map_example.png "Title")
-*<p style="text-align:center;">Example of a real-case scenario: on this map, houses represent power loads at specific geographic coordinates; their sizes scale with their power needs. In this case, two 3-phases islanded grids were designed to provide power to 61 loads (totalling 195kW) from two generators.</p>*
+*Example of a real-case scenario: on this map, houses represent power loads at specific geographic coordinates; their sizes scale with their power needs. In this case, two 3-phases islanded grids were designed to provide power to 61 loads (totalling 195kW) from two generators.*
 
 
 
 ![alt text](frontend.png "Title")
-*<p style="text-align:center;">Illustration of the map accessible from the browser (this work is currently under active development).</p>*
+*Illustration of the map accessible from the browser (this work is currently under active development).*
 
 
 This site will soon be populated with examples and tutorials about how to design power grids yourself, stayed tuned! 
