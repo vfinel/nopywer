@@ -9,7 +9,8 @@ from . import inventory
 from .analyze import analyze
 from .io import print_grid_info
 from .models import PowerGrid
-from .optimize_milp import optimize_layout_to_files
+from .optimize import optimize_layout_to_files as optimize_network_to_files
+from .optimize_milp import optimize_layout_to_files as optimize_milp_to_files
 
 logger = logging.getLogger(__name__)
 
@@ -147,7 +148,7 @@ def optimize_grid_milp(
         ),
     ] = None,
 ):
-    optimize_layout_to_files(
+    optimize_milp_to_files(
         input_geojson=input_geojson,
         output_geojson=output_geojson,
         plot_html=plot_html,
@@ -161,6 +162,28 @@ def optimize_grid_milp(
         weight_voltage_drop=weight_voltage_drop,
         weight_cumulative_voltage_drop=weight_cumulative_voltage_drop,
         max_voltage_drop_percent=max_voltage_drop_percent,
+    )
+
+
+@app.command("optimize-network")
+def optimize_grid_network(
+    input_geojson: Annotated[
+        Path,
+        typer.Argument(help="Input GeoJSON with point nodes.", envvar="NOPYWER_INPUT"),
+    ],
+    output_geojson: Annotated[
+        Path,
+        typer.Option("--output-geojson", help="Where to write optimized layout GeoJSON."),
+    ] = Path("network_layout.geojson"),
+    extra_cable_m: Annotated[
+        float,
+        typer.Option("--extra-cable-m", help="Extra slack added to each selected cable length."),
+    ] = 10.0,
+):
+    optimize_network_to_files(
+        input_geojson=input_geojson,
+        output_geojson=output_geojson,
+        extra_cable_m=extra_cable_m,
     )
 
 

@@ -95,6 +95,7 @@ class Cable:
 
     @classmethod
     def capacity_w(cls) -> float:
+        """Capacity of this cable type independent of the instance."""
         return float(cls.num_phases) * V0 * PF * cls.max_current_a
 
     def to_geojson(self) -> dict:
