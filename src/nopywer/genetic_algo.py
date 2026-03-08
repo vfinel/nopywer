@@ -1,21 +1,51 @@
-from os import listvolumes
+import copy
 import pickle
 import random
+
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
-import copy
-
-from optimization_tools import phase_assignment_greedy
-from nopywer.get_grid_geometry import compute_deepness_list
-import nopywer as npw
 import pygad
+from optimization_tools import phase_assignment_greedy
+
+import nopywer as npw
+from nopywer.get_grid_geometry import compute_deepness_list
+
+"""
+this is my attemps to build a genetic algo to find the optimal grid.
+Its is not working as is.
+
+Algorithm principle: 
+    - A power grid is a graph. 
+    - The adjacency matrix representation of the graph is used to represent a 'specimen' (ie, a grid).
+        This representation will be make it easy to define custom mutation and crossover functions
+    - The 'fitness' of a specimen is a the viability of the power grid. 
+        It should be calculated from 
+        - the voltage drop at each nodes (lower is better, and must be below a given maximum)
+        - the total length of the grid (shorter is better)
+        - the feasibility of the grid (according to ressources in the inventory)
+
+Ideas:
+- custom mutation and crossover functions might be needed to define corresponding operations
+- 
+
+TODO:
+    - adapt code to use the new nopywer package
+    - remove deprecated code
+    - reorg code 
+        - update functions for mutation, crossover
+        - use above functions exclusively
+        - 
+    - write tests
+        - test functions should be added for mutation and crossover functions 
+
+"""
 
 
 def calculate_fitness(G: nx.DiGraph):
     """
     Calculates the fitness of a genome (lower voltage drop is better).
-       Fitness function should be a function to maximize
+       Fitness function retuens parameterize that we seek to *maximize*
     """
 
     grid, _, _ = build_nopywer_grid(G)
@@ -24,7 +54,7 @@ def calculate_fitness(G: nx.DiGraph):
     # https://stackoverflow.com/questions/66217836/how-to-sum-up-a-networkx-graphs-edge-weights
     total_length = G.size(weight="length")
 
-    # fitness = [1/voltage_drop, 1/length]
+    # fitness = [1/voltage_drop, 1/length]  # for multiple objectives
     fitness = 1 / vdrop
     return fitness
 
@@ -36,9 +66,8 @@ def fitness_func_pyGAD(ga_instance: pygad.GA, solution: np.ndarray, solution_idx
     """
     G = pygad_to_nx(solution, nodes_list, nodes_attributes)  # call to global var
 
-    # TODO: remove all geomes that are not valid ?
-    # or regenerate valid ones ?
-    # remove loops, get generator as source, remove double inputs (pick only one randomly)
+    # TODO: remove all geomes that are not valid ? or regenerate valid ones ?
+    #   ie: remove loops, get generator as source, remove double inputs (pick only one randomly)
     if is_valid_grid(G):
         fitness = calculate_fitness(G)
 
@@ -48,52 +77,10 @@ def fitness_func_pyGAD(ga_instance: pygad.GA, solution: np.ndarray, solution_idx
     return fitness
 
 
-def nx_to_pygad(
-    G: nx.DiGraph | list[nx.DiGraph], nodes_list: list
-) -> np.ndarray | list[np.ndarray]:
-    """convert a directed graph to its adjacency matrix representation
-    inputs and outputs can be lists"""
-    if isinstance(G, list):
-        adjacency_mtx = []
-        for g in G:
-            mtx = nx.to_numpy_array(g, nodelist=nodes_list)
-            adjacency_mtx.append(mtx.flatten())
-
-    else:
-        adjacency_mtx = nx.to_numpy_array(G, nodelist=nodes_list)
-        adjacency_mtx.flatten()
-
-    return adjacency_mtx
-
-
-def pygad_to_nx(
-    adjency_vector: np.ndarray, nodes_list, nodes_attributes: dict, debug: bool = False
-) -> nx.DiGraph:
-    """convert a network from its adjacency matrix representation to its networkx representation"""
-    # TODO: verifier que pygad_to_nx(nx_to_pygad(G)) == G
-    # this is dirty, works because adjency_mtx is a global var
-    shape = adjacency_mtx.shape
-    adjency_mtx = np.reshape(adjency_vector, shape)
-    G = nx.from_numpy_array(adjency_mtx, nodelist=nodes_list, create_using=nx.DiGraph)
-
-    # need to add power info (nodes and edges)
-    # (to be able to compute vdrop for fitness_fct)
-    node_list = list(Gfc.nodes)  # call global variable
-    mapping = {i: node for i, node in enumerate(node_list)}
-    G = nx.relabel_nodes(G, mapping)
-    nx.set_node_attributes(G, nx.get_node_attributes(Gfc, "name"), "name")
-    nx.set_node_attributes(G, nx.get_node_attributes(Gfc, "position"), "position")
-    nx.set_node_attributes(G, nx.get_node_attributes(Gfc, "power"), "power")
-
-    if debug:
-        plot_graph(G)
-
-    return G
-
-
 def selection(population, fitness_scores, num_parents):
     """Selects the best individuals from the population."""
-    # (Placeholder - TODO replace with a selection algorithm like tournament selection)
+    # (Placeholder - TODO replace with a selection algorithm like tournament selection
+    # inspired from calculate_fitness function)
     # For now, just select the individuals with the lowest fitness scores.
     sorted_population = sorted(zip(population, fitness_scores), key=lambda x: x[1])
     parents = [individual for individual, fitness in sorted_population[:num_parents]]
@@ -110,9 +97,9 @@ def crossover(parent1, parent2):
     plot = True
     """ get similarities and differences of parents """
     # get adjacency matrices
-    s = int(parent1.size**0.5)
-    adj1 = np.reshape(parent1, (s, s))
-    adj2 = np.reshape(parent2, (s, s))
+    num_nodes = int(parent1.size**0.5)
+    adj1 = np.reshape(parent1, (num_nodes, num_nodes))
+    adj2 = np.reshape(parent2, (num_nodes, num_nodes))
     print(f"are parents equal? {np.array_equal(parent1, parent2)} --> ", end=" ")
     if not np.array_equal(parent1, parent2):
         print("cool")
@@ -179,11 +166,11 @@ def mutation(population: list, ga_instance, plot: bool = True) -> list:
 
     """
     block_fig = False  # useful for debug
-    s = int(len(population[0]) ** 0.5)
+    num_nodes = int(len(population[0]) ** 0.5)
     mutants = []
     for idx, individual in enumerate(population):
         # get adjacency matrix
-        grid_in = np.reshape(individual, (s, s))
+        grid_in = np.reshape(individual, (num_nodes, num_nodes))
         # grid0 = grid.copy()  # to plot !! deepcopy ?!??!
         grid_out = copy.deepcopy(grid_in)
 
@@ -196,22 +183,20 @@ def mutation(population: list, ga_instance, plot: bool = True) -> list:
             # pick a destination (making sure it is not a generator)
             old_src = []
             while len(old_src) == 0:  # if we picked a generator, this will be true
-                dest_idx = random.randint(0, s - 1)
+                dest_idx = random.randint(0, num_nodes - 1)
                 old_src = np.where(grid_in[:, dest_idx] == 1)[0]  # get src of dest
 
             # assign a new src to the chosen load (dest)
             new_src = old_src
             k = 0
             while (new_src == old_src) and (k < 1e5):
-                new_src = random.randint(0, s - 1)
+                new_src = random.randint(0, num_nodes - 1)
 
             assert new_src != old_src, "unable to find a new src"
             # print(f"load {dest_idx} is now connected to {new_src} instead of {old_src}")
-            grid_out[:, dest_idx] = np.zeros((1, s))  # reset (rm old connection)
+            grid_out[:, dest_idx] = np.zeros((1, num_nodes))  # reset (rm old connection)
             grid_out[new_src, dest_idx] = 1  # update (add new connection)
-            assert np.array_equal(grid_in, grid_out) is False, (
-                "why mutation didn't worked?"
-            )
+            assert np.array_equal(grid_in, grid_out) is False, "why mutation didn't worked?"
             # TODO:
             #   - check if grid is valid, otherwise, reject mutation ?
             #   - do mutation but only with new_src that are close enough of the dest (eg, <150m)
@@ -247,9 +232,7 @@ def mutation(population: list, ga_instance, plot: bool = True) -> list:
 
         assert np.array_equal(grid_in, grid_out) is False, "why mutation didn't worked?"
 
-    all_eq = all(
-        [np.array_equal(population[i], mutants[i]) for i in range(len(population))]
-    )
+    all_eq = all([np.array_equal(population[i], mutants[i]) for i in range(len(population))])
 
     assert all_eq is False, "why mutants and pop are all equal ?!"
 
@@ -257,7 +240,8 @@ def mutation(population: list, ga_instance, plot: bool = True) -> list:
 
 
 def run_genetic_algorithm(grid, population_size, num_generations, mutation_rate):
-    """Runs the genetic algorithm."""
+    """Runs the genetic algorithm.
+    This was a first attemp, before using pyGAD framework."""
     population = generate_initial_population(grid, population_size)
 
     for generation in range(num_generations):
@@ -277,21 +261,24 @@ def run_genetic_algorithm(grid, population_size, num_generations, mutation_rate)
     return best_genome
 
 
-def is_generator_src(G):
-    return G._pred["generator"] == {}
-
-
 def get_src(G):
+    """this function seems useless, it can probably be removed"""
     assert nx.is_arborescence(G), "graph should be an arborescence"
     src = [node for node in G.nodes if G._pred[node] == {}]
     return src[0]
 
 
 def is_valid_grid(G):
+    """check that the grid has the generator as the source"""
+
+    def is_generator_src(G):
+        return G._pred["generator"] == {}
+
     return nx.is_arborescence(G) and is_generator_src(G)
 
 
 def arborescence_from_generator(G: nx.DiGraph):
+    """utility function allowing to orient the direct graph passed as input so that the graph origin is the generator."""
     assert nx.is_arborescence(G), "graph should be an arborescence"
     debug = 0
     kk = 0
@@ -319,6 +306,9 @@ def arborescence_from_generator(G: nx.DiGraph):
 
 
 def load_graph():
+    """load sample graph
+    TODO: use geojson file from tests
+    """
     with open("grid.pkl", "rb") as f:
         nodes, edges = pickle.load(f)
 
@@ -345,7 +335,7 @@ def load_graph():
 
 
 def generate_initial_population(G: nx.DiGraph, population_size: int) -> list:
-    """build initial population to start with"""
+    """build initial population to start the GA."""
 
     """build a minimum spanning arborescence to start with"""
     arb = nx.minimum_spanning_arborescence(G, attr="length")
@@ -382,6 +372,7 @@ def generate_initial_population(G: nx.DiGraph, population_size: int) -> list:
 
 
 def plot_graph(G):
+    """utility function to plot a graph"""
     # TODO: add options to plot
     #   - adjacency matrix alone ??
     # (done?)  - how will i do to compare two graphs ?  comb of the two options + subplot ?
@@ -410,9 +401,9 @@ def plot_graph(G):
 
 
 def build_nopywer_grid(G: nx.DiGraph) -> tuple[dict, dict, list]:
-    """build variables expected by nopywer tools"""
+    """convert a networkx graph to a nopywer grid representation
+    TODO: update to use new nopywer framework"""
 
-    # TODO: dirty assumption: all cables are in the same layer
     cable_layer_name = "norg_3phases_63A_2024"
     cable_r = 0.16
     cables = {cable_layer_name: []}
@@ -456,12 +447,57 @@ def build_nopywer_grid(G: nx.DiGraph) -> tuple[dict, dict, list]:
 
 
 def assign_phases(G: nx.DiGraph) -> tuple[dict, nx.DiGraph]:
-    # TODO: build a graph G ready to be imported in pandapower
+    """take a graph, build the corresponding nopywer grid, and assign phases
+    This will be necessary to be able to compute cumulated current and thus voltage drop
+    """
     grid, _, _ = build_nopywer_grid(G)
     phases, _ = phase_assignment_greedy(grid)
     nx.set_node_attributes(G, phases, "phases")
 
     return phases, G
+
+
+def nx_to_pygad(
+    G: nx.DiGraph | list[nx.DiGraph], nodes_list: list
+) -> np.ndarray | list[np.ndarray]:
+    """convert a directed graph to its adjacency matrix representation
+    inputs and outputs can be lists"""
+    if isinstance(G, list):
+        adjacency_mtx = []
+        for g in G:
+            mtx = nx.to_numpy_array(g, nodelist=nodes_list)
+            adjacency_mtx.append(mtx.flatten())
+
+    else:
+        adjacency_mtx = nx.to_numpy_array(G, nodelist=nodes_list)
+        adjacency_mtx.flatten()
+
+    return adjacency_mtx
+
+
+def pygad_to_nx(
+    adjency_vector: np.ndarray, nodes_list, nodes_attributes: dict, debug: bool = False
+) -> nx.DiGraph:
+    """convert a network from its adjacency matrix representation to its networkx representation"""
+    # TODO: verifier que pygad_to_nx(nx_to_pygad(G)) == G
+    # this is dirty, works because adjency_mtx is a global var
+    shape = adjacency_mtx.shape
+    adjency_mtx = np.reshape(adjency_vector, shape)
+    G = nx.from_numpy_array(adjency_mtx, nodelist=nodes_list, create_using=nx.DiGraph)
+
+    # need to add power info (nodes and edges)
+    # (to be able to compute vdrop for fitness_fct)
+    node_list = list(Gfc.nodes)  # call global variable
+    mapping = {i: node for i, node in enumerate(node_list)}
+    G = nx.relabel_nodes(G, mapping)
+    nx.set_node_attributes(G, nx.get_node_attributes(Gfc, "name"), "name")
+    nx.set_node_attributes(G, nx.get_node_attributes(Gfc, "position"), "position")
+    nx.set_node_attributes(G, nx.get_node_attributes(Gfc, "power"), "power")
+
+    if debug:
+        plot_graph(G)
+
+    return G
 
 
 def analyze_power_grid(G: nx.DiGraph, verbose: bool = False) -> float:
@@ -482,6 +518,7 @@ def analyze_power_grid(G: nx.DiGraph, verbose: bool = False) -> float:
 
 
 def on_gen(ga_instance):
+    """pyGAD utility function. Use it to trig specific actions when a population is generated."""
     print(
         f"Generation: {ga_instance.generations_completed} "
         + f"Fitness: {ga_instance.best_solution()[1]}"
@@ -489,6 +526,7 @@ def on_gen(ga_instance):
 
 
 def label_adjacency_mtx():
+    """label the adjacency matrix representation with the names of the loads"""
     plt.xlabel("dest")
     plt.ylabel("src")
     plt.xticks(
@@ -511,37 +549,34 @@ def label_adjacency_mtx():
 
 
 if __name__ == "__main__":
-    population_size = 20  # 200  # 10
+    population_size = 20  # 10 ? 200 ?
+    verbose = 0
 
-    """ graph initialization """
+    """ population initialization """
     print("generate initial population")
-    G, nodes_list = load_graph()
-    population = generate_initial_population(G, population_size)
+    graph, nodes_list = load_graph()
+    population = generate_initial_population(graph, population_size)
 
-    # create a copy
-    # TODO: reorg and clean...
-    # https://networkx.org/documentation/stable/reference/classes/generated/networkx.Graph.copy.html
-    # https://stackoverflow.com/questions/39555831/how-do-i-copy-but-not-deepcopy-a-networkx-graph
-    # https://stackoverflow.com/questions/73501589/how-to-share-nodes-between-graphs-in-networkx
-    Gfc = G.copy()  # this is a shallow copy... not so interesting
-    nodes_attributes = G._node
-    adjacency_mtx = nx_to_pygad(G, nodes_list)
+    """ convert networkx graph to pygad representation """
+    Gfc = graph.copy()  # this is a shallow copy... not so interesting
+    nodes_attributes = graph._node
+    adjacency_mtx = nx_to_pygad(graph, nodes_list)
+    num_nodes = len(nodes_attributes)
 
+    """ mutate original population to start with a "rich" population """
     pop0_pygad = nx_to_pygad(population, nodes_list)
     popm_pygad = mutation(pop0_pygad, None, plot=False)
-    # gut feeling: many mutations are better
+    # gut feeling: many mutations are better, so let's go for 2nd round
     popm_pygad = mutation(popm_pygad, None, plot=False)
+    # convert mutated inital population back to nx for display
     popm_nx = [pygad_to_nx(p, nodes_list, nodes_attributes) for p in popm_pygad]
 
-    # TODO: why pop0 and popm are all equal ?!
-    eq_grids = [
-        np.array_equal(pop0_pygad[i], popm_pygad[i]) for i in range(len(pop0_pygad))
-    ]
-    # print(eq_grids)
+    # check that grids aren't equal
+    eq_grids = [np.array_equal(pop0_pygad[i], popm_pygad[i]) for i in range(len(pop0_pygad))]
     all_eq = all(eq_grids)
-    assert all_eq is False, "why pop0 and popm are all equal ?!"
+    assert all_eq is False, "why pop0 and popm are all equal ?!"  # TODO: fix
 
-    s = len(nodes_attributes)
+    """ plot some specimen of population """
     for i, g in enumerate(population):
         cond = i < 20
         if cond:
@@ -553,7 +588,7 @@ if __name__ == "__main__":
 
             # plot adj matrix of that grid
             plt.subplot(1, 2, 2)
-            grid = np.reshape(pop0_pygad[i], (s, s))
+            grid = np.reshape(pop0_pygad[i], (num_nodes, num_nodes))
             plt.imshow(grid)
             label_adjacency_mtx()
             plt.show(block=False)
@@ -572,56 +607,47 @@ if __name__ == "__main__":
 
             plt.figure(4)
             plt.clf()
-            plt.suptitle((f"crossover {i}"))
+            plt.suptitle(f"crossover {i}")
 
             plt.subplot(1, 3, 1)
             plot_graph(population[i])
-            plt.title(f"parent 1")
+            plt.title("parent 1")
 
             plt.subplot(1, 3, 2)
             plot_graph(popm_nx[i])
-            plt.title(f"parent 2")
+            plt.title("parent 2")
 
             plt.subplot(1, 3, 3)
             plot_graph(pygad_to_nx(offspring, nodes_list, nodes_attributes))
-            plt.title(f"offspring")
+            plt.title("offspring")
             plt.show(block=True)
 
     """ build power grid from graph """
-    CONSTANTS = npw.get_constant_parameters()
-    V0 = CONSTANTS["V0"]
-    PF = CONSTANTS["PF"]
-
     # TODO: get back updated grid with 'power' distribution
-    # or the updated graph G
     _, population[0] = assign_phases(population[0])
-
-    # analyze graph in terms of power grids (TEST)
-    analyze_power_grid(population[0], verbose=True)  # to test
-
-    # adjacency_mtx = nx.to_numpy_array(G)
+    analyze_power_grid(population[0], verbose=True)  # TODO: test
 
     """ genetic algo parameters """
-    # TODO: tune mutatio (/ swapping behaviour ?)
     num_generations = 50
     num_parents_mating = 10
 
     fitness_function = fitness_func_pyGAD
 
-    sol_per_pop = population_size  # 8 ?
+    sol_per_pop = population_size  # specimen in population
     num_genes = adjacency_mtx.size
 
     init_range_low = 0
     init_range_high = 1
 
     parent_selection_type = "sss"
-    keep_parents = num_parents_mating  # 1
+    keep_parents = num_parents_mating
 
     crossover_type = "single_point"
 
     mutation_type = "random"
-    pygag_population = popm_pygad
+    pygag_population = popm_pygad  # init population
 
+    """ start genetic algo optimization """
     # TODO : add custom mutation function https://stackoverflow.com/a/66344562
     ga_instance = pygad.GA(
         num_generations=num_generations,
@@ -638,20 +664,22 @@ if __name__ == "__main__":
         on_generation=on_gen,
     )
 
-    """ evolution """
     print("evolution ongoing...")
     ga_instance.run()
 
+    """ analyze results """
     ga_instance.plot_fitness()
     solution, solution_fitness, solution_idx = ga_instance.best_solution()
     _ = pygad_to_nx(solution, nodes_list, nodes_attributes, debug=True)
-    # print(f"Parameters of the best solution : {solution}")
-    # print(f"Fitness value of the best solution = {solution_fitness}")
-    # print(f"Index of the best solution : {solution_idx}")
+    if verbose:
+        print(f"Parameters of the best solution : {solution}")
+        print(f"Fitness value of the best solution = {solution_fitness}")
+        print(f"Index of the best solution : {solution_idx}")
+
     print(f"best vdrop: {1 / solution_fitness}")
 
+    """ attempt to use custom algo without PyGAD"""
     # best_genome = run_genetic_algorithm(
     #     grid, population_size, num_generations, mutation_rate
     # )
-
     # print("Best genome:", best_genome)
