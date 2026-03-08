@@ -17,8 +17,6 @@ power coupling, no exact meshed-flow physics). Treat results as planning-grade
 approximations and validate critical layouts with a detailed power-flow check.
 """
 
-from __future__ import annotations
-
 import argparse
 import json
 import math
@@ -31,8 +29,8 @@ import networkx as nx
 
 from .constants import EXTRA_CABLE_LENGTH_M, PF, RHO_COPPER, V0
 from .geometry import geodesic_distance_m
-from .io import layout_to_geojson, load_geojson
-from .models import Cable, PowerNode
+from .io import load_geojson
+from .models import Cable, PowerGrid, PowerNode
 
 
 @dataclass(frozen=True)
@@ -633,60 +631,6 @@ def optimize_layout(
     return cables
 
 
-def optimize_layout_milp(
-    nodes: list[PowerNode],
-    extra_cable_m: float = EXTRA_CABLE_LENGTH_M,
-    candidate_k: int | None = 12,
-    time_limit_s: int | None = 60,
-    solver_msg: bool = False,
-    weight_cost: float = 1.0,
-    weight_length: float = 0.0,
-    weight_power_distance: float = 0.0,
-    weight_voltage_drop: float = 0.0,
-    weight_cumulative_voltage_drop: float = 0.0,
-    max_voltage_drop_percent: float | None = None,
-    max_voltage_drop_percent_by_node: dict[str, float] | None = None,
-) -> list[Cable]:
-    """Alias for `optimize_layout` with an explicit MILP-oriented name.
-
-    Args:
-        nodes: Input power nodes (`list[PowerNode]`), including one generator.
-        extra_cable_m: Slack length added per selected cable.
-        candidate_k: Nearest-neighbor arc budget per node (`0`/`None` => full).
-        time_limit_s: CBC solver time limit in seconds.
-        solver_msg: Whether to print CBC solver output.
-        weight_cost: Cost-term coefficient in the blended MILP objective.
-        weight_length: Length-term coefficient in the blended MILP objective.
-        weight_power_distance: Power-distance-term coefficient in the
-            blended MILP objective.
-        weight_voltage_drop: Voltage-drop-proxy-term coefficient in the
-            blended MILP objective.
-        weight_cumulative_voltage_drop: Cumulative node-drop-term coefficient
-            in the blended MILP objective.
-        max_voltage_drop_percent: Optional global hard cap on cumulative
-            drop for each load, expressed as `%` of `V0`.
-        max_voltage_drop_percent_by_node: Optional per-load-node hard cap map
-            (`node_name -> percent_of_V0`).
-
-    Returns:
-        Optimized `list[Cable]` from the underlying MILP solve.
-    """
-    return optimize_layout(
-        nodes=nodes,
-        extra_cable_m=extra_cable_m,
-        candidate_k=candidate_k,
-        time_limit_s=time_limit_s,
-        solver_msg=solver_msg,
-        weight_cost=weight_cost,
-        weight_length=weight_length,
-        weight_power_distance=weight_power_distance,
-        weight_voltage_drop=weight_voltage_drop,
-        weight_cumulative_voltage_drop=weight_cumulative_voltage_drop,
-        max_voltage_drop_percent=max_voltage_drop_percent,
-        max_voltage_drop_percent_by_node=max_voltage_drop_percent_by_node,
-    )
-
-
 def layout_to_networkx(
     cables: list[Cable],
     nodes: dict[str, PowerNode] | None = None,
@@ -937,7 +881,10 @@ def _main(argv: list[str] | None = None) -> int:
         max_voltage_drop_percent=args.max_voltage_drop_percent,
     )
 
-    result_geojson = layout_to_geojson(cables, nodes)
+    result_geojson = PowerGrid(
+        nodes=nodes,
+        cables={cable.id: cable for cable in cables},
+    ).to_geojson()
     with open(args.output_geojson, "w") as f:
         json.dump(result_geojson, f, indent=2)
 
@@ -966,4 +913,4 @@ def _main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(_main())
+    _main()

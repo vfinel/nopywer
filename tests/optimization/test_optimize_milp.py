@@ -6,7 +6,7 @@ from nopywer.io import load_geojson
 from nopywer.models import PowerNode
 from nopywer.optimize_milp import _CABLE_TIERS, optimize_layout
 
-FIXTURES = Path(__file__).resolve().parents[1]
+FIXTURES = Path(__file__).resolve().parents[1] / "fixtures"
 
 
 def _node(
