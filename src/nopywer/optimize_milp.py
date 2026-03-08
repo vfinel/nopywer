@@ -169,36 +169,16 @@ def optimize_layout(
     """
     nodes = list(grid.nodes.values())
 
-    objective_weights: dict[str, float] = {
-        "weight_cost": weight_cost,
-        "weight_length": weight_length,
-        "weight_power_distance": weight_power_distance,
-        "weight_voltage_drop": weight_voltage_drop,
-        "weight_cumulative_voltage_drop": weight_cumulative_voltage_drop,
-    }
-    if any(weight < 0 for weight in objective_weights.values()):
-        raise ValueError("Objective weights must be non-negative")
-    if all(weight == 0 for weight in objective_weights.values()):
-        raise ValueError("At least one objective weight must be > 0")
-    if max_voltage_drop_percent is not None and max_voltage_drop_percent < 0:
-        raise ValueError("max_voltage_drop_percent must be non-negative")
-    if max_voltage_drop_percent_by_node is not None:
-        bad_nodes = sorted(set(max_voltage_drop_percent_by_node) - set(n.name for n in nodes))
-        if bad_nodes:
-            raise ValueError(
-                "max_voltage_drop_percent_by_node contains unknown nodes: "
-                + ", ".join(bad_nodes)
-            )
-        bad_values = [
-            f"{name}={value}"
-            for name, value in max_voltage_drop_percent_by_node.items()
-            if value < 0
-        ]
-        if bad_values:
-            raise ValueError(
-                "Per-node max voltage-drop percentages must be non-negative: "
-                + ", ".join(bad_values)
-            )
+    _validate_inputs(
+        nodes=nodes,
+        weight_cost=weight_cost,
+        weight_length=weight_length,
+        weight_power_distance=weight_power_distance,
+        weight_voltage_drop=weight_voltage_drop,
+        weight_cumulative_voltage_drop=weight_cumulative_voltage_drop,
+        max_voltage_drop_percent=max_voltage_drop_percent,
+        max_voltage_drop_percent_by_node=max_voltage_drop_percent_by_node,
+    )
     use_voltage_drop_enhancements: bool = (
         (weight_voltage_drop > 0)
         or (weight_cumulative_voltage_drop > 0)
@@ -693,3 +673,48 @@ def _candidate_arcs(
 def _select_load_nodes(nodes: Iterable[PowerNode]) -> list[PowerNode]:
     """Return the subset of nodes that are not marked as generators."""
     return [n for n in nodes if not n.is_generator]
+
+
+def _validate_inputs(
+    nodes: list[PowerNode],
+    weight_cost: float,
+    weight_length: float,
+    weight_power_distance: float,
+    weight_voltage_drop: float,
+    weight_cumulative_voltage_drop: float,
+    max_voltage_drop_percent: float | None,
+    max_voltage_drop_percent_by_node: dict[str, float] | None,
+) -> None:
+    objective_weights: dict[str, float] = {
+        "weight_cost": weight_cost,
+        "weight_length": weight_length,
+        "weight_power_distance": weight_power_distance,
+        "weight_voltage_drop": weight_voltage_drop,
+        "weight_cumulative_voltage_drop": weight_cumulative_voltage_drop,
+    }
+    if any(weight < 0 for weight in objective_weights.values()):
+        raise ValueError("Objective weights must be non-negative")
+    if all(weight == 0 for weight in objective_weights.values()):
+        raise ValueError("At least one objective weight must be > 0")
+    if max_voltage_drop_percent is not None and max_voltage_drop_percent < 0:
+        raise ValueError("max_voltage_drop_percent must be non-negative")
+    if max_voltage_drop_percent_by_node is None:
+        return
+
+    bad_nodes = sorted(set(max_voltage_drop_percent_by_node) - set(n.name for n in nodes))
+    if bad_nodes:
+        raise ValueError(
+            "max_voltage_drop_percent_by_node contains unknown nodes: "
+            + ", ".join(bad_nodes)
+        )
+
+    bad_values = [
+        f"{name}={value}"
+        for name, value in max_voltage_drop_percent_by_node.items()
+        if value < 0
+    ]
+    if bad_values:
+        raise ValueError(
+            "Per-node max voltage-drop percentages must be non-negative: "
+            + ", ".join(bad_values)
+        )
