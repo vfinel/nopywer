@@ -72,7 +72,7 @@ def analyze_grid(
 
 
 @app.command("optimize-milp")
-def optimize_milp_grid(
+def optimize_grid_milp(
     input_geojson: Annotated[
         Path,
         typer.Argument(help="Input GeoJSON with point nodes.", envvar="NOPYWER_INPUT"),

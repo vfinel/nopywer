@@ -29,6 +29,7 @@ from pathlib import Path
 from typing import Any, Protocol
 
 import networkx as nx
+import pulp
 
 from .constants import EXTRA_CABLE_LENGTH_M, PF, RHO_COPPER, V0
 from .geometry import geodesic_distance_m
@@ -38,79 +39,6 @@ from .models import CABLE_TYPES, Cable, PowerGrid, PowerNode
 
 class OptimiseLayoutFn(Protocol):
     def __call__(self, grid: PowerGrid, **kwargs: Any) -> PowerGrid: ...
-
-def _require_pulp():
-    try:
-        import pulp  # type: ignore
-    except Exception as exc:  # pragma: no cover - tested through public API
-        raise ImportError(
-            "MILP optimizer requires 'pulp'. Install it with: uv pip install pulp"
-        ) from exc
-    return pulp
-
-
-def _build_distance_map(nodes: list[PowerNode]) -> dict[tuple[str, str], float]:
-    """Build directed pairwise geodesic distances between all distinct nodes.
-
-    Args:
-        nodes: Input node list used as candidate optimization vertices.
-
-    Returns:
-        Dictionary keyed by directed `(src_name, dst_name)` pairs with distance
-        in meters as float values. Self-pairs are excluded.
-    """
-    distance: dict[tuple[str, str], float] = {}
-    for i in range(len(nodes)):
-        for j in range(len(nodes)):
-            if i == j:
-                continue
-            a, b = nodes[i], nodes[j]
-            distance[(a.name, b.name)] = geodesic_distance_m(a.lon, a.lat, b.lon, b.lat)
-    return distance
-
-
-def _candidate_arcs(
-    names: list[str],
-    root: str,
-    distance: dict[tuple[str, str], float],
-    candidate_k: int | None,
-) -> list[tuple[str, str]]:
-    """Select directed candidate arcs for the MILP graph.
-
-    Args:
-        names: All node names in the optimization graph.
-        root: Generator/root node name used for connectivity guarantees.
-        distance: Directed distance map `(src, dst) -> meters`.
-        candidate_k: Number of nearest outgoing neighbors to keep per node.
-            If `None`, `<= 0`, or large enough, the full directed graph is used.
-
-    Returns:
-        Sorted list of directed arcs `(src, dst)`. The root is forcibly
-        connected both ways to every other node to reduce disconnection risk
-        at low `candidate_k`.
-    """
-    if candidate_k is None or candidate_k <= 0 or candidate_k >= (len(names) - 1):
-        return [(i, j) for i in names for j in names if i != j]
-
-    arcs: set[tuple[str, str]] = set()
-    for src in names:
-        ranked = sorted((distance[(src, dst)], dst) for dst in names if dst != src)
-        for _, dst in ranked[:candidate_k]:
-            arcs.add((src, dst))
-
-    # Keep root fully connected so low k does not trivially disconnect.
-    for n in names:
-        if n == root:
-            continue
-        arcs.add((root, n))
-        arcs.add((n, root))
-
-    return sorted(arcs)
-
-
-def _select_load_nodes(nodes: Iterable[PowerNode]) -> list[PowerNode]:
-    """Return the subset of nodes that are not marked as generators."""
-    return [n for n in nodes if not n.is_generator]
 
 
 def optimize_layout(
@@ -237,10 +165,8 @@ def optimize_layout(
     Raises:
         ValueError: If objective weights are invalid or node-specific voltage
             caps reference unknown nodes.
-        ImportError: If `pulp` is not installed.
         RuntimeError: If the MILP does not solve to an optimal solution.
     """
-    pulp = _require_pulp()
     nodes = list(grid.nodes.values())
 
     objective_weights: dict[str, float] = {
@@ -353,41 +279,23 @@ def optimize_layout(
         "u", arcs, lowBound=0, cat="Continuous"
     )
 
-    # Objective term 1: weighted cable procurement proxy.
-    # This multiplies edge length by tier-specific relative cost coefficient.
-    # The tier binary y[(i,j,t)] ensures only the chosen tier contributes.
     cost_objective = pulp.lpSum(
         (distance[(i, j)] + extra_cable_m) * tier_cost[t] * tier_selected[(i, j, t)]
         for i, j in arcs
         for t in tiers
     )
-
-    # Objective term 2: weighted pure route length.
-    # This ignores tier economics and values short total installed distance.
     length_objective = pulp.lpSum(
         (distance[(i, j)] + extra_cable_m) * edge_selected[(i, j)]
         for i, j in arcs
     )
-
-    # Objective term 3: weighted power-distance.
-    # This penalizes carrying high wattage over long distances.
     power_distance_objective = pulp.lpSum(
         (distance[(i, j)] + extra_cable_m) * power_flow_w[(i, j)]
         for i, j in arcs
     )
 
-    # Objective terms 4 and 5 are built only when voltage-drop enhancements
-    # are requested by parameters. This keeps the model smaller/faster for
-    # runs that only care about cost/length/power-distance.
     voltage_drop_objective: Any = 0.0
     cumulative_voltage_drop_objective: Any = 0.0
     if use_voltage_drop_enhancements:
-        # Objective term 4: weighted linearized voltage-drop proxy.
-        # For each edge-tier pair:
-        #   V_drop_proxy ~= I * R
-        #   I ~= P / (phase * V0 * PF)
-        #   R = rho * L / area
-        # giving coefficient K_ijt = rho * L / (area * phase * V0 * PF).
         voltage_drop_objective = pulp.lpSum(
             (
                 RHO_COPPER
@@ -398,15 +306,10 @@ def optimize_layout(
             for i, j in arcs
             for t in tiers
         )
-
-        # Objective term 5: weighted cumulative node drop at load nodes.
-        # Each v[n] represents source-to-node accumulated drop in volts.
         cumulative_voltage_drop_objective = pulp.lpSum(
             node_voltage_drop_v[n] for n in load_names
         )
 
-    # Final blended objective. Users can recover cost-only or length-only by
-    # setting one weight to zero and the other to one.
     prob += (
         (weight_cost * cost_objective)
         + (weight_length * length_objective)
@@ -415,43 +318,24 @@ def optimize_layout(
         + (weight_cumulative_voltage_drop * cumulative_voltage_drop_objective)
     )
 
-    # Arborescence in-degree constraint:
-    # each non-root node (load) must choose exactly one parent.
     for j in load_names:
         prob += pulp.lpSum(edge_selected[(i, j)] for i, k in arcs if k == j) == 1
 
-    # Root in-degree constraint:
-    # no edge may point into the generator, so the tree is rooted there.
     prob += pulp.lpSum(edge_selected[(i, j)] for i, j in arcs if j == root) == 0
-
-    # Edge-count constraint:
-    # with in-degree=1 on loads and root-in-degree=0, enforcing |E|=|V|-1
-    # removes disconnected forest solutions and yields one spanning arborescence.
     prob += pulp.lpSum(edge_selected[(i, j)] for i, j in arcs) == len(nodes) - 1
 
-    # Tier-edge coupling and capacity constraints.
     for i, j in arcs:
-        # Exactly one tier if edge is selected, otherwise zero tiers.
         prob += pulp.lpSum(tier_selected[(i, j, t)] for t in tiers) == edge_selected[(i, j)]
 
         if use_voltage_drop_enhancements:
-            # Decompose edge power into tier-specific routed power.
-            # Only one tier can be active, so this effectively routes p over
-            # that tier. Needed for tier-aware voltage-drop terms.
             prob += power_flow_w[(i, j)] == pulp.lpSum(
                 power_flow_w_by_tier[(i, j, t)] for t in tiers
             )
             for t in tiers:
-                # Capacity gate per tier:
-                # if y[(i,j,t)] = 0 then pt[(i,j,t)] = 0
-                # if y[(i,j,t)] = 1 then pt[(i,j,t)] <= tier capacity.
                 prob += power_flow_w_by_tier[(i, j, t)] <= (
                     tier_cap[t] * tier_selected[(i, j, t)]
                 )
 
-            # Define edge voltage-drop variable using the same linearized model
-            # used in the voltage-drop objective:
-            #   drop[i,j] = sum_t (rho * L_ij / (area_t * phase_t * V0 * PF)) * pt[i,j,t]
             prob += edge_voltage_drop_v[(i, j)] == pulp.lpSum(
                 (
                     RHO_COPPER
@@ -462,50 +346,33 @@ def optimize_layout(
                 for t in tiers
             )
         else:
-            # Simpler capacity model when voltage-drop features are disabled.
-            # This avoids tier-split flow variables and big-M voltage equations.
             prob += power_flow_w[(i, j)] <= pulp.lpSum(
                 tier_cap[t] * tier_selected[(i, j, t)] for t in tiers
             )
 
-    # Connectivity commodity constraints for subtour elimination.
-    # This is independent from electrical demand and exists only to certify
-    # that every load is reachable from root through selected edges.
     n_loads: int = len(load_names)
     for n in load_names:
-        # Load nodes consume one unit of commodity.
-        # net_in(u) - net_out(u) = 1
         prob += (
             pulp.lpSum(connectivity_flow[(i, j)] for i, j in arcs if j == n)
             - pulp.lpSum(connectivity_flow[(i, j)] for i, j in arcs if i == n)
             == 1
         )
-    # Root supplies all commodity units.
-    # net_out(u) - net_in(u) = number of loads
     prob += (
         pulp.lpSum(connectivity_flow[(i, j)] for i, j in arcs if i == root)
         - pulp.lpSum(connectivity_flow[(i, j)] for i, j in arcs if j == root)
         == n_loads
     )
     for i, j in arcs:
-        # Big-M arc activation: commodity can travel only on selected edges.
-        # M = n_loads is tight enough since total commodity is n_loads units.
         prob += connectivity_flow[(i, j)] <= n_loads * edge_selected[(i, j)]
 
-    # Electrical flow conservation constraints (watts).
-    # Demand is clamped at zero so negative node values do not create sources.
     demand: dict[str, float] = {n.name: max(0.0, float(n.power_watts)) for n in loads}
     total_demand: float = float(sum(demand.values()))
     for n in load_names:
-        # Each load consumes exactly its active power demand.
-        # net_in(p) - net_out(p) = demand[n]
         prob += (
             pulp.lpSum(power_flow_w[(i, j)] for i, j in arcs if j == n)
             - pulp.lpSum(power_flow_w[(i, j)] for i, j in arcs if i == n)
             == demand[n]
         )
-    # Root injects total demand into the network.
-    # net_out(p) - net_in(p) = sum_n demand[n]
     prob += (
         pulp.lpSum(power_flow_w[(i, j)] for i, j in arcs if i == root)
         - pulp.lpSum(power_flow_w[(i, j)] for i, j in arcs if j == root)
@@ -513,13 +380,6 @@ def optimize_layout(
     )
 
     if use_voltage_drop_enhancements:
-        # Cumulative voltage-drop propagation constraints.
-        # Interpretation:
-        # - node_voltage_drop_v[root] = 0 fixes the source reference.
-        # - For any selected edge i->j, enforce v[j] = v[i] + drop[i,j].
-        # - Big-M terms relax these equalities for unselected edges.
-        # This makes v[n] equal the sum of edge drops along the unique tree
-        # path from root to n.
         max_edge_drop_v: float = max(
             max(
                 (
@@ -546,9 +406,6 @@ def optimize_layout(
                 + (big_m_vdrop * (1 - edge_selected[(i, j)]))
             )
 
-        # Optional hard caps on cumulative node drop.
-        # Global cap applies to every load; per-node caps can further tighten
-        # selected nodes.
         if max_voltage_drop_percent is not None:
             max_drop_v_global = V0 * (max_voltage_drop_percent / 100.0)
             for n in load_names:
@@ -608,21 +465,71 @@ def optimize_layout(
     return grid
 
 
+def optimize_layout_to_files(
+    input_geojson: Path,
+    output_geojson: Path = Path("milp_layout.geojson"),
+    plot_html: Path | None = None,
+    candidate_k: int | None = 12,
+    time_limit_s: int | None = 60,
+    extra_cable_m: float = EXTRA_CABLE_LENGTH_M,
+    solver_msg: bool = False,
+    weight_cost: float = 1.0,
+    weight_length: float = 0.0,
+    weight_power_distance: float = 0.0,
+    weight_voltage_drop: float = 0.0,
+    weight_cumulative_voltage_drop: float = 0.0,
+    max_voltage_drop_percent: float | None = None,
+) -> int:
+    """Run the MILP optimizer from a GeoJSON file and write output artifacts."""
+    nodes, _ = load_geojson(input_geojson)
+    grid = PowerGrid(nodes=nodes, cables={})
+    grid = optimize_layout(
+        grid=grid,
+        extra_cable_m=extra_cable_m,
+        candidate_k=candidate_k,
+        time_limit_s=time_limit_s,
+        solver_msg=solver_msg,
+        weight_cost=weight_cost,
+        weight_length=weight_length,
+        weight_power_distance=weight_power_distance,
+        weight_voltage_drop=weight_voltage_drop,
+        weight_cumulative_voltage_drop=weight_cumulative_voltage_drop,
+        max_voltage_drop_percent=max_voltage_drop_percent,
+    )
+
+    result_geojson = grid.to_geojson()
+    with open(output_geojson, "w") as f:
+        json.dump(result_geojson, f, indent=2)
+
+    if plot_html is not None:
+        save_layout_html(list(grid.cables.values()), grid.nodes, plot_html)
+
+    max_vdrop_text = (
+        f"max_vdrop_percent={max_voltage_drop_percent}; "
+        if max_voltage_drop_percent is not None
+        else ""
+    )
+    print(
+        f"optimized {len(grid.nodes)} nodes -> {len(grid.cables)} cables; "
+        "weights("
+        f"cost={weight_cost}, "
+        f"length={weight_length}, "
+        f"power_distance={weight_power_distance}, "
+        f"voltage_drop={weight_voltage_drop}, "
+        f"cumulative_voltage_drop={weight_cumulative_voltage_drop}"
+        "); "
+        + max_vdrop_text
+        + f"geojson: {output_geojson}"
+        + (f"; html: {plot_html}" if plot_html else "")
+    )
+    return 0
+
+
 def layout_to_networkx(
     cables: list[Cable],
     nodes: dict[str, PowerNode] | None = None,
 ) -> nx.DiGraph:
-    """Convert MILP cable output to a directed NetworkX graph.
-
-    Args:
-        cables: Optimized cables returned by `optimize_layout`.
-        nodes: Optional node dictionary keyed by node name. When provided,
-            node attributes (`pos`, `is_generator`, `power_watts`) are attached.
-
-    Returns:
-        A `networkx.DiGraph` with one directed edge per cable and optional
-        per-node metadata for visualization or downstream analysis.
-    """
+    """Convert MILP cable output to a directed NetworkX graph."""
     g = nx.DiGraph()
     for cable in cables:
         g.add_edge(
@@ -647,20 +554,7 @@ def save_layout_html(
     nodes: dict[str, PowerNode],
     output_html: str | Path,
 ) -> None:
-    """Render and save an interactive HTML network visualization with pyvis.
-
-    The function projects node lon/lat into a local planar coordinate frame,
-    normalizes the layout to a stable canvas range, and writes a standalone
-    interactive HTML file (hover tooltips, pan/zoom, fixed geometry).
-
-    Args:
-        cables: Optimized MILP cables to draw as directed edges.
-        nodes: Node dictionary used for positions, colors, and tooltips.
-        output_html: Destination HTML file path.
-
-    Raises:
-        ImportError: If `pyvis` is not installed in the active environment.
-    """
+    """Render and save an interactive HTML network visualization with pyvis."""
     try:
         from pyvis.network import Network
     except Exception as exc:  # pragma: no cover - optional dependency
@@ -681,17 +575,13 @@ def save_layout_html(
     lat_center = sum(node.lat for node in nodes.values()) / len(nodes)
     cos_lat = max(0.1, math.cos(math.radians(lat_center)))
 
-    # Approximate local projection in meters, then normalize into a fixed canvas range.
     xy_m: dict[str, tuple[float, float]] = {}
     for name, node in nodes.items():
         x_m = (node.lon - lon_center) * 111_320.0 * cos_lat
         y_m = (node.lat - lat_center) * 110_540.0
         xy_m[name] = (x_m, y_m)
 
-    max_span = max(
-        max(abs(x), abs(y))
-        for x, y in xy_m.values()
-    )
+    max_span = max(max(abs(x), abs(y)) for x, y in xy_m.values())
     max_span = max(max_span, 1.0)
     scale = 1400.0 / max_span
 
@@ -763,61 +653,43 @@ def save_layout_html(
     net.write_html(str(output_html), open_browser=False, notebook=False)
 
 
-def optimize_layout_to_files(
-    input_geojson: Path,
-    output_geojson: Path = Path("milp_layout.geojson"),
-    plot_html: Path | None = None,
-    candidate_k: int | None = 12,
-    time_limit_s: int | None = 60,
-    extra_cable_m: float = EXTRA_CABLE_LENGTH_M,
-    solver_msg: bool = False,
-    weight_cost: float = 1.0,
-    weight_length: float = 0.0,
-    weight_power_distance: float = 0.0,
-    weight_voltage_drop: float = 0.0,
-    weight_cumulative_voltage_drop: float = 0.0,
-    max_voltage_drop_percent: float | None = None,
-) -> int:
-    """Run the MILP optimizer from a GeoJSON file and write output artifacts."""
-    nodes, _ = load_geojson(input_geojson)
-    grid = PowerGrid(nodes=nodes, cables={})
-    grid = optimize_layout(
-        grid=grid,
-        extra_cable_m=extra_cable_m,
-        candidate_k=candidate_k,
-        time_limit_s=time_limit_s,
-        solver_msg=solver_msg,
-        weight_cost=weight_cost,
-        weight_length=weight_length,
-        weight_power_distance=weight_power_distance,
-        weight_voltage_drop=weight_voltage_drop,
-        weight_cumulative_voltage_drop=weight_cumulative_voltage_drop,
-        max_voltage_drop_percent=max_voltage_drop_percent,
-    )
+def _build_distance_map(nodes: list[PowerNode]) -> dict[tuple[str, str], float]:
+    """Build directed pairwise geodesic distances between all distinct nodes."""
+    distance: dict[tuple[str, str], float] = {}
+    for i in range(len(nodes)):
+        for j in range(len(nodes)):
+            if i == j:
+                continue
+            a, b = nodes[i], nodes[j]
+            distance[(a.name, b.name)] = geodesic_distance_m(a.lon, a.lat, b.lon, b.lat)
+    return distance
 
-    result_geojson = grid.to_geojson()
-    with open(output_geojson, "w") as f:
-        json.dump(result_geojson, f, indent=2)
 
-    if plot_html is not None:
-        save_layout_html(list(grid.cables.values()), grid.nodes, plot_html)
+def _candidate_arcs(
+    names: list[str],
+    root: str,
+    distance: dict[tuple[str, str], float],
+    candidate_k: int | None,
+) -> list[tuple[str, str]]:
+    """Select directed candidate arcs for the MILP graph."""
+    if candidate_k is None or candidate_k <= 0 or candidate_k >= (len(names) - 1):
+        return [(i, j) for i in names for j in names if i != j]
 
-    max_vdrop_text = (
-        f"max_vdrop_percent={max_voltage_drop_percent}; "
-        if max_voltage_drop_percent is not None
-        else ""
-    )
-    print(
-        f"optimized {len(grid.nodes)} nodes -> {len(grid.cables)} cables; "
-        "weights("
-        f"cost={weight_cost}, "
-        f"length={weight_length}, "
-        f"power_distance={weight_power_distance}, "
-        f"voltage_drop={weight_voltage_drop}, "
-        f"cumulative_voltage_drop={weight_cumulative_voltage_drop}"
-        "); "
-        + max_vdrop_text
-        + f"geojson: {output_geojson}"
-        + (f"; html: {plot_html}" if plot_html else "")
-    )
-    return 0
+    arcs: set[tuple[str, str]] = set()
+    for src in names:
+        ranked = sorted((distance[(src, dst)], dst) for dst in names if dst != src)
+        for _, dst in ranked[:candidate_k]:
+            arcs.add((src, dst))
+
+    for n in names:
+        if n == root:
+            continue
+        arcs.add((root, n))
+        arcs.add((n, root))
+
+    return sorted(arcs)
+
+
+def _select_load_nodes(nodes: Iterable[PowerNode]) -> list[PowerNode]:
+    """Return the subset of nodes that are not marked as generators."""
+    return [n for n in nodes if not n.is_generator]
