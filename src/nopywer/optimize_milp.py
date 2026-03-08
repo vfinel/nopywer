@@ -26,10 +26,9 @@ import json
 import math
 from collections.abc import Iterable
 from pathlib import Path
-from typing import Annotated, Any, Protocol
+from typing import Any, Protocol
 
 import networkx as nx
-import typer
 
 from .constants import EXTRA_CABLE_LENGTH_M, PF, RHO_COPPER, V0
 from .geometry import geodesic_distance_m
@@ -39,9 +38,6 @@ from .models import CABLE_TYPES, Cable, PowerGrid, PowerNode
 
 class OptimiseLayoutFn(Protocol):
     def __call__(self, grid: PowerGrid, **kwargs: Any) -> PowerGrid: ...
-
-
-app = typer.Typer()
 
 def _require_pulp():
     try:
@@ -767,68 +763,22 @@ def save_layout_html(
     net.write_html(str(output_html), open_browser=False, notebook=False)
 
 
-@app.command()
-def main(
-    input_geojson: Annotated[
-        Path,
-        typer.Argument(help="Input GeoJSON with point nodes."),
-    ],
-    output_geojson: Annotated[
-        Path,
-        typer.Option(help="Where to write optimized layout GeoJSON."),
-    ] = Path("milp_layout.geojson"),
-    plot_html: Annotated[
-        Path | None,
-        typer.Option(help="Optional HTML path for an interactive pyvis network plot."),
-    ] = None,
-    candidate_k: Annotated[
-        int,
-        typer.Option(help="Nearest-neighbor candidate arcs per node (0 for full graph)."),
-    ] = 12,
-    time_limit_s: Annotated[
-        int,
-        typer.Option(help="MILP solver time limit in seconds."),
-    ] = 60,
-    extra_cable_m: Annotated[
-        float,
-        typer.Option(help="Extra slack added to each selected cable length."),
-    ] = EXTRA_CABLE_LENGTH_M,
-    solver_msg: Annotated[
-        bool,
-        typer.Option(help="Enable CBC solver output."),
-    ] = False,
-    weight_cost: Annotated[
-        float,
-        typer.Option(help="Objective weight for cable-tier cost term."),
-    ] = 1.0,
-    weight_length: Annotated[
-        float,
-        typer.Option(help="Objective weight for pure cable-length term."),
-    ] = 0.0,
-    weight_power_distance: Annotated[
-        float,
-        typer.Option(help="Objective weight for distance-weighted power-routing term."),
-    ] = 0.0,
-    weight_voltage_drop: Annotated[
-        float,
-        typer.Option(help="Objective weight for linearized voltage-drop term."),
-    ] = 0.0,
-    weight_cumulative_voltage_drop: Annotated[
-        float,
-        typer.Option(
-            help="Objective weight for cumulative source-to-node voltage drop at load nodes."
-        ),
-    ] = 0.0,
-    max_voltage_drop_percent: Annotated[
-        float | None,
-        typer.Option(
-            help=(
-                "Optional hard cap on cumulative voltage drop for each load node, "
-                "as percent of nominal voltage V0."
-            )
-        ),
-    ] = None,
+def optimize_layout_to_files(
+    input_geojson: Path,
+    output_geojson: Path = Path("milp_layout.geojson"),
+    plot_html: Path | None = None,
+    candidate_k: int | None = 12,
+    time_limit_s: int | None = 60,
+    extra_cable_m: float = EXTRA_CABLE_LENGTH_M,
+    solver_msg: bool = False,
+    weight_cost: float = 1.0,
+    weight_length: float = 0.0,
+    weight_power_distance: float = 0.0,
+    weight_voltage_drop: float = 0.0,
+    weight_cumulative_voltage_drop: float = 0.0,
+    max_voltage_drop_percent: float | None = None,
 ) -> int:
+    """Run the MILP optimizer from a GeoJSON file and write output artifacts."""
     nodes, _ = load_geojson(input_geojson)
     grid = PowerGrid(nodes=nodes, cables={})
     grid = optimize_layout(
@@ -857,7 +807,7 @@ def main(
         if max_voltage_drop_percent is not None
         else ""
     )
-    typer.echo(
+    print(
         f"optimized {len(grid.nodes)} nodes -> {len(grid.cables)} cables; "
         "weights("
         f"cost={weight_cost}, "
@@ -871,7 +821,3 @@ def main(
         + (f"; html: {plot_html}" if plot_html else "")
     )
     return 0
-
-
-if __name__ == "__main__":
-    app()
