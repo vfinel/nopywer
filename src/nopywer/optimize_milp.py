@@ -26,7 +26,6 @@ import argparse
 import json
 import math
 from collections.abc import Iterable
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Protocol
 
@@ -35,54 +34,11 @@ import networkx as nx
 from .constants import EXTRA_CABLE_LENGTH_M, PF, RHO_COPPER, V0
 from .geometry import geodesic_distance_m
 from .io import load_geojson
-from .models import Cable, PowerGrid, PowerNode
+from .models import CABLE_TYPES, Cable, PowerGrid, PowerNode
 
 
 class OptimiseLayoutFn(Protocol):
     def __call__(self, grid: PowerGrid, **kwargs: Any) -> PowerGrid: ...
-
-
-@dataclass(frozen=True)
-class CableTier:
-    """Discrete cable option used by the MILP.
-
-    Attributes:
-        phase: Number of energized phases this tier is designed for.
-            Valid values are `1` (single-phase) and `3` (three-phase).
-        max_amp: Maximum admissible current in amperes for this tier.
-            This is interpreted per phase.
-        area_mm2: Conductor cross-sectional area in square millimeters.
-        plugs_a: Connector rating (amps) used in output reporting.
-        label: Human-readable display label for reports/visualization.
-        cost_per_m: Relative cost-per-meter coefficient used in objective.
-    """
-
-    phase: int
-    max_amp: int
-    area_mm2: float
-    plugs_a: int  # TODO(Harry): redundant? 
-    cost_per_m: float
-
-    def __post_init__(self) -> None:
-        if self.phase not in (1, 3):
-            raise ValueError(f"CableTier.phase must be 1 or 3, got {self.phase}")
-
-    @property
-    def label(self) -> str:
-        return f"{self.phase}P {self.max_amp}A {self.area_mm2}mm2"
-
-    @property
-    def capacity_w(self) -> float:
-        return float(self.phase) * V0 * PF * self.max_amp
-
-
-_CABLE_TIERS: list[CableTier] = [
-    CableTier(1, 16, 2.5, 16, 1.0),
-    CableTier(3, 32, 6.0, 32, 3.0),
-    CableTier(3, 63, 16.0, 63, 8.0),
-    CableTier(3, 125, 35.0, 125, 20.0),
-]
-
 
 def _require_pulp():
     try:
@@ -338,12 +294,22 @@ def optimize_layout(
 
     distance: dict[tuple[str, str], float] = _build_distance_map(nodes)
     arcs: list[tuple[str, str]] = _candidate_arcs(names, root, distance, candidate_k)
-    tiers: list[str] = [t.label for t in _CABLE_TIERS]
-    tier_by_label: dict[str, CableTier] = {t.label: t for t in _CABLE_TIERS}
-    tier_area: dict[str, float] = {t.label: t.area_mm2 for t in _CABLE_TIERS}
-    tier_cost: dict[str, float] = {t.label: t.cost_per_m for t in _CABLE_TIERS}
-    tier_cap: dict[str, float] = {t.label: t.capacity_w for t in _CABLE_TIERS}
-    tier_phase: dict[str, int] = {t.label: t.phase for t in _CABLE_TIERS}
+    tiers: list[str] = [cable_cls.cable_type_label() for cable_cls in CABLE_TYPES]
+    tier_by_label: dict[str, type[Cable]] = {
+        cable_cls.cable_type_label(): cable_cls for cable_cls in CABLE_TYPES
+    }
+    tier_area: dict[str, float] = {
+        cable_cls.cable_type_label(): float(cable_cls.area_mm2) for cable_cls in CABLE_TYPES
+    }
+    tier_cost: dict[str, float] = {
+        cable_cls.cable_type_label(): float(cable_cls.tier_cost) for cable_cls in CABLE_TYPES
+    }
+    tier_cap: dict[str, float] = {
+        cable_cls.cable_type_label(): cable_cls.capacity_w() for cable_cls in CABLE_TYPES
+    }
+    tier_phase: dict[str, int] = {
+        cable_cls.cable_type_label(): cable_cls.num_phases for cable_cls in CABLE_TYPES
+    }
 
     prob: Any = pulp.LpProblem("nopywer_layout_milp", pulp.LpMinimize)
 
@@ -619,25 +585,23 @@ def optimize_layout(
             if pulp.value(tier_selected[(src, dst, t)])
             and pulp.value(tier_selected[(src, dst, t)]) > 0.5
         ]
-        chosen_label: str = chosen_tiers[0] if chosen_tiers else _CABLE_TIERS[0].label
-        chosen_tier: CableTier = tier_by_label[chosen_label]
-        plugs: float = float(chosen_tier.plugs_a)
-        area: float = float(tier_area[chosen_label])
+        chosen_label: str = (
+            chosen_tiers[0] if chosen_tiers else CABLE_TYPES[0].cable_type_label()
+        )
+        cable_cls: type[Cable] = tier_by_label[chosen_label]
         power_w: float = float(pulp.value(power_flow_w[(src, dst)]) or 0.0)
-        per_phase: float = round(power_w / (3 * V0 * PF), 2)
+        per_phase: float = round(power_w / (cable_cls.num_phases * V0 * PF), 2)
 
         cables.append(
-            Cable(
+            cable_cls(
                 id=f"milp_{idx}",
                 length_m=distance[(src, dst)] + extra_cable_m,
-                area_mm2=area,
-                plugs_and_sockets_a=plugs,
-                phase=chosen_tier.phase,
+                phase=cable_cls.num_phases,
                 from_node=src,
                 to_node=dst,
                 from_coords=(node_by_name[src].lon, node_by_name[src].lat),
                 to_coords=(node_by_name[dst].lon, node_by_name[dst].lat),
-                current_per_phase=[per_phase, per_phase, per_phase],
+                current_per_phase=[per_phase] * cable_cls.num_phases,
             )
         )
 

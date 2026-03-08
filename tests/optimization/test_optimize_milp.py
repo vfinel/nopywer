@@ -3,8 +3,8 @@ from pathlib import Path
 import pytest
 
 from nopywer.io import load_geojson
-from nopywer.models import PowerGrid, PowerNode
-from nopywer.optimize_milp import _CABLE_TIERS, optimize_layout
+from nopywer.models import CABLE_TYPES, PowerGrid, PowerNode
+from nopywer.optimize_milp import optimize_layout
 
 FIXTURES = Path(__file__).resolve().parents[1] / "fixtures"
 
@@ -30,7 +30,7 @@ def _grid(nodes: list[PowerNode]) -> PowerGrid:
 
 
 def test_cable_tier_labels_are_unique():
-    labels = [tier.label for tier in _CABLE_TIERS]
+    labels = [cable_type.cable_type_label() for cable_type in CABLE_TYPES]
     assert len(labels) == len(set(labels))
 
 

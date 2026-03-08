@@ -89,6 +89,14 @@ class Cable:
     def resistance(self) -> float:
         return RHO_COPPER * self.length_m / self.area_mm2
 
+    @classmethod
+    def cable_type_label(cls) -> str:
+        return f"{cls.num_phases}P {cls.max_current_a}A {cls.area_mm2}mm2"
+
+    @classmethod
+    def capacity_w(cls) -> float:
+        return float(cls.num_phases) * V0 * PF * cls.max_current_a
+
     def to_geojson(self) -> dict:
         max_current = max(self.current_per_phase) if self.current_per_phase else 0.0
         cum_power_w = max_current * V0 * PF * type(self).num_phases
@@ -153,7 +161,7 @@ class Cable125A(Cable):
     plugs_and_sockets_a: float = 125.0
 
 
-_CABLE_TYPES: list[type[Cable]] = [Cable16A, Cable32A, Cable63A, Cable125A]
+CABLE_TYPES: tuple[type[Cable], ...] = (Cable16A, Cable32A, Cable63A, Cable125A)
 
 
 def pick_cable_for(power_watts: float) -> type[Cable]:
@@ -161,10 +169,10 @@ def pick_cable_for(power_watts: float) -> type[Cable]:
 
     Each type is checked with: I = P / (num_phases x V0 x PF)
     """
-    for cable_cls in _CABLE_TYPES:
+    for cable_cls in CABLE_TYPES:
         if power_watts / (cable_cls.num_phases * V0 * PF) <= cable_cls.max_current_a:
             return cable_cls
-    return _CABLE_TYPES[-1]
+    return CABLE_TYPES[-1]
 
 
 @dataclass
