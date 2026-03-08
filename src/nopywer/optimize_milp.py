@@ -5,8 +5,13 @@ This module provides a first combined MILP that jointly decides:
 - cable tier per selected edge,
 - power flow on selected edges.
 
-Input and output mirror the heuristic optimizer: `list[PowerNode]` in,
-`list[Cable]` out.
+Input and output mirror the heuristic optimizer: `PowerGrid` in,
+`PowerGrid` out.
+
+The solver mutates the provided `PowerGrid` in place. It reads optimization
+inputs from `grid.nodes`, computes a fresh cable layout, and replaces
+`grid.cables` with the optimized result before returning the same `grid`
+instance.
 
 IMPORTANT LINEARIZATION NOTE:
 This solver uses a linearized electrical model to stay in MILP form.
@@ -150,7 +155,7 @@ def _select_load_nodes(nodes: Iterable[PowerNode]) -> list[PowerNode]:
 
 
 def optimize_layout(
-    nodes: list[PowerNode],
+    grid: PowerGrid,
     extra_cable_m: float = EXTRA_CABLE_LENGTH_M,
     candidate_k: int | None = 12,
     time_limit_s: int | None = 60,
@@ -162,12 +167,18 @@ def optimize_layout(
     weight_cumulative_voltage_drop: float = 0.0,
     max_voltage_drop_percent: float | None = None,
     max_voltage_drop_percent_by_node: dict[str, float] | None = None,
-) -> list[Cable]:
+) -> PowerGrid:
     """Solve a combined MILP for topology, cable tiering, and power flow.
 
     This model builds a directed arborescence rooted at the generator while
     simultaneously sizing each selected edge with one cable tier and routing
     electrical demand through that tree.
+
+    Contract:
+    Use this on a `PowerGrid` whose `nodes` are populated and whose `cables`
+    represent no fixed topology. The solve derives a fresh layout from
+    `grid.nodes`, mutates `grid.cables` in place, and returns the same `grid`
+    instance, matching the public contract of the heuristic optimizer.
 
     IMPORTANT:
     Electrical behavior is linearized for tractability. This model is intended
@@ -235,8 +246,10 @@ def optimize_layout(
             - Optional hard limits cap `v[n]` per load node.
 
     Args:
-        nodes: Input power nodes. Exactly one generator node is supported in
-            this model. All non-generator nodes are treated as loads.
+        grid: Input power grid. Exactly one generator node is supported in
+            this model. All non-generator nodes are treated as loads. The
+            solver reads topology inputs from `grid.nodes` and mutates
+            `grid.cables` in place to store a newly optimized layout.
         extra_cable_m: Slack length added to each selected cable segment in
             the objective and returned cable lengths.
         candidate_k: Number of nearest-neighbor candidate arcs per node.
@@ -259,17 +272,17 @@ def optimize_layout(
             of `V0`, keyed by load node name.
 
     Returns:
-        A list of sized `Cable` objects representing the optimized radial
-        layout, including endpoint coordinates, selected amp tier, and
-        per-phase current values.
+        The same `PowerGrid` instance, after mutating `grid.cables` in place
+        with sized optimized cables.
 
     Raises:
-        ValueError: If there is no generator, more than one generator, or
-            invalid input topology assumptions.
+        ValueError: If objective weights are invalid or node-specific voltage
+            caps reference unknown nodes.
         ImportError: If `pulp` is not installed.
         RuntimeError: If the MILP does not solve to an optimal solution.
     """
     pulp = _require_pulp()
+    nodes = list(grid.nodes.values())
 
     objective_weights: dict[str, float] = {
         "weight_cost": weight_cost,
@@ -308,18 +321,14 @@ def optimize_layout(
         or bool(max_voltage_drop_percent_by_node)
     )
 
-    generators: list[PowerNode] = [n for n in nodes if n.is_generator]
     loads: list[PowerNode] = _select_load_nodes(nodes)
 
-    if not generators:
-        raise ValueError("At least one generator is required")
     if not loads:
-        return []
-    if len(generators) > 1:
-        raise ValueError("MILP optimizer currently supports exactly one generator")
+        grid.cables = {}
+        return grid
 
-    root: str = generators[0].name
-    node_by_name: dict[str, PowerNode] = {n.name: n for n in nodes}
+    root: str = grid.generator.name
+    node_by_name: dict[str, PowerNode] = grid.nodes
     names: list[str] = [n.name for n in nodes]
     load_names: list[str] = [n.name for n in loads]
 
@@ -628,7 +637,8 @@ def optimize_layout(
             )
         )
 
-    return cables
+    grid.cables = {cable.id: cable for cable in cables}
+    return grid
 
 
 def layout_to_networkx(
@@ -866,9 +876,9 @@ def _main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     nodes, _ = load_geojson(args.input_geojson)
-    node_list = list(nodes.values())
-    cables = optimize_layout(
-        nodes=node_list,
+    grid = PowerGrid(nodes=nodes, cables={})
+    grid = optimize_layout(
+        grid=grid,
         extra_cable_m=args.extra_cable_m,
         candidate_k=args.candidate_k,
         time_limit_s=args.time_limit_s,
@@ -881,15 +891,12 @@ def _main(argv: list[str] | None = None) -> int:
         max_voltage_drop_percent=args.max_voltage_drop_percent,
     )
 
-    result_geojson = PowerGrid(
-        nodes=nodes,
-        cables={cable.id: cable for cable in cables},
-    ).to_geojson()
+    result_geojson = grid.to_geojson()
     with open(args.output_geojson, "w") as f:
         json.dump(result_geojson, f, indent=2)
 
     if args.plot_html is not None:
-        save_layout_html(cables, nodes, args.plot_html)
+        save_layout_html(list(grid.cables.values()), grid.nodes, args.plot_html)
 
     max_vdrop_text = (
         f"max_vdrop_percent={args.max_voltage_drop_percent}; "
@@ -897,7 +904,7 @@ def _main(argv: list[str] | None = None) -> int:
         else ""
     )
     print(
-        f"optimized {len(node_list)} nodes -> {len(cables)} cables; "
+        f"optimized {len(grid.nodes)} nodes -> {len(grid.cables)} cables; "
         "weights("
         f"cost={args.weight_cost}, "
         f"length={args.weight_length}, "
