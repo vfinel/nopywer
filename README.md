@@ -1,6 +1,6 @@
-# nopywer /noʊ.paɪ.wɛr/
+# nopywer 
 
-Pronounced "no-pie-wer" (as in no + python + power)
+Pronounced /noʊ.paɪ.wɛr/: "no-pie-wer" (as in <u>no</u>+ <u>py</u>thon + po<u>wer</u>)
 
 Visit the homepage of the project: https://vfinel.github.io/nopywer/
 
