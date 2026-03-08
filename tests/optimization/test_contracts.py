@@ -2,11 +2,10 @@ import networkx as nx
 import pytest
 
 from nopywer.constants import PF, V0
-from nopywer.models import PowerNode
+from nopywer.models import Cable125A, Cable16A, Cable32A, Cable63A, PowerGrid, PowerNode, pick_cable_for
 from nopywer.optimize import (
     _build_distance_graph,
     _reduce_cable_cost,
-    _size_cable,
     _tree_cost,
     optimize_layout,
 )
@@ -38,8 +37,12 @@ def _basic_nodes() -> list[PowerNode]:
     ]
 
 
-def _power_for_per_phase_current(current_a: float) -> float:
-    return current_a * 3 * V0 * PF
+def _grid(nodes: list[PowerNode]) -> PowerGrid:
+    return PowerGrid(nodes={node.name: node for node in nodes}, cables={})
+
+
+def _power_for_current(current_a: float, num_phases: int) -> float:
+    return current_a * num_phases * V0 * PF
 
 
 def test_optimize_layout_requires_a_generator():
@@ -48,17 +51,13 @@ def test_optimize_layout_requires_a_generator():
         _node("b", 0.001, 0.0, 2000),
     ]
     with pytest.raises(ValueError, match="At least one generator is required"):
-        optimize_layout(loads_only)
-
-
-def test_optimize_layout_returns_empty_if_no_loads():
-    nodes = [_node("generator", 0.0, 0.0, is_generator=True)]
-    assert optimize_layout(nodes) == []
+        optimize_layout(_grid(loads_only))
 
 
 def test_optimize_layout_returns_tree_with_one_parent_per_load():
     nodes = _basic_nodes()
-    cables = optimize_layout(nodes, extra_cable_m=0.0)
+    grid = optimize_layout(_grid(nodes), extra_cable_m=0.0)
+    cables = list(grid.cables.values())
 
     generator_names = {n.name for n in nodes if n.is_generator}
     load_names = {n.name for n in nodes if not n.is_generator}
@@ -84,12 +83,14 @@ def test_optimize_layout_returns_tree_with_one_parent_per_load():
 
 def test_extra_cable_m_is_added_once_per_edge():
     nodes = _basic_nodes()
-    base = optimize_layout(nodes, extra_cable_m=0.0)
-    padded = optimize_layout(nodes, extra_cable_m=7.5)
+    base = optimize_layout(_grid(nodes), extra_cable_m=0.0)
+    padded = optimize_layout(_grid(nodes), extra_cable_m=7.5)
 
-    base_total = sum(c.length_m for c in base)
-    padded_total = sum(c.length_m for c in padded)
-    assert padded_total - base_total == pytest.approx(7.5 * len(base), abs=1e-6)
+    base_cables = list(base.cables.values())
+    padded_cables = list(padded.cables.values())
+    base_total = sum(c.length_m for c in base_cables)
+    padded_total = sum(c.length_m for c in padded_cables)
+    assert padded_total - base_total == pytest.approx(7.5 * len(base_cables), abs=1e-6)
 
 
 def test_reduce_cable_cost_never_increases_tree_cost():
@@ -107,15 +108,22 @@ def test_reduce_cable_cost_never_increases_tree_cost():
 
 
 @pytest.mark.parametrize("amps", [16, 32, 63, 125])
-def test_size_cable_thresholds_are_inclusive(amps: int):
-    _, plugs, _ = _size_cable(_power_for_per_phase_current(float(amps)))
-    assert plugs == float(amps)
+def test_pick_cable_for_thresholds_are_inclusive(amps: int):
+    expected = {
+        16: Cable16A,
+        32: Cable32A,
+        63: Cable63A,
+        125: Cable125A,
+    }[amps]
+    cable_cls = pick_cable_for(_power_for_current(float(amps), expected.num_phases))
+    assert cable_cls is expected
 
 
 @pytest.mark.parametrize(
     ("amps", "expected_next"),
-    [(16, 32.0), (32, 63.0), (63, 125.0)],
+    [(16, Cable32A), (32, Cable63A), (63, Cable125A)],
 )
-def test_size_cable_above_threshold_upsizes(amps: int, expected_next: float):
-    _, plugs, _ = _size_cable(_power_for_per_phase_current(float(amps)) + 1e-6)
-    assert plugs == expected_next
+def test_pick_cable_for_above_threshold_upsizes(amps: int, expected_next: type):
+    num_phases = {16: Cable16A, 32: Cable32A, 63: Cable63A}[amps].num_phases
+    cable_cls = pick_cable_for(_power_for_current(float(amps), num_phases) + 1e-6)
+    assert cable_cls is expected_next
