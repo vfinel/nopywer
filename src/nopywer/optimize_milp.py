@@ -23,12 +23,10 @@ approximations and validate critical layouts with a detailed power-flow check.
 """
 
 import json
-import math
 from collections.abc import Iterable
 from pathlib import Path
 from typing import Any, Protocol
 
-import networkx as nx
 import pulp
 
 from .constants import EXTRA_CABLE_LENGTH_M, PF, RHO_COPPER, V0
@@ -448,7 +446,6 @@ def optimize_layout(
 def optimize_layout_to_files(
     input_geojson: Path,
     output_geojson: Path = Path("milp_layout.geojson"),
-    plot_html: Path | None = None,
     candidate_k: int | None = 12,
     time_limit_s: int | None = 60,
     extra_cable_m: float = EXTRA_CABLE_LENGTH_M,
@@ -481,9 +478,6 @@ def optimize_layout_to_files(
     with open(output_geojson, "w") as f:
         json.dump(result_geojson, f, indent=2)
 
-    if plot_html is not None:
-        save_layout_html(list(grid.cables.values()), grid.nodes, plot_html)
-
     max_vdrop_text = (
         f"max_vdrop_percent={max_voltage_drop_percent}; "
         if max_voltage_drop_percent is not None
@@ -500,137 +494,8 @@ def optimize_layout_to_files(
         "); "
         + max_vdrop_text
         + f"geojson: {output_geojson}"
-        + (f"; html: {plot_html}" if plot_html else "")
     )
     return 0
-
-
-def layout_to_networkx(
-    cables: list[Cable],
-    nodes: dict[str, PowerNode] | None = None,
-) -> nx.DiGraph:
-    """Convert MILP cable output to a directed NetworkX graph."""
-    g = nx.DiGraph()
-    for cable in cables:
-        g.add_edge(
-            cable.from_node,
-            cable.to_node,
-            weight=cable.length_m,
-            plugs_a=cable.plugs_and_sockets_a,
-        )
-    if nodes:
-        for name, node in nodes.items():
-            g.add_node(
-                name,
-                pos=(node.lon, node.lat),
-                is_generator=node.is_generator,
-                power_watts=node.power_watts,
-            )
-    return g
-
-
-def save_layout_html(
-    cables: list[Cable],
-    nodes: dict[str, PowerNode],
-    output_html: str | Path,
-) -> None:
-    """Render and save an interactive HTML network visualization with pyvis."""
-    try:
-        from pyvis.network import Network
-    except Exception as exc:  # pragma: no cover - optional dependency
-        raise ImportError(
-            "Interactive visualization requires pyvis. Install with: uv pip install pyvis"
-        ) from exc
-
-    net = Network(
-        height="850px",
-        width="100%",
-        directed=True,
-        bgcolor="#ffffff",
-        font_color="#111111",
-        cdn_resources="remote",
-    )
-
-    lon_center = sum(node.lon for node in nodes.values()) / len(nodes)
-    lat_center = sum(node.lat for node in nodes.values()) / len(nodes)
-    cos_lat = max(0.1, math.cos(math.radians(lat_center)))
-
-    xy_m: dict[str, tuple[float, float]] = {}
-    for name, node in nodes.items():
-        x_m = (node.lon - lon_center) * 111_320.0 * cos_lat
-        y_m = (node.lat - lat_center) * 110_540.0
-        xy_m[name] = (x_m, y_m)
-
-    max_span = max(max(abs(x), abs(y)) for x, y in xy_m.values())
-    max_span = max(max_span, 1.0)
-    scale = 1400.0 / max_span
-
-    for name, node in nodes.items():
-        color = "#D7263D" if node.is_generator else "#1B9AAA"
-        title = (
-            f"{name}<br>"
-            f"power_watts={node.power_watts:.1f}<br>"
-            f"generator={node.is_generator}"
-        )
-        x_m, y_m = xy_m[name]
-        net.add_node(
-            name,
-            label=(name if node.is_generator else ""),
-            title=title,
-            x=x_m * scale,
-            y=-(y_m * scale),
-            color=color,
-            size=(14 if node.is_generator else 5),
-            physics=False,
-        )
-
-    for cable in cables:
-        diameter_mm = 2.0 * math.sqrt(cable.area_mm2 / math.pi)
-        line_width = max(1.0, 1.5 * diameter_mm)
-        phase = (
-            int(cable.phase)
-            if isinstance(cable.phase, int)
-            else (3 if cable.plugs_and_sockets_a > 16 else 1)
-        )
-        edge_color = "#0B5D1E" if phase == 3 else "#2F2F2F"
-        title = (
-            f"{cable.from_node} -> {cable.to_node}<br>"
-            f"length_m={cable.length_m:.1f}<br>"
-            f"phase={phase}P<br>"
-            f"plugs_a={cable.plugs_and_sockets_a:.0f}<br>"
-            f"area_mm2={cable.area_mm2:.1f}<br>"
-            f"diameter_mm={diameter_mm:.2f}"
-        )
-        net.add_edge(
-            cable.from_node,
-            cable.to_node,
-            title=title,
-            arrows="to",
-            color=edge_color,
-            width=line_width,
-        )
-
-    net.set_options(
-        """
-        var options = {
-          "nodes": {
-            "font": { "size": 12 },
-            "borderWidth": 0
-          },
-          "edges": {
-            "smooth": false,
-            "arrows": { "to": { "enabled": true, "scaleFactor": 0.35 } }
-          },
-          "interaction": {
-            "hover": true,
-            "navigationButtons": true,
-            "keyboard": true
-          },
-          "physics": { "enabled": false }
-        }
-        """
-    )
-    net.write_html(str(output_html), open_browser=False, notebook=False)
 
 
 def _build_distance_map(nodes: list[PowerNode]) -> dict[tuple[str, str], float]:

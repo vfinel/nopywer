@@ -82,13 +82,6 @@ def optimize_grid_milp(
         Path,
         typer.Option("--output-geojson", help="Where to write optimized layout GeoJSON."),
     ] = Path("milp_layout.geojson"),
-    plot_html: Annotated[
-        Path | None,
-        typer.Option(
-            "--plot-html",
-            help="Optional HTML path for an interactive pyvis network plot.",
-        ),
-    ] = None,
     candidate_k: Annotated[
         int,
         typer.Option(
@@ -151,7 +144,6 @@ def optimize_grid_milp(
     optimize_milp_to_files(
         input_geojson=input_geojson,
         output_geojson=output_geojson,
-        plot_html=plot_html,
         candidate_k=candidate_k,
         time_limit_s=time_limit_s,
         extra_cable_m=extra_cable_m,
