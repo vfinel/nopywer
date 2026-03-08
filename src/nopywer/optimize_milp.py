@@ -22,14 +22,14 @@ power coupling, no exact meshed-flow physics). Treat results as planning-grade
 approximations and validate critical layouts with a detailed power-flow check.
 """
 
-import argparse
 import json
 import math
 from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, Protocol
+from typing import Annotated, Any, Protocol
 
 import networkx as nx
+import typer
 
 from .constants import EXTRA_CABLE_LENGTH_M, PF, RHO_COPPER, V0
 from .geometry import geodesic_distance_m
@@ -39,6 +39,9 @@ from .models import CABLE_TYPES, Cable, PowerGrid, PowerNode
 
 class OptimiseLayoutFn(Protocol):
     def __call__(self, grid: PowerGrid, **kwargs: Any) -> PowerGrid: ...
+
+
+app = typer.Typer()
 
 def _require_pulp():
     try:
@@ -718,7 +721,11 @@ def save_layout_html(
     for cable in cables:
         diameter_mm = 2.0 * math.sqrt(cable.area_mm2 / math.pi)
         line_width = max(1.0, 1.5 * diameter_mm)
-        phase = int(cable.phase) if isinstance(cable.phase, int) else (3 if cable.plugs_and_sockets_a > 16 else 1)
+        phase = (
+            int(cable.phase)
+            if isinstance(cable.phase, int)
+            else (3 if cable.plugs_and_sockets_a > 16 else 1)
+        )
         edge_color = "#0B5D1E" if phase == 3 else "#2F2F2F"
         title = (
             f"{cable.from_node} -> {cable.to_node}<br>"
@@ -760,132 +767,111 @@ def save_layout_html(
     net.write_html(str(output_html), open_browser=False, notebook=False)
 
 
-def _main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Run MILP layout optimization on GeoJSON nodes.")
-    parser.add_argument("input_geojson", type=Path, help="Input GeoJSON with point nodes.")
-    parser.add_argument(
-        "--output-geojson",
-        type=Path,
-        default=Path("milp_layout.geojson"),
-        help="Where to write optimized layout GeoJSON.",
-    )
-    parser.add_argument(
-        "--plot-html",
-        type=Path,
-        default=None,
-        help="Optional HTML path for an interactive pyvis network plot.",
-    )
-    parser.add_argument(
-        "--candidate-k",
-        type=int,
-        default=12,
-        help="Nearest-neighbor candidate arcs per node (0 for full graph).",
-    )
-    parser.add_argument(
-        "--time-limit-s",
-        type=int,
-        default=60,
-        help="MILP solver time limit in seconds.",
-    )
-    parser.add_argument(
-        "--extra-cable-m",
-        type=float,
-        default=EXTRA_CABLE_LENGTH_M,
-        help="Extra slack added to each selected cable length.",
-    )
-    parser.add_argument(
-        "--solver-msg",
-        action="store_true",
-        help="Enable CBC solver output.",
-    )
-    parser.add_argument(
-        "--weight-cost",
-        type=float,
-        default=1.0,
-        help="Objective weight for cable-tier cost term (default: 1.0).",
-    )
-    parser.add_argument(
-        "--weight-length",
-        type=float,
-        default=0.0,
-        help="Objective weight for pure cable-length term (default: 0.0).",
-    )
-    parser.add_argument(
-        "--weight-power-distance",
-        type=float,
-        default=0.0,
-        help="Objective weight for distance-weighted power-routing term (default: 0.0).",
-    )
-    parser.add_argument(
-        "--weight-voltage-drop",
-        type=float,
-        default=0.0,
-        help="Objective weight for linearized voltage-drop term (default: 0.0).",
-    )
-    parser.add_argument(
-        "--weight-cumulative-voltage-drop",
-        type=float,
-        default=0.0,
-        help=(
-            "Objective weight for cumulative source-to-node voltage drop at load nodes "
-            "(default: 0.0)."
+@app.command()
+def main(
+    input_geojson: Annotated[
+        Path,
+        typer.Argument(help="Input GeoJSON with point nodes."),
+    ],
+    output_geojson: Annotated[
+        Path,
+        typer.Option(help="Where to write optimized layout GeoJSON."),
+    ] = Path("milp_layout.geojson"),
+    plot_html: Annotated[
+        Path | None,
+        typer.Option(help="Optional HTML path for an interactive pyvis network plot."),
+    ] = None,
+    candidate_k: Annotated[
+        int,
+        typer.Option(help="Nearest-neighbor candidate arcs per node (0 for full graph)."),
+    ] = 12,
+    time_limit_s: Annotated[
+        int,
+        typer.Option(help="MILP solver time limit in seconds."),
+    ] = 60,
+    extra_cable_m: Annotated[
+        float,
+        typer.Option(help="Extra slack added to each selected cable length."),
+    ] = EXTRA_CABLE_LENGTH_M,
+    solver_msg: Annotated[
+        bool,
+        typer.Option(help="Enable CBC solver output."),
+    ] = False,
+    weight_cost: Annotated[
+        float,
+        typer.Option(help="Objective weight for cable-tier cost term."),
+    ] = 1.0,
+    weight_length: Annotated[
+        float,
+        typer.Option(help="Objective weight for pure cable-length term."),
+    ] = 0.0,
+    weight_power_distance: Annotated[
+        float,
+        typer.Option(help="Objective weight for distance-weighted power-routing term."),
+    ] = 0.0,
+    weight_voltage_drop: Annotated[
+        float,
+        typer.Option(help="Objective weight for linearized voltage-drop term."),
+    ] = 0.0,
+    weight_cumulative_voltage_drop: Annotated[
+        float,
+        typer.Option(
+            help="Objective weight for cumulative source-to-node voltage drop at load nodes."
         ),
-    )
-    parser.add_argument(
-        "--max-voltage-drop-percent",
-        type=float,
-        default=None,
-        help=(
-            "Optional hard cap on cumulative voltage drop for each load node, "
-            "as percent of nominal voltage V0."
+    ] = 0.0,
+    max_voltage_drop_percent: Annotated[
+        float | None,
+        typer.Option(
+            help=(
+                "Optional hard cap on cumulative voltage drop for each load node, "
+                "as percent of nominal voltage V0."
+            )
         ),
-    )
-
-    args = parser.parse_args(argv)
-
-    nodes, _ = load_geojson(args.input_geojson)
+    ] = None,
+) -> int:
+    nodes, _ = load_geojson(input_geojson)
     grid = PowerGrid(nodes=nodes, cables={})
     grid = optimize_layout(
         grid=grid,
-        extra_cable_m=args.extra_cable_m,
-        candidate_k=args.candidate_k,
-        time_limit_s=args.time_limit_s,
-        solver_msg=args.solver_msg,
-        weight_cost=args.weight_cost,
-        weight_length=args.weight_length,
-        weight_power_distance=args.weight_power_distance,
-        weight_voltage_drop=args.weight_voltage_drop,
-        weight_cumulative_voltage_drop=args.weight_cumulative_voltage_drop,
-        max_voltage_drop_percent=args.max_voltage_drop_percent,
+        extra_cable_m=extra_cable_m,
+        candidate_k=candidate_k,
+        time_limit_s=time_limit_s,
+        solver_msg=solver_msg,
+        weight_cost=weight_cost,
+        weight_length=weight_length,
+        weight_power_distance=weight_power_distance,
+        weight_voltage_drop=weight_voltage_drop,
+        weight_cumulative_voltage_drop=weight_cumulative_voltage_drop,
+        max_voltage_drop_percent=max_voltage_drop_percent,
     )
 
     result_geojson = grid.to_geojson()
-    with open(args.output_geojson, "w") as f:
+    with open(output_geojson, "w") as f:
         json.dump(result_geojson, f, indent=2)
 
-    if args.plot_html is not None:
-        save_layout_html(list(grid.cables.values()), grid.nodes, args.plot_html)
+    if plot_html is not None:
+        save_layout_html(list(grid.cables.values()), grid.nodes, plot_html)
 
     max_vdrop_text = (
-        f"max_vdrop_percent={args.max_voltage_drop_percent}; "
-        if args.max_voltage_drop_percent is not None
+        f"max_vdrop_percent={max_voltage_drop_percent}; "
+        if max_voltage_drop_percent is not None
         else ""
     )
-    print(
+    typer.echo(
         f"optimized {len(grid.nodes)} nodes -> {len(grid.cables)} cables; "
         "weights("
-        f"cost={args.weight_cost}, "
-        f"length={args.weight_length}, "
-        f"power_distance={args.weight_power_distance}, "
-        f"voltage_drop={args.weight_voltage_drop}, "
-        f"cumulative_voltage_drop={args.weight_cumulative_voltage_drop}"
+        f"cost={weight_cost}, "
+        f"length={weight_length}, "
+        f"power_distance={weight_power_distance}, "
+        f"voltage_drop={weight_voltage_drop}, "
+        f"cumulative_voltage_drop={weight_cumulative_voltage_drop}"
         "); "
         + max_vdrop_text
-        + f"geojson: {args.output_geojson}"
-        + (f"; html: {args.plot_html}" if args.plot_html else "")
+        + f"geojson: {output_geojson}"
+        + (f"; html: {plot_html}" if plot_html else "")
     )
     return 0
 
 
 if __name__ == "__main__":
-    _main()
+    app()
