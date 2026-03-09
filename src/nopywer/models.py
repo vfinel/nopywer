@@ -94,8 +94,23 @@ class Cable:
         return f"{cls.num_phases}P {cls.max_current_a}A {cls.area_mm2}mm2"
 
     @classmethod
-    def capacity_w(cls) -> float:
-        """Capacity of this cable type independent of the instance."""
+    def nominal_capacity_w(cls) -> float:
+        """Return the cable's nominal active-power capacity in watts.
+
+        This is not a fundamental cable rating. The physical limit is the
+        current rating `max_current_a`; this helper converts that current limit
+        into an active-power figure by assuming:
+        - nominal voltage `V0`
+        - a fixed power factor `PF`
+        - balanced loading across `num_phases`
+
+        In other words, this is the planning-model approximation
+        `P ~= phases * V0 * PF * I`.
+
+        It is useful for optimization and coarse sizing, but it should not be
+        interpreted as an exact electrical capacity under varying voltage-drop
+        conditions.
+        """
         return float(cls.num_phases) * V0 * PF * cls.max_current_a
 
     def to_geojson(self) -> dict:

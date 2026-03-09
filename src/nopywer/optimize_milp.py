@@ -208,7 +208,8 @@ def optimize_layout(
         cable_cls.cable_type_label(): float(cable_cls.tier_cost) for cable_cls in CABLE_TYPES
     }
     tier_cap: dict[str, float] = {
-        cable_cls.cable_type_label(): cable_cls.capacity_w() for cable_cls in CABLE_TYPES
+        cable_cls.cable_type_label(): cable_cls.nominal_capacity_w()
+        for cable_cls in CABLE_TYPES
     }
     tier_phase: dict[str, int] = {
         cable_cls.cable_type_label(): cable_cls.num_phases for cable_cls in CABLE_TYPES
