@@ -64,7 +64,7 @@ def optimize_layout_to_files(
     input_geojson: Path,
     output_geojson: Path = Path("network_layout.geojson"),
     extra_cable_m: float = EXTRA_CABLE_LENGTH_M,
-) -> int:
+) -> None:
     """Run the heuristic optimizer from a GeoJSON file and write the result."""
     nodes, _ = load_geojson(input_geojson)
     grid = PowerGrid(nodes=nodes, cables={})
@@ -78,7 +78,6 @@ def optimize_layout_to_files(
         f"optimized {len(grid.nodes)} nodes -> {len(grid.cables)} cables; "
         f"geojson: {output_geojson}"
     )
-    return 0
 
 
 def _build_distance_graph(nodes: list[PowerNode]) -> nx.Graph:

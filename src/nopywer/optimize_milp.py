@@ -457,7 +457,7 @@ def optimize_layout_to_files(
     weight_voltage_drop: float = 0.0,
     weight_cumulative_voltage_drop: float = 0.0,
     max_voltage_drop_percent: float | None = None,
-) -> int:
+) -> None:
     """Run the MILP optimizer from a GeoJSON file and write output artifacts."""
     nodes, _ = load_geojson(input_geojson)
     grid = PowerGrid(nodes=nodes, cables={})
@@ -496,7 +496,6 @@ def optimize_layout_to_files(
         + max_vdrop_text
         + f"geojson: {output_geojson}"
     )
-    return 0
 
 
 def _build_distance_map(nodes: list[PowerNode]) -> dict[tuple[str, str], float]:
