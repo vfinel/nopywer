@@ -76,4 +76,4 @@ app.mount("/", StaticFiles(directory=frontend_dir, html=True), name="frontend")
 def run():
     import uvicorn
 
-    uvicorn.run("nopywer.api:app", host="0.0.0.0", port=8042, reload=True)
+    uvicorn.run("nopywer.api:app", host="127.0.0.1", port=8042, reload=True)
