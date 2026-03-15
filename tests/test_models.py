@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 
 from nopywer.models import (
+    CABLE_TYPES,
     Cable,
     Cable16A,
     Cable32A,
@@ -31,6 +32,8 @@ from nopywer.models import (
 )
 def test_pick_cable_for(power_watts, expected_cls):
     assert pick_cable_for(power_watts) is expected_cls
+
+
 
 
 def test_cable_to_geojson():

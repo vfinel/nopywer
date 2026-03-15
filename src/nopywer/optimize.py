@@ -11,10 +11,14 @@ This naturally produces a shallower, more star-like topology with fewer
 heavy cables, matching real-world power distribution practices.
 """
 
+import json
+from pathlib import Path
+
 import networkx as nx
 
 from .constants import EXTRA_CABLE_LENGTH_M, PF, V0
 from .geometry import geodesic_distance_m
+from .io import load_geojson
 from .models import Cable, PowerGrid, PowerNode, pick_cable_for
 
 
@@ -54,6 +58,26 @@ def optimize_layout(
 
     grid.cables = {cable.id: cable for cable in _compute_power_flow(cables, nodes_by_name)}
     return grid
+
+
+def optimize_layout_to_files(
+    input_geojson: Path,
+    output_geojson: Path = Path("network_layout.geojson"),
+    extra_cable_m: float = EXTRA_CABLE_LENGTH_M,
+) -> None:
+    """Run the heuristic optimizer from a GeoJSON file and write the result."""
+    nodes, _ = load_geojson(input_geojson)
+    grid = PowerGrid(nodes=nodes, cables={})
+    grid = optimize_layout(grid=grid, extra_cable_m=extra_cable_m)
+
+    result_geojson = grid.to_geojson()
+    with open(output_geojson, "w") as f:
+        json.dump(result_geojson, f, indent=2)
+
+    print(
+        f"optimized {len(grid.nodes)} nodes -> {len(grid.cables)} cables; "
+        f"geojson: {output_geojson}"
+    )
 
 
 def _build_distance_graph(nodes: list[PowerNode]) -> nx.Graph:

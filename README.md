@@ -22,6 +22,20 @@ This installs all runtime and dev dependencies (ruff, pytest, pre-commit…) in 
 Nopywer reads a GeoJSON file containing nodes and cables.
 A spreadsheet can optionally be provided for equipment inventory.
 
+### Grid lifecycle
+
+The repository now uses `PowerGrid` as the common public contract for both
+analysis and optimization:
+
+- analysis expects a `PowerGrid` with existing `nodes` and `cables`
+- optimization expects a `PowerGrid` with `nodes` populated and typically
+  `cables={}`
+- both optimizers derive a fresh layout from `grid.nodes` and write the result
+  back to `grid.cables`
+
+In other words, optimization synthesizes topology, while analysis evaluates an
+existing topology.
+
 ## Usage
 
 ```bash

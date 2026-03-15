@@ -10,6 +10,7 @@ dependencies = [
     "numpy>=2.4",
     "odfpy>=1.4",
     "pandas>=3.0",
+    "pulp>=3.3",
     "pyproj>=3.7",
     "typer>=0.24",
     "uvicorn>=0.41",
@@ -59,3 +60,8 @@ section-order = [
 ]
 combine-as-imports = true
 known-first-party = ["nopywer"]
+
+[tool.pytest.ini_options]
+markers = [
+    "integration: marks slower integration tests that use real fixture data",
+]
