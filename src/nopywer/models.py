@@ -124,6 +124,7 @@ class Cable16A(Cable):
     tier_cost: ClassVar[float] = 1.0
     num_phases: ClassVar[int] = 1
     max_current_a: ClassVar[int] = 16
+    area_mm2: float = 2.5
 
 
 @dataclass
