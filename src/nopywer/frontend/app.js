@@ -96,6 +96,7 @@
         }
     }
 
+
     function cableStyle(feature) {
         const plugs = feature.properties && feature.properties.plugs_and_sockets_a
             ? feature.properties.plugs_and_sockets_a
@@ -109,59 +110,82 @@
         }
         return { color: "#f59e0b", weight: 4 };
     }
-
-    function renderOptimizedCables(cablesGeojson) {
-        optimizedCablesLayer.clearLayers();
-
-        const cableLayer = L.geoJSON(cablesGeojson, {
-            filter: function (feature) {
-                return feature.geometry && feature.geometry.type === "LineString";
-            },
-            style: function (feature) {
-                const style = cableStyle(feature);
-                return {
-                    color: style.color,
-                    weight: style.weight,
-                    opacity: 0.95,
-                };
-            },
-            onEachFeature: function (feature, layer) {
-                const props = feature.properties || {};
-                const details =
-                    "<strong>" +
-                    (props.from || "?") +
-                    " → " +
-                    (props.to || "?") +
-                    "</strong><br />" +
-                    "Length: " +
-                    String(props.length_m ?? "?") +
-                    " m<br />" +
-                    "Cable: " +
-                    String(props.cable_type || "?") +
-                    "<br />" +
-                    "Current: " +
-                    String(props.current_a ?? "?") +
-                    " A<br />" +
-                    "Load: " +
-                    String(props.cum_power_kw ?? "?") +
-                    " kW";
-
-                layer.bindPopup(details);
-                layer.bindTooltip(details, {
-                    sticky: true,
-                    direction: "top",
-                    className: "cable-tooltip",
-                });
-            },
-        });
-
-        cableLayer.addTo(optimizedCablesLayer);
-        if (cableLayer.getLayers().length > 0) {
-            map.fitBounds(cableLayer.getBounds().pad(0.08));
-        }
-        bringNodesToFront();
+    function getCableWeight(plugs) {
+        if (plugs >= 63) return 8;
+        if (plugs >= 32) return 6;
+        return 4;
+    }
+    function getCableColor(plugs) {
+    if (plugs >= 63) return "#dc2626";
+    if (plugs >= 32) return "#ea580c";
+    return "#f59e0b";
     }
 
+    function phaseColor(phase) {
+        const colors = { 0: "#6f2018dc", 1: "#000000", 2: "#9d9d9d" };
+        return colors[phase] ?? "#e81212";
+    }
+
+    function renderOptimizedCables(cablesGeojson) {
+    console.log(cablesGeojson.features[0].properties);
+
+    optimizedCablesLayer.clearLayers();
+
+    const filter = function (feature) {
+        return feature.geometry && feature.geometry.type === "LineString";
+    };
+
+    // Capa base: tipo de cable (gruesa, semitransparente)
+    const baseLayer = L.geoJSON(cablesGeojson, {
+        filter,
+        style: function (feature) {
+            const style = cableStyle(feature);
+            return {
+                color: style.color,
+                weight: style.weight * 2,
+                opacity: 0.5,
+            };
+        },
+    });
+
+    // Capa superior: fase (fina, sólida) + popups
+    const phaseLayer = L.geoJSON(cablesGeojson, {
+        filter,
+        style: function (feature) {
+            const plugs = feature.properties?.plugs_and_sockets_a ?? 16;
+            const phase = feature.properties?.phase ?? null;
+            const baseWeight = cableStyle(feature).weight;
+            return {
+                color: phaseColor(phase),
+                weight: baseWeight,
+                opacity: 1,
+            };
+        },
+        onEachFeature: function (feature, layer) {
+            const props = feature.properties || {};
+            const phase = props.phase ?? null;
+            const plugs = props.plugs_and_sockets_a ?? 16;
+
+            const details =
+                "<strong>" + (props.from || "?") + " → " + (props.to || "?") + "</strong><br />" +
+                "Phase: <span style='color:" + phaseColor(phase) + "'><strong>L" + ((phase ?? "?") + 1) + "</strong></span><br />" +
+                "Cable: <span style='color:" + cableStyle(feature).color + "'><strong>" + plugs + "A</strong></span><br />" +
+                "Length: " + String(props.length_m ?? "?") + " m<br />" +
+                "Current: " + String(props.current_a ?? "?") + " A<br />" +
+                "Load: " + String(props.cum_power_kw ?? "?") + " kW";
+
+            layer.bindPopup(details);
+        },
+    });
+
+    baseLayer.addTo(optimizedCablesLayer);
+    phaseLayer.addTo(optimizedCablesLayer);
+
+    if (phaseLayer.getLayers().length > 0) {
+        map.fitBounds(phaseLayer.getBounds().pad(0.08));
+    }
+    bringNodesToFront();
+}
     function buildNodesGeojson() {
         if (!nodesGeojson || !Array.isArray(nodesGeojson.features)) {
             return { type: "FeatureCollection", features: [] };
@@ -254,3 +278,5 @@
         map.setView([41.7008, -0.1379], 17);
     });
 })();
+
+console.log(cablesGeojson.features[0].properties);

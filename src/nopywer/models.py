@@ -14,7 +14,7 @@ class PowerNode:
     lat: float
     power_watts: float = 0.0
     is_generator: bool = False
-    phase: int | str | list | None = None
+    phase: int = 0
 
     parent: str | None = None
     children: dict[str, str] = field(default_factory=dict)
@@ -52,6 +52,7 @@ class PowerNode:
                 "voltage": self.voltage,
                 "vdrop_percent": self.vdrop_percent,
                 "distro": self.distro,
+                "phase": self.phase,
             },
         }
 
@@ -62,7 +63,7 @@ class Cable:
     length_m: float
     area_mm2: float = 2.5
     plugs_and_sockets_a: float = 16.0
-    phase: int | str | list | None = None
+    phase: int = 0
 
     from_node: str = ""
     to_node: str = ""
@@ -113,6 +114,7 @@ class Cable:
                 "current_a": round(max_current, 1),
                 "cum_power_kw": round(cum_power_w / 1000, 2),
                 "vdrop_volts": self.vdrop_volts,
+                "phase": self.phase,
             },
         }
 
