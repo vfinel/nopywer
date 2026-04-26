@@ -127,7 +127,7 @@ def _cumulate_current(grid: PowerGrid) -> None:
 
 
 def _compute_distro_requirements(grid: PowerGrid) -> None:
-    logger.info("compute_distro_requirements...")
+    logger.info(" compute_distro_requirements...")
     for node in grid.nodes.values():
         logger.debug(f"\t\t {node.name}:")
 
@@ -174,6 +174,7 @@ def _compute_voltage_drop(grid: PowerGrid, node_name: str | None = None) -> None
 
 
 def analyze(grid: PowerGrid) -> None:
+    logger.debug(' analazing grid...')
     if not grid.cables:
         raise ValueError("At least one cable is required")
     _snap_cables_to_nodes(grid)

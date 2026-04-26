@@ -65,6 +65,7 @@ def load_geojson(source: str | Path | dict) -> tuple[dict[str, PowerNode], dict[
     """Parse a GeoJSON FeatureCollection (file path or dict).
 
     Returns (nodes_dict, cables_dict).
+    TODO: check that coordinates are actual longitude and latitude (abs(360) as a rough check ?)
     """
     if isinstance(source, dict):
         fc = source
@@ -200,10 +201,14 @@ def print_grid_info(
                 f"\t\t {name:20} cum_power={pwr}kW, total {total:5.1f}kW, vdrop {vd:.1f}%{flag} "
             )
 
-    logger.info(" Loads not connected to a cable:")
+    loads_not_connected = []
     for name, node in nodes.items():
         needs_power = bool(np.double(node.power_per_phase > 0).sum())
-        if node.cable_to_parent is None and not node.is_generator and needs_power:
+        load_not_connected = node.cable_to_parent is None and not node.is_generator and needs_power
+        if load_not_connected:
+            if len(loads_not_connected)==0:
+                logger.warning(" Loads not connected to a cable:")
+            loads_not_connected.append(node)
             logger.info(f"\t{name}")
 
     unphased = [n for n, nd in nodes.items() if not nd.is_generator and nd.phase is None]
