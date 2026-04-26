@@ -9,18 +9,31 @@ from .geometry import geodesic_distance_m
 from .models import PowerGrid
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 def _snap_cables_to_nodes(grid: PowerGrid) -> None:
+    cables_not_snapped = []
     for cable in grid.cables.values():
+        # try to find connections (on both sides of the cable)
         for attr, endpoint in [("from_node", cable.from_coords), ("to_node", cable.to_coords)]:
             if getattr(cable, attr) != "":
+                logger.debug(f" {cable :} has no attributes !")
                 continue
+            
             for node in grid.nodes.values():
                 dist = geodesic_distance_m(endpoint[0], endpoint[1], node.lon, node.lat)
-                if dist <= CONNECTION_THRESHOLD_M:
+                connection_found = dist <= CONNECTION_THRESHOLD_M
+                if connection_found:
                     setattr(cable, attr, node.name)
                     break
+            
+            if not connection_found:
+                logger.debug(f' \t cable NOT snapped on "{attr:}" end')
+                cables_not_snapped.append(cable)
+        
+    if len(cables_not_snapped)>1:
+        logger.warning(f" {len(cables_not_snapped)} could not be snapped !")
 
 
 def _build_node_cables(grid: PowerGrid) -> dict[str, list[str]]:
