@@ -8,8 +8,8 @@ _transformer = Transformer.from_crs("EPSG:4326", DISTANCE_CRS, always_xy=True)
 
 
 def geodesic_distance_m(
-    lon1: float,
-    lat1: float,
+    lon1: float,  # longitude in degrees
+    lat1: float,  # longitude in degrees
     lon2: float,
     lat2: float,
 ) -> float:
