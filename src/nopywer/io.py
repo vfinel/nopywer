@@ -129,9 +129,15 @@ def load_geojson(source: str | Path | dict) -> tuple[dict[str, PowerNode], dict[
                 node.power_per_phase += power / 3
             nodes.append(node)
 
-        elif gtype == "LineString":
+        elif gtype == "LineString" or "MultiLineString":
             coords = geom.get("coordinates", [])
+            
+            if gtype == "MultiLineString":
+                # TODO: what happens if Line has more than one edge ?
+                coords =  coords[0]
+
             if len(coords) < 2:
+                logger.warning('Line as less than two points, discarding it.')
                 continue
 
             area = float(props.get("area", 2.5) or 2.5)
@@ -156,6 +162,9 @@ def load_geojson(source: str | Path | dict) -> tuple[dict[str, PowerNode], dict[
             cables.append(cable)
             cable_counter += 1
 
+        else:
+            logger.warning(f"{feature = } has an unrecongized {gtype :}")
+    
     return {n.name: n for n in nodes}, {c.id: c for c in cables}
 
 
