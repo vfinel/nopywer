@@ -99,9 +99,9 @@ def print_grid_info(
     generator: PowerNode,
 ) -> None:
     """Log a human-readable grid summary."""
-    logger.info("\n === info about the grid === \n")
+    logger.info(" === info about the grid === ")
     logger.info(
-        f"total power: "
+        f" total power: "
         f"{1e-3 * np.sum(generator.cum_power):.0f}kW \t "
         f"{np.round(1e-3 * generator.cum_power, 1)}kW "
         f"/ {np.round(generator.cum_power / PF / V0)}A"
@@ -110,7 +110,7 @@ def print_grid_info(
     cum = generator.cum_power
     pb = float(100 * np.std(cum) / np.mean(cum))
     flag = " <<<<<<<<<<" if pb > 5 else ""
-    logger.info(f"phase balance: {pb:.1f} % {flag}")
+    logger.info(f" phase balance: {pb:.1f} % {flag}")
 
     for deep, names in enumerate(dlist):
         logger.info(f"\t deepness {deep}")
@@ -124,16 +124,18 @@ def print_grid_info(
                 f"\t\t {name:20} cum_power={pwr}kW, total {total:5.1f}kW, vdrop {vd:.1f}%{flag} "
             )
 
-    logger.info("\nLoads not connected to a cable:")
+    logger.info(" Loads not connected to a cable:")
     for name, node in nodes.items():
         needs_power = bool(np.double(node.power_per_phase > 0).sum())
         if node.cable_to_parent is None and not node.is_generator and needs_power:
             logger.info(f"\t{name}")
 
     unphased = [n for n, nd in nodes.items() if not nd.is_generator and nd.phase is None]
-    logger.info(f"\nLoads without a phase assigned: \n\t{unphased} \n ")
+    if len(unphased):
+        logger.info(f" Loads without a phase assigned: ")
+        logger.info(f"\t{unphased} \n ")
 
-    logger.info("total power on other grids: ")
+    logger.info(" total power on other grids: ")
     subgrid_dict = {"tot": 0.0, "msg": ""}
     subgrid = {"red": subgrid_dict.copy(), "yellow": subgrid_dict.copy()}
     for name, node in nodes.items():
