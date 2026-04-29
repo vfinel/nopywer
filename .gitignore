@@ -10,3 +10,4 @@ src/nopywer/ortools_solverV1_with_inventory.py
 *.csv
 *.pdf
 telemetry data/PV Investment estimation.xlsx
+optimizer.log
