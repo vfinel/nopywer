@@ -1,0 +1,43 @@
+04-27 18:06 nopywer.ortools_solverV1 INFO     
+[SCALE SUMMARY]
+04-27 18:06 nopywer.ortools_solverV1 INFO     generator_penalty: min=9, max=369
+04-27 18:06 nopywer.ortools_solverV1 INFO     tier_cost: min=711, max=570576
+04-27 18:06 nopywer.ortools_solverV1 INFO     distance_sq: min=0, max=81
+04-27 18:08 nopywer.analyze INFO     compute_distro_requirements...
+04-27 18:08 nopywer.analyze DEBUG    		 smurfberry square:
+04-27 18:08 nopywer.analyze DEBUG    		 frostroot pond:
+04-27 18:08 nopywer.analyze DEBUG    		 windmill workshop:
+04-27 18:08 nopywer.analyze DEBUG    		 bluecap cantina:
+04-27 18:08 nopywer.analyze DEBUG    		 handy smurf shed:
+04-27 18:08 nopywer.analyze DEBUG    		 sarsaparilla depot:
+04-27 18:08 nopywer.analyze DEBUG    		 painter's nook:
+04-27 18:08 nopywer.analyze DEBUG    		 meadowfare crossing:
+04-27 18:08 nopywer.analyze DEBUG    		 smurf village generator:
+04-27 18:08 nopywer.analyze DEBUG    		 alpine mushroom camp:
+04-27 18:08 nopywer.analyze DEBUG    		 lantern courtyard:
+04-27 18:08 nopywer.analyze DEBUG    		 jolly barrel yard:
+04-27 18:08 nopywer.analyze DEBUG    		 whysmurf way:
+04-27 18:08 nopywer.analyze DEBUG    		 greyroot terrace:
+04-27 18:08 nopywer.analyze DEBUG    		 blossom burrow:
+04-27 18:08 nopywer.analyze DEBUG    		 gratin grove:
+04-27 18:08 nopywer.analyze DEBUG    		 wellness wagon:
+04-27 18:08 nopywer.analyze DEBUG    		 guardhouse gate:
+04-27 18:08 nopywer.analyze DEBUG    		 talking oak circle:
+04-27 18:08 nopywer.analyze DEBUG    		 coldberry cellar:
+04-27 18:08 nopywer.analyze DEBUG    		 spoon sprout house:
+04-27 18:08 nopywer.analyze DEBUG    		 geekstone workshop:
+04-27 18:08 nopywer.analyze DEBUG    		 distro example:
+04-27 18:08 nopywer.analyze DEBUG    		 mirror pond:
+04-27 18:08 nopywer.analyze DEBUG    		 veritas square:
+04-27 18:08 nopywer.analyze DEBUG    		 tomorrow post:
+04-27 18:08 nopywer.analyze DEBUG    		 moonask ridge:
+04-27 18:08 nopywer.analyze DEBUG    		 starcap terrace:
+04-27 18:08 nopywer.analyze DEBUG    		 reflection brook:
+04-27 18:08 nopywer.analyze DEBUG    		 split cottage lane:
+04-27 18:08 nopywer.analyze DEBUG    		 bouncecap meadow:
+04-27 18:08 nopywer.analyze DEBUG    		 lighthouse knoll:
+04-27 18:08 nopywer.analyze DEBUG    		 cratewheel yard:
+04-27 18:08 nopywer.analyze DEBUG    		 rainbow camp:
+04-27 18:08 nopywer.analyze DEBUG    		 soupkettle corner:
+04-27 18:08 nopywer.analyze DEBUG    		 dreamdust field:
+04-27 18:08 nopywer.ortools_solverV1 INFO     [PHASE] phase loads: {0: 31695.0, 1: 36874.0, 2: 20829.0}

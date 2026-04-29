@@ -161,7 +161,6 @@ _CABLE_TYPES: list[type[Cable]] = [Cable16A, Cable32A, Cable63A, Cable125A]
 
 def pick_cable_for(power_watts: float) -> type[Cable]:
     """Pick the smallest cable type that can handle the given power.
-
     Each type is checked with: I = P / (num_phases x V0 x PF)
     """
     for cable_cls in _CABLE_TYPES:

@@ -45,12 +45,14 @@ def analyze_grid(
     if verbose:
         logging.basicConfig(level=logging.INFO)
 
-    grid = PowerGrid.from_geojson(input)
+    if type(input) is str:
+        grid = PowerGrid.from_geojson(input)
+    elif type(input) is PowerGrid:
+        grid = input
     analyze(grid)
 
     if verbose:
         print_grid_info(grid.nodes, grid.cables, grid.tree, grid.generator)
-
     if inventory_file:
         inventory.choose_cables(inventory_file, grid.cables)
         inventory.choose_distros(inventory_file, grid.nodes)

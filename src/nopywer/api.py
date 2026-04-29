@@ -8,7 +8,9 @@ from pydantic import BaseModel
 from .constants import EXTRA_CABLE_LENGTH_M
 from .io import load_geojson
 from .models import PowerGrid
-from .optimize import optimize_layout
+
+# from .optimize import optimize_layout
+from .ortools_solverV1 import optimize_layout
 
 app = FastAPI(title="nopywer", version="1.0.0")
 frontend_dir = Path(__file__).resolve().parent / "frontend"
@@ -41,6 +43,7 @@ class OptimizeResponse(BaseModel):
     cables_geojson: dict
     total_cable_length_m: float
     num_cables: int
+    phase_loads: dict[int, float]
 
 
 @app.post("/api/v1/optimize", response_model=OptimizeResponse)
@@ -67,6 +70,7 @@ def optimize(req: OptimizeRequest):
             1,
         ),
         num_cables=len(grid.cables),
+        phase_loads=grid.phase_loads,
     )
 
 

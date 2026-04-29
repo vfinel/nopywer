@@ -45,6 +45,8 @@ export NOPYWER_INPUT=input.geojson
 export NOPYWER_OUTPUT=output.geojson
 export NOPYWER_INVENTORY=inventory.xlsx
 nopywer-analyze
+
+They can be also included in a .env file at parent directory.
 ```
 
 To start the companion API server:

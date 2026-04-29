@@ -191,9 +191,9 @@
         ]
       },
       "properties": {
-        "name": "Why Not?",
-        "power": 1840.0,
-        "type": "load"
+        "name": "distro example",
+        "power": 0,
+        "type": "distro"
       }
     },
     {
