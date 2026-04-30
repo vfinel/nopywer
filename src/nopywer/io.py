@@ -1,6 +1,7 @@
 import json
 import logging
 from pathlib import Path
+import re 
 
 import numpy as np
 
@@ -9,6 +10,42 @@ from .geometry import geodesic_distance_m
 from .models import Cable, PowerNode
 
 logger = logging.getLogger(__name__)
+
+
+def _parse_power_per_phase(power: float, phase: str | int):
+    """
+    TODO:
+        - add description 
+        - add tests: (check value returned ?)
+            phase = ['1', '1,2', '1,2,3',
+                    '4', '1,4', '1,2,3,1', {}]
+        - can doctests be ran with pytests ?
+    """
+    power_per_phase = np.zeros(3)
+
+    if isinstance(phase, int):
+        if 1 <= phase <= 3:
+            power_per_phase[phase - 1] = power
+        else:
+            raise ValueError(f"phase must be between 1 and 3 but is {phase}")
+    
+    elif isinstance(phase, str):
+        match = re.findall('\\d+', phase) 
+
+        # version for n-phases:
+        n_phases = len(match)
+        for ph in match:
+            idx = int(ph)-1
+            power_per_phase[idx] = power / n_phases
+
+
+    else:
+        logger.info(f"unable to parse phase ({phase}), assuming 3-phases repartition.")
+        power_per_phase += power / 3
+    
+    logger.debug(f"{power_per_phase = }")
+
+    return power_per_phase 
 
 
 def load_geojson(source: str | Path | dict) -> tuple[dict[str, PowerNode], dict[str, Cable]]:
@@ -48,10 +85,9 @@ def load_geojson(source: str | Path | dict) -> tuple[dict[str, PowerNode], dict[
                 is_generator=("generator" in name),
                 phase=phase,
             )
-            if isinstance(phase, int) and 1 <= phase <= 3:
-                node.power_per_phase[phase - 1] = power
-            else:
-                node.power_per_phase += power / 3
+
+            node.power_per_phase = _parse_power_per_phase(power, phase)
+
             nodes.append(node)
 
         elif gtype == "LineString" or "MultiLineString":
@@ -84,6 +120,7 @@ def load_geojson(source: str | Path | dict) -> tuple[dict[str, PowerNode], dict[
                 from_coords=(coords[0][0], coords[0][1]),
                 to_coords=(coords[-1][0], coords[-1][1]),
             )
+
             cables.append(cable)
             cable_counter += 1
 
