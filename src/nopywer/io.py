@@ -164,7 +164,6 @@ def load_geojson(source: str | Path | dict) -> tuple[dict[str, PowerNode], dict[
 
             area = float(props.get("area", 2.5) or 2.5)
             ps = float(props.get("plugs&sockets", 16.0) or 16.0)
-
             length = float(props.get("length", 0) or 0)
             if length <= 0:
                 length = geodesic_distance_m(
