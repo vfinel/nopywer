@@ -62,13 +62,14 @@ def _normalise_keys(props: dict) -> dict:
     return {_EXPORT_KEY_ALIASES.get(k, k): v for k, v in props.items()}
 
 
-def _parse_power_per_phase(power: float, phase: str | int):
+def _parse_power_per_phase(power: float, phase: str | int, name: str):
     """
     TODO:
         - add description 
         - add tests: (check value returned ?)
             phase = ['1', '1,2', '1,2,3',
-                    '4', '1,4', '1,2,3,1', {}]
+                    '4', '1,4', '1,2,3,1', {}, 
+                    '']
         - can doctests be ran with pytests ?
     """
     power_per_phase = np.zeros(3)
@@ -80,20 +81,25 @@ def _parse_power_per_phase(power: float, phase: str | int):
             raise ValueError(f"phase must be between 1 and 3 but is {phase}")
     
     elif isinstance(phase, str):
-        match = re.findall('\\d+', phase) 
+        if (not phase) and (name != 'generator'):
+            raise ValueError(f"no phase assigned to load '{name}'!")
 
-        # version for n-phases:
-        n_phases = len(match)
-        for ph in match:
-            idx = int(ph)-1
-            power_per_phase[idx] = power / n_phases
-
+        else:
+            # search numbers in string and split power accross phases
+            match = re.findall('\\d+', phase) 
+            n_phases = len(match)
+            for ph in match:
+                if 1 <= int(ph) <= 3:
+                    idx = int(ph)-1
+                    power_per_phase[idx] = power / n_phases
+                else:
+                    raise ValueError(f"phase of load '{name}' must be between 1 and 3 but is {phase}")
 
     else:
-        logger.info(f"unable to parse phase ({phase}), assuming 3-phases repartition.")
+        logger.info(f" unable to parse phase ({phase}), assuming 3-phases repartition.")
         power_per_phase += power / 3
     
-    logger.debug(f"{power_per_phase = }")
+    logger.debug(f" load '{name}': {power_per_phase = }")
 
     return power_per_phase 
 
@@ -137,6 +143,7 @@ def load_geojson(source: str | Path | dict) -> tuple[dict[str, PowerNode], dict[
             coords = geom["coordinates"]
             power = float(props.get("power", 0) or 0)
             phase = props.get("phase")
+            logger.debug(f' building node {name} with {phase=}')
 
             node = PowerNode(
                 name=name,
@@ -147,7 +154,7 @@ def load_geojson(source: str | Path | dict) -> tuple[dict[str, PowerNode], dict[
                 phase=phase,
             )
 
-            node.power_per_phase = _parse_power_per_phase(power, phase)
+            node.power_per_phase = _parse_power_per_phase(power, phase, name)
 
             nodes.append(node)
 
