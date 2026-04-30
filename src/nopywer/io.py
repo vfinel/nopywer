@@ -244,13 +244,13 @@ def print_grid_info(
         logger.info(f" Loads without a phase assigned: ")
         logger.info(f"\t{unphased} \n ")
 
-    logger.debug("\ndistro requirements:")
+    logger.info("\n \t distro requirements:")
     for deep, names in enumerate(dlist):
-        logger.debug(f"\t deepness {deep}")
+        logger.info(f"\t deepness {deep}")
         for name in names:
             distro = nodes[name].distro
-            logger.debug(f"\t\t {name}:")
-            logger.debug(f"\t\t\t in: {distro['in']}")
-            logger.debug("\t\t\t out: ")
+            logger.info(f"\t\t {name}:")
+            logger.info(f"\t\t\t in: {distro['in']}")
+            logger.info("\t\t\t out: ")
             for desc, count in distro["out"].items():
-                logger.debug(f"\t\t\t\t {desc}: {count}")
+                logger.info(f"\t\t\t\t {desc}: {count}")
