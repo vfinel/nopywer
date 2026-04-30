@@ -177,22 +177,6 @@ def print_grid_info(
         logger.info(f" Loads without a phase assigned: ")
         logger.info(f"\t{unphased} \n ")
 
-    logger.info(" total power on other grids: ")
-    subgrid_dict = {"tot": 0.0, "msg": ""}
-    subgrid = {"red": subgrid_dict.copy(), "yellow": subgrid_dict.copy()}
-    for name, node in nodes.items():
-        g = {"U": "red", "Y": "yellow"}.get(node.phase)
-        if g is not None:
-            subgrid[g]["tot"] += node.power_per_phase
-            subgrid[g]["msg"] += f"\t\t {name} ({node.power_watts}W) \n"
-
-    for sg_name, sg_val in subgrid.items():
-        tot = sg_val["tot"]
-        if isinstance(tot, np.ndarray):
-            tot = tot.sum()
-        logger.info(f"\t {sg_name} grid: {tot / 1e3:.1f}kW / {tot / V0:.1f}A")
-        logger.info(sg_val["msg"])
-
     logger.debug("\ndistro requirements:")
     for deep, names in enumerate(dlist):
         logger.debug(f"\t deepness {deep}")
