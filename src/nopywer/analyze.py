@@ -9,7 +9,7 @@ from .geometry import geodesic_distance_m
 from .models import PowerGrid
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)  # or DEBUG
 
 
 def _snap_cables_to_nodes(grid: PowerGrid) -> None:
