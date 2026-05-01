@@ -31,7 +31,7 @@ def _parse_power_per_phase(power: float, phase: str | int, name: str):
             raise ValueError(f"phase must be between 1 and 3 but is {phase}")
     
     elif isinstance(phase, str):
-        if (not phase) and (name != 'generator'):
+        if (not phase) and (power > 0):
             raise ValueError(f"no phase assigned to load '{name}'!")
 
         else:
