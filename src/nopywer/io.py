@@ -143,6 +143,9 @@ def print_grid_info(
     generator: PowerNode,
 ) -> None:
     """Log a human-readable grid summary."""
+
+    # print overview 
+    print(' ')
     logger.info(" === info about the grid === ")
     logger.info(
         f" total power: "
@@ -168,28 +171,28 @@ def print_grid_info(
                 f"\t\t {name:20} cum_power={pwr}kW, total {total:5.1f}kW, vdrop {vd:.1f}%{flag} "
             )
 
+    # print loads not connected to a cable
     loads_not_connected = []
     for name, node in nodes.items():
         needs_power = bool(np.double(node.power_per_phase > 0).sum())
         load_not_connected = node.cable_to_parent is None and not node.is_generator and needs_power
         if load_not_connected:
-            if len(loads_not_connected)==0:
-                logger.warning(" Loads not connected to a cable:")
-            loads_not_connected.append(node)
-            logger.info(f"\t{name}")
+            loads_not_connected.append(node.name)
 
+    if loads_not_connected:
+        print(' ')
+        logger.warning(f" Loads not connected to a cable: {loads_not_connected} \n")
+        
+    # print loads without a phase assigned
     unphased = [n for n, nd in nodes.items() if not nd.is_generator and nd.phase is None]
     if len(unphased):
         logger.info(f" Loads without a phase assigned: ")
         logger.info(f"\t{unphased} \n ")
 
-    logger.info("\n \t distro requirements:")
+    # print distro requirements
+    logger.info(" distro requirements:")
     for deep, names in enumerate(dlist):
         logger.info(f"\t deepness {deep}")
         for name in names:
-            distro = nodes[name].distro
-            logger.info(f"\t\t {name}:")
-            logger.info(f"\t\t\t in: {distro['in']}")
-            logger.info("\t\t\t out: ")
-            for desc, count in distro["out"].items():
-                logger.info(f"\t\t\t\t {desc}: {count}")
+            logger.info(f"\t\t '{name}' distro: {nodes[name].distro}")
+
