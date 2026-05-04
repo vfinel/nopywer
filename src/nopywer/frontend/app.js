@@ -33,7 +33,10 @@
         messageEl.textContent = text;
         messageEl.style.color = isError ? "#fca5a5" : "#cbd5e1";
     }
-
+    function capitalizeName(name) {
+    return name.replace(/\b\w/g, c => c.toUpperCase());
+    }
+    
     function setOptimizerStatus(text) {
         optimizerStatusEl.textContent = text;
     }
@@ -175,31 +178,35 @@
             const generator = isGenerator(feature);
             const name = feature.properties && feature.properties.name ? feature.properties.name : "unnamed";
             const power = feature.properties && typeof feature.properties.power === "number"
-                ? feature.properties.power / 1000
-                : 0;
+            ? feature.properties.power / 1000
+            : 0;
 
+            const phaseRaw = feature.properties?.phase;
+            const phase = phaseRaw != null && phaseRaw !== "" 
+                ? parseInt(phaseRaw, 10) 
+                : null;
+
+            const phaseLabel = phase !== null && !isNaN(phase) ? `L${phase + 1}` : "No phase assigned";
+            const phaseCol = phaseColor(phase);
             // Scale radius proportionally to power (min 4, max 20)
             const radius = Math.max(4, Math.min(20, 4 + power * 1));
             const markerOptions = {
                 radius: generator ? Math.max(radius, 8) : radius,
                 weight: generator ? 3 : 2,
                 color: generator ? "#ef4444" : "#a16207",
-                fillColor: generator ? "#f87171" : "#facc15",
+                fillColor: generator ? "#f87171" : phaseCol,
+                // fillColor: generator ? "#f87171" : "#facc15",
                 fillOpacity: 0.95,
                 opacity: 1,
             };
 
             const marker = L.circleMarker(latlng, markerOptions)
-                .bindPopup(
-                    "<strong>" +
-                        name +
-                        "</strong><br />" +
-                        "Power: " +
-                        power.toFixed(2) +
-                        " kW",
-                )
+                .bindPopup(`
+                    <strong>${name}</strong><br />
+                    Power: ${power.toFixed(2)} kW<br />
+                    Phase: ${phaseLabel}
+                `)
                 .addTo(nodesLayer);
-
             marker._originalStyle = markerOptions;
             marker._nodeName = name;
             nodeMarkers.push({ name, layer: marker });
@@ -243,13 +250,17 @@
     function phaseColor(phase) {
         const p = phase !== null && phase !== "" ? parseInt(phase, 10) : null;
         const colors = { 0: "#000000dc", 1: "#77261c", 2: "#7a7a7a", 3: "#ff00a6" };
-        return p !== null && !isNaN(p) ? (colors[p] ?? "#f8f7f7") : "#ffffff";
+        return p !== null && !isNaN(p) ? (colors[p] ?? "#f8f7f7") : "#facc15";
     }
 
     function renderOptimizedCables(cablesGeojson) {
     console.log(cablesGeojson.features[0].properties);
 
     optimizedCablesLayer.clearLayers();
+
+    const nodeFeatures = cablesGeojson.features.filter(f => f.geometry.type === "Point");
+    console.log("Node features:", nodeFeatures.length, nodeFeatures[0]?.properties);
+
 
     const filter = function (feature) {
         return feature.geometry && feature.geometry.type === "LineString";
@@ -315,6 +326,46 @@
     }
     bringNodesToFront();
 }
+function updateNodePhasesFromResponse(nodeFeatures) {
+    nodesLayer.clearLayers();      // ✅ wipe original markers
+    nodeMarkers.length = 0;        // ✅ clear the reference array
+
+    nodeFeatures.forEach((feature) => {
+        if (!feature.geometry || feature.geometry.type !== "Point") return;
+
+        const coords = feature.geometry.coordinates;
+        const latlng = [coords[1], coords[0]];
+        const name = feature.properties?.name ?? "unnamed";
+        const phase = feature.properties?.phase ?? null;
+        const power = (feature.properties?.power_watts ?? 0) / 1000;
+        const phaseLabel = phase !== null && !isNaN(phase) ? `L${phase + 1}` : "?";
+
+        const generator = name.toLowerCase().includes("generator");
+        const radius = Math.max(4, Math.min(20, 4 + power));
+        const markerOptions = {
+            radius: generator ? Math.max(radius, 8) : radius,
+            weight: generator ? 3 : 2,
+            color: generator ? "#ef4444" : "#a16207",
+            fillColor: generator ? "#f87171" : "#facc15",
+            fillOpacity: 0.95,
+            opacity: 1,
+        };
+
+        const marker = L.circleMarker(latlng, markerOptions)
+            .bindPopup(`
+                <strong>${name}</strong><br />
+                Power: ${power.toFixed(2)} kW<br />
+                Phase: ${phaseLabel}
+            `)
+            .addTo(nodesLayer);
+
+        marker._originalStyle = markerOptions;
+        nodeMarkers.push({ name, layer: marker });
+    });
+
+    bringNodesToFront();
+}
+
     function buildNodesGeojson() {
         if (!nodesGeojson || !Array.isArray(nodesGeojson.features)) {
             return { type: "FeatureCollection", features: [] };
@@ -328,6 +379,7 @@
                 properties: {
                     name: feature.properties.name,
                     power: feature.properties.power,
+                    phase: feature.properties.phase ?? null,
                 },
             })),
         };
@@ -369,6 +421,9 @@
             }
 
             renderOptimizedCables(payload.cables_geojson);
+            updateNodePhasesFromResponse(
+            payload.cables_geojson.features.filter(f => f.geometry.type === "Point"));
+
             setOptimizerStatus("done");
             setMessage(
                 "Computed and drew " +
@@ -376,12 +431,19 @@
                     " cables for " +
                     Math.round(payload.total_cable_length_m) +
                     " m total" +
-                    "  Phase loads: L1=" +
+                    " Phase loads: L1=" +
                           Math.round(payload.phase_loads[0]) +
                           " kW, L2=" +
                           Math.round(payload.phase_loads[1]) +
                           " kW, L3=" +  
                           Math.round(payload.phase_loads[2]),
+                "\n" +
+                    "Phase loads: L1=" +
+                    Math.round(payload.phase_loads[0]) +
+                    " kW, L2=" +
+                    Math.round(payload.phase_loads[1]) +
+                    " kW, L3=" +
+                    Math.round(payload.phase_loads[2]),
                 false,
             );
         } catch (error) {

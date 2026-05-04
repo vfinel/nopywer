@@ -62,6 +62,7 @@ def optimize(req: OptimizeRequest):
         raise HTTPException(400, "At least one load is required")
 
     grid = optimize_layout(grid, extra_cable_m=req.extra_cable_m)
+    # print(grid.nodes)
 
     return OptimizeResponse(
         cables_geojson=grid.to_geojson(),

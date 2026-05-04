@@ -76,7 +76,7 @@ def optimize_layout(
     add_cable_capacity_constraints(node_names, model, flow, tier_variables, nodes)
     add_flow_cable_exists_constraints(node_names, model, flow, tier_variables, nodes)
     add_no_crossing_constraints(node_names, nodes, model, connection_variables)
-    # add_nodes_proximity_constraints(node_names, nodes, model, connection_variables, dist_matrix)
+    add_nodes_proximity_constraints(node_names, nodes, model, connection_variables, dist_matrix)
 
     for n in nodes:
         if n == generator:
@@ -107,10 +107,6 @@ def optimize_layout(
                 continue
             d = dist_matrix[(node_i, node_j)]
 
-            # Penalize large direct connections from the gennie
-            # if nodes[node_i].is_generator:
-            #     cost_terms.append(int(d * d / 100) * connection_variables[(node_i, node_j)])
-
             # Select preferably smaller cable tiers
             for cable_type, tier in enumerate(_CABLE_TYPES):
                 cost_terms.append(
@@ -125,8 +121,12 @@ def optimize_layout(
             ).OnlyEnforceIf(tier_variables[(node_i, node_j, cable_type)])
 
             # Help minimize total length
+            # Penalize large direct connections from the gennie
+            if nodes[node_i].is_generator:
+                cost_terms.append(int(d * 20) * connection_variables[(node_i, node_j)])
             # cost_terms.append(d * resistance_per_m/1 * 1000)
-            cost_terms.append(int(d * d / 1000) * connection_variables[(node_i, node_j)])
+            else:
+                cost_terms.append(int(d * d / 1000) * connection_variables[(node_i, node_j)])
 
     logger.info("\n[SCALE SUMMARY]")
     logger.info(
@@ -192,7 +192,7 @@ def optimize_layout(
 
     solver = cp_model.CpSolver()
     solver.parameters.max_time_in_seconds = 120
-    solver.parameters.log_search_progress = False
+    solver.parameters.log_search_progress = True
     solver.parameters.num_search_workers = 8
     solver.parameters.cp_model_presolve = True
     status = solver.Solve(model)
@@ -205,13 +205,12 @@ def optimize_layout(
             raise RuntimeError("Optimization failed")
 
     _compute_distro_requirements(grid)
-    assign_nodes_and_cables(
+    grid = assign_nodes_and_cables(
         grid, extra_cable_m, nodes, node_names, dist_matrix, connection_variables, solver
     )
+    # grid.nodes = nodes
 
     while status in (cp_model.OPTIMAL, cp_model.FEASIBLE):
-        grid.nodes = nodes
-
         if ITERATE_ACCORDING_TO_INVENTORY:
             # analyze_grid(grid, verbose=True)
             unmatched_cables = inventory.choose_cables(INVENTORY, grid.cables)
@@ -241,6 +240,7 @@ def optimize_layout(
 
         else:
             break
+
         total_cable_length_m = (
             round(
                 sum(c.length_m for c in grid.cables.values()),
@@ -317,12 +317,11 @@ def assign_nodes_and_cables(
                 cables.append(cable)
                 cid += 1
 
-    grid.nodes = nodes
-
     computed_cables = _compute_power_flow(cables, nodes)
     node_phase, cable_phase, phase_loads = assign_phases_from_grid(nodes, computed_cables)
     for n in node_names:
         nodes[n].phase = node_phase.get(n, 0)
+    grid.nodes = nodes
 
     for cable in computed_cables:
         cable.phase = cable_phase.get((cable.from_node, cable.to_node), 0)
@@ -334,8 +333,8 @@ def assign_nodes_and_cables(
     # for cable in computed_cables:
     #     cable.phase = node_phase.get(cable.to_node, 0)
 
-    grid.nodes = nodes
     grid.cables = {cable.id: cable for cable in computed_cables}
+    return grid
 
 
 def add_no_crossing_constraints(node_names, nodes, model, connection_variables):
@@ -426,7 +425,6 @@ def add_power_balance_constraints(nodes, node_names, generator, model, flow):
         outgoing = [flow[(n, j)] for j in node_names if j != n]
         if n == generator:
             model.Add(sum(outgoing) - sum(incoming) == total_load)
-
         else:
             model.Add(sum(incoming) - sum(outgoing) == int(nodes[n].power_watts))
     print("Total load:", total_load)

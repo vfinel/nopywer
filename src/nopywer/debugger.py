@@ -8,7 +8,6 @@ from nopywer.io import load_geojson
 from nopywer.models import PowerGrid
 
 # from nopywer.optimize import optimize_layout
-# from nopywer.martian_solver import optimize_layout
 from nopywer.ortools_solverV1 import optimize_layout
 
 

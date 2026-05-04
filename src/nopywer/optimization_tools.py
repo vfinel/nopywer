@@ -50,6 +50,8 @@ def assign_phases_from_grid(nodes: dict, cables: list) -> dict:
 
     generator = next(n for n, node in nodes.items() if node.is_generator)
 
+    total_load = sum(n.power_watts for n in nodes.values() if not n.is_generator)
+
     def subtree_load(root):
         total = 0
         stack = [root]
@@ -84,7 +86,7 @@ def assign_phases_from_grid(nodes: dict, cables: list) -> dict:
 
         # If the incoming cable is three-phase and there are 3 or more children,
         # this cable must be three-phase
-        if incoming_three_phase and len(kids) >= 3:
+        if incoming_three_phase and (len(kids) >= 3 or subtree_load(node) > total_load // 3):
             cable_phase[(parent, node)] = 3
 
         if len(kids) == 3:
@@ -116,17 +118,17 @@ def assign_phases_from_grid(nodes: dict, cables: list) -> dict:
                 if incoming_three_phase:
                     # comes from gennie but can't split into 3 → assign to
                     # the phase with less load
-                    phase_loads = {0: 0, 1: 0, 2: 0}
+                    total_phase_loads = {0: 0, 1: 0, 2: 0}
                     for p_node, p in node_phase.items():
-                        if p in phase_loads:
-                            phase_loads[p] += nodes[p_node].power_watts
+                        if p in total_phase_loads:
+                            total_phase_loads[p] += nodes[p_node].power_watts
 
                     # Asign phases to kids one by one, starting with the heaviest,
                     # and always assigning to the phase with less load
                     for kid in kids:
                         kid_load = subtree_load(kid)
-                        assigned = min(phase_loads, key=lambda p: phase_loads[p])
-                        phase_loads[assigned] += kid_load
+                        assigned = min(total_phase_loads, key=lambda p: total_phase_loads[p])
+                        total_phase_loads[assigned] += kid_load
 
                         kids_of_kid = sorted(
                             children[kid], key=lambda n: subtree_load(n), reverse=True
@@ -147,14 +149,14 @@ def assign_phases_from_grid(nodes: dict, cables: list) -> dict:
                     node_phase[kid] = assigned
                     queue.append((kid, assigned, node))
 
-    print("Cable phases are", cable_phase)
+    # print("Cable phases are", cable_phase)
 
-    phase_loads = {0: 0.0, 1: 0.0, 2: 0.0}
+    total_phase_loads = {0: 0.0, 1: 0.0, 2: 0.0}
     for n, phase in node_phase.items():
-        if phase in phase_loads and not nodes[n].is_generator:
-            phase_loads[phase] += nodes[n].power_watts
+        if phase in total_phase_loads and not nodes[n].is_generator:
+            total_phase_loads[phase] += nodes[n].power_watts
 
-    return node_phase, cable_phase, phase_loads
+    return node_phase, cable_phase, total_phase_loads
 
 
 def segments_cross(p1, p2, p3, p4):
