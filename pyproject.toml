@@ -7,13 +7,17 @@ license = "GPL-3.0-or-later"
 dependencies = [
     "fastapi>=0.135",
     "networkx>=3.6",
-    "numpy>=2.4",
+    "numpy>=1.26",
     "odfpy>=1.4",
-    "pandas>=3.0",
+    "pandas>=2.3",
     "pyproj>=3.7",
     "typer>=0.24",
     "uvicorn>=0.41",
 ]
+
+[project.optional-dependencies]
+pandapower = ["pandapower>=3.4"]
+modern = ["pandas>=3.0", "numpy>=2.4"]
 
 [dependency-groups]
 dev = [
@@ -30,6 +34,14 @@ nopywer-server = "nopywer.api:run"
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.uv]
+conflicts = [
+    [
+        { extra = "modern" },
+        { extra = "pandapower" },
+    ],
+]
 
 [tool.hatch.build]
 include = ["src/nopywer/frontend/**/*"]
