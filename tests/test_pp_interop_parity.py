@@ -62,12 +62,12 @@ import math
 
 import pytest
 
-pp = pytest.importorskip("pandapower")
-
 from nopywer.analyze import _compute_voltage_drop
 from nopywer.constants import V0
 from nopywer.models import Cable, PowerGrid, PowerNode
 from nopywer.pp_interop import config
+
+pp = pytest.importorskip("pandapower")
 
 
 def test_voltage_drop_matches_pandapower_with_constant_current_load():
