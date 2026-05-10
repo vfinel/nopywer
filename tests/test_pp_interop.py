@@ -3,7 +3,13 @@ import pytest
 pytest.importorskip("pandapower")
 
 from nopywer.models import Cable16A, Cable32A, PowerGrid, PowerNode
-from nopywer.pp_interop import PandapowerGrid, compute_short_circuit, to_pandapower
+from nopywer.pp_interop import (
+    PandapowerGrid,
+    compare_with_tree_walk,
+    compute_power_flow,
+    compute_short_circuit,
+    to_pandapower,
+)
 
 
 def _simple_grid() -> PowerGrid:
@@ -95,3 +101,54 @@ def test_pandapower_grid_reusable():
     # Mutating net.res_bus_sc, calling again still works and gives same answer.
     r2 = compute_short_circuit(pp_grid)
     assert r1 == r2
+
+
+def test_to_pandapower_creates_load_per_consumer():
+    grid = _simple_grid()
+    pp_grid = to_pandapower(grid)
+    assert "load" in pp_grid.load_idx
+    assert "generator" not in pp_grid.load_idx
+    load_row = pp_grid.net.load.iloc[pp_grid.load_idx["load"]]
+    assert load_row["p_mw"] == pytest.approx(3000 / 1e6)
+    # Q derived from PF=0.9 → tan(acos(0.9)) ≈ 0.4843
+    assert load_row["q_mvar"] == pytest.approx(load_row["p_mw"] * 0.484, abs=0.01)
+
+
+def test_compute_power_flow_balanced_case():
+    grid = _simple_grid()
+    pp_grid = to_pandapower(grid)
+    res = compute_power_flow(pp_grid)
+    assert res.converged
+    assert res.bus_voltage_v["generator"] == pytest.approx(230.0, abs=0.5)
+    # Load bus volts below generator bus volts.
+    assert res.bus_voltage_v["load"] < res.bus_voltage_v["generator"]
+    assert res.bus_vdrop_percent["load"] > 0.0
+    assert res.line_current_a["c1"] > 0.0
+
+
+def test_compare_with_tree_walk_after_explicit_analyze():
+    """Caller may have already run analyze; we must not re-run it."""
+    from nopywer.analyze import analyze
+
+    grid = _simple_grid()
+    analyze(grid)
+    # Second call would hit `_assign_children`'s cycle-detection guard if
+    # we re-ran analyze. Should succeed silently.
+    diff = compare_with_tree_walk(grid)
+    assert diff.converged
+
+
+def test_compare_with_tree_walk_returns_aligned_diff():
+    grid = _simple_grid()
+    diff = compare_with_tree_walk(grid)
+    assert diff.converged
+    # Both views populated for every node.
+    assert set(diff.bus_voltage_v.keys()) == {"generator", "load"}
+    assert set(diff.line_current_a.keys()) == {"c1"}
+    # Tree-walk and AC agree at the slack bus to within rounding.
+    tw_v, ac_v, _ = diff.bus_voltage_v["generator"]
+    assert abs(tw_v - ac_v) < 1.0
+    # The "worst disagreement" helper returns one of the entries.
+    worst = diff.worst_voltage_disagreement()
+    assert worst is not None
+    assert worst[0] in {"generator", "load"}

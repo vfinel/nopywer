@@ -1,16 +1,17 @@
 """PowerGrid → pandapowerNet conversion.
 
 Used by every calc function in this package. Produces a `PandapowerGrid`
-holding the net, name→bus_idx map, and a back-ref to the source
-`PowerGrid` for write-back.
+holding the net, name→bus_idx map, name→load_idx map, and a back-ref
+to the source `PowerGrid` for write-back.
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+import math
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
-from ..constants import RHO_COPPER
+from ..constants import PF, RHO_COPPER
 from ..models import PowerGrid
 from . import config
 
@@ -35,13 +36,15 @@ class PandapowerGrid:
     """A `PowerGrid` translated into pandapower form.
 
     Produced once by `to_pandapower(grid)` and passed to calc functions
-    (currently `compute_short_circuit`; future calc functions share this
-    handle).
+    (`compute_short_circuit`, `compute_power_flow`, ...). The same handle
+    is reusable across multiple calc calls.
 
     Attributes:
         net: the `pandapowerNet`. Mutable — calc functions write into
             `net.res_*` tables. Caller may inspect or modify.
         bus_idx: maps `PowerNode.name` to its pandapower bus index.
+        load_idx: maps `PowerNode.name` to its pandapower load index
+            (only present for non-generator nodes with power > 0).
         source: the original `PowerGrid`. Calc functions write results
             back onto its `PowerNode`s using `bus_idx`.
     """
@@ -49,6 +52,7 @@ class PandapowerGrid:
     net: "pandapowerNet"
     bus_idx: dict[str, int]
     source: PowerGrid
+    load_idx: dict[str, int] = field(default_factory=dict)
 
 
 def to_pandapower(
@@ -57,6 +61,7 @@ def to_pandapower(
     gen_xdss_pu: float = config.GEN_XDSS_PU,
     gen_rx: float = config.GEN_RX,
     x_ohm_per_km: float = config.X_OHM_PER_KM,
+    load_pf: float = PF,
 ) -> PandapowerGrid:
     """Translate a `PowerGrid` into a `PandapowerGrid`.
 
@@ -65,7 +70,11 @@ def to_pandapower(
 
     The generator becomes an `ext_grid` with
         s_sc_max_mva = (gen_sn_kva / 1000) / gen_xdss_pu
-    For the default 100 kVA / X''d = 12 % this gives ≈ 0.833 MVA.
+
+    Each non-generator node with `power_watts > 0` becomes a balanced
+    `pp.load` with P = power_watts and Q derived from `load_pf`. Loads
+    are needed for `runpp` (power flow) and are harmless for IEC 60909
+    `calc_sc` max-case (which standardly ignores prefault load).
     """
     if not grid.cables:
         raise ValueError("At least one cable is required")
@@ -86,6 +95,20 @@ def to_pandapower(
         s_sc_max_mva=s_sc_max_mva,
         rx_max=gen_rx,
     )
+
+    load_idx: dict[str, int] = {}
+    tan_phi = math.tan(math.acos(load_pf)) if 0 < load_pf < 1 else 0.0
+    for name, node in grid.nodes.items():
+        if node.is_generator or node.power_watts <= 0:
+            continue
+        p_mw = node.power_watts / 1e6
+        load_idx[name] = pp.create_load(
+            net,
+            bus=bus_idx[name],
+            p_mw=p_mw,
+            q_mvar=p_mw * tan_phi,
+            name=name,
+        )
 
     for cable_id, cable in grid.cables.items():
         if not cable.from_node or not cable.to_node:
@@ -113,4 +136,4 @@ def to_pandapower(
             name=cable_id,
         )
 
-    return PandapowerGrid(net=net, bus_idx=bus_idx, source=grid)
+    return PandapowerGrid(net=net, bus_idx=bus_idx, source=grid, load_idx=load_idx)
