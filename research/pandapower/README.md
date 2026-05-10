@@ -32,6 +32,10 @@ Date of research: April 2026. Pandapower latest at time of writing: **3.4.0**
    what was built for opportunity §1 (AC validation of the optimiser) and
    what running it on the 2025 fixture revealed: tree walk under-reports
    voltage drop by up to 12 percentage points at high-stress nodes.
+8. [`08_why_tree_walk_and_ac_disagree.md`](08_why_tree_walk_and_ac_disagree.md) —
+   power-systems theory walkthrough of why nopywer and pandapower
+   disagree, and why the disagreement runs in opposite directions on
+   different fixtures (max-phase rule vs constant-power feedback).
 
 ## TL;DR
 
