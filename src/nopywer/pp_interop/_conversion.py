@@ -5,11 +5,9 @@ holding the net, name→bus_idx map, name→load_idx map, and a back-ref
 to the source `PowerGrid` for write-back.
 """
 
-from __future__ import annotations
-
 import math
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from ..constants import PF, RHO_COPPER
 from ..models import PowerGrid
@@ -17,6 +15,8 @@ from . import config
 
 if TYPE_CHECKING:
     from pandapower.auxiliary import pandapowerNet
+else:
+    pandapowerNet = Any
 
 
 def _import_pandapower():
@@ -26,7 +26,7 @@ def _import_pandapower():
     except ImportError as e:
         raise ImportError(
             "pandapower is required for this feature. "
-            "Install with: pip install nopywer[pandapower]"
+            "Install it in this project with: uv sync --extra pandapower"
         ) from e
     return pp, sc
 
@@ -49,7 +49,7 @@ class PandapowerGrid:
             back onto its `PowerNode`s using `bus_idx`.
     """
 
-    net: "pandapowerNet"
+    net: pandapowerNet
     bus_idx: dict[str, int]
     source: PowerGrid
     load_idx: dict[str, int] = field(default_factory=dict)
@@ -67,6 +67,20 @@ def to_pandapower(
 
     Cables must already have `from_node` and `to_node` populated (set by
     `io.load_geojson` or by `analyze._snap_cables_to_nodes`).
+
+    Args:
+        grid: nopywer grid to convert. Its cables must already reference
+            existing node names via `from_node` and `to_node`.
+        gen_sn_kva: generator rated apparent power in kVA, used to derive
+            the short-circuit source strength.
+        gen_xdss_pu: generator subtransient reactance in per unit, used in
+            `s_sc_max_mva = (gen_sn_kva / 1000) / gen_xdss_pu`.
+        gen_rx: generator R/X ratio passed to pandapower's external-grid
+            short-circuit model.
+        x_ohm_per_km: cable reactance in ohms per kilometre for every
+            converted line.
+        load_pf: load power factor used to derive reactive power for
+            balanced AC power-flow loads.
 
     The generator becomes an `ext_grid` with
         s_sc_max_mva = (gen_sn_kva / 1000) / gen_xdss_pu

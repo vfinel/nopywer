@@ -11,8 +11,6 @@ report nopywer's phase-to-neutral volts (`vm_pu * vn_kv * 1000 / sqrt(3)`)
 to match `PowerNode.voltage`.
 """
 
-from __future__ import annotations
-
 import math
 from dataclasses import dataclass
 

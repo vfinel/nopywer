@@ -1,6 +1,6 @@
 """Pandapower interop layer.
 
-Optional feature — requires `pip install nopywer[pandapower]`.
+Optional feature — requires `uv sync --extra pandapower`.
 
 Public API:
     to_pandapower(grid, ...) -> PandapowerGrid
