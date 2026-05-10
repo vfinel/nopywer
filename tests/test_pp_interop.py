@@ -44,6 +44,7 @@ import pytest
 
 pytest.importorskip("pandapower")
 
+from nopywer.constants import RHO_COPPER
 from nopywer.models import Cable16A, Cable32A, PowerGrid, PowerNode
 from nopywer.pp_interop import (
     PandapowerGrid,
@@ -106,7 +107,9 @@ def test_to_pandapower_topology():
 
     line = net.line.iloc[0]
     assert line["length_km"] == pytest.approx(0.05)
-    assert line["r_ohm_per_km"] == pytest.approx(1000 / 26 / 6.0)
+    # r_ohm_per_km = RHO_COPPER * 1000 / area_mm2; tracks the actual
+    # constant rather than its legacy 1/26 historical value.
+    assert line["r_ohm_per_km"] == pytest.approx(RHO_COPPER * 1000 / 6.0)
     assert line["max_i_ka"] == pytest.approx(0.032)
 
 
