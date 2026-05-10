@@ -275,23 +275,22 @@ Plus the `r0/x0` params on every line, `x0x_max/r0x0_max` on the
 ext_grid, and a new entry point `compute_power_flow_3ph(pp_grid)`
 that calls `pp.runpp_3ph` instead of `runpp`.
 
-### Estimated cost
+### Scope summary
 
-| Layer | Lines | Time |
-|---|---:|---:|
-| Add phase to `analyze_input.geojson` (already done) | 0 | 0 |
-| Round-robin phase synthesis script for `input_nodes.geojson` | ~5 | 15 min |
-| New config defaults (zero-sequence + source vector group) | ~10 | 15 min |
-| Branch on phase in `_conversion.py` | ~30 | 1 hr |
-| New `compute_power_flow_3ph` function | ~50 | 1 hr |
-| Tests (parity + comparison + topology), mirroring the existing balanced suite | ~150 | 2 hr |
-| Findings doc (`11_runpp_3ph_findings.md`) | ~200 | 1 hr |
+| Layer | Lines |
+|---|---:|
+| Add phase to `analyze_input.geojson` (already done) | 0 |
+| Round-robin phase synthesis script for `input_nodes.geojson` | ~5 |
+| New config defaults (zero-sequence + source vector group) | ~10 |
+| Branch on phase in `_conversion.py` | ~30 |
+| New `compute_power_flow_3ph` function | ~50 |
+| Tests (parity + comparison + topology), mirroring the existing balanced suite | ~150 |
+| Findings doc (`11_runpp_3ph_findings.md`) | ~200 |
 
-**~5 hours total.** The biggest unknown is whether `runpp_3ph`
-converges cleanly on the 2025-scale fixture (51 nodes) given its
-documented sensitivity, and whether round-robin phase synthesis
-produces results meaningful enough to compare against the
-historical balanced answer.
+The biggest unknown is whether `runpp_3ph` converges cleanly on
+the 2025-scale fixture (51 nodes) given its documented sensitivity,
+and whether round-robin phase synthesis produces results meaningful
+enough to compare against the historical balanced answer.
 
 ## What this would tell us
 

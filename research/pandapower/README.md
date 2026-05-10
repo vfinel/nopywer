@@ -48,8 +48,7 @@ Date of research: April 2026. Pandapower latest at time of writing: **3.4.0**
     phase, zero-sequence cable params, source vector group), what
     the existing fixtures contain (the 2025 fixture has no phase
     data; the small synthetic does), three strategies for
-    synthesising phase data, and a ~5-hour cost estimate for the
-    full implementation.
+    synthesising phase data, and a per-layer scope breakdown.
 
 ## TL;DR
 

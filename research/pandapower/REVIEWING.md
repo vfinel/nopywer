@@ -1,7 +1,6 @@
 # Reviewing this branch
 
-A short guide for whoever picks this up. Reading the docs in order
-takes ~25 minutes. Reading the code takes ~15 more.
+A short guide for whoever picks this up.
 
 ## What changed at a glance
 
@@ -21,31 +20,31 @@ Total: 6 new docs, 6 new code files, 2 modified files.
 **Skip nothing.** The docs build on each other.
 
 1. [`research/pandapower/README.md`](./README.md) — TL;DR, sets the
-   context for why this branch exists. **2 min.**
+   context for why this branch exists.
 2. [`02_nopywer_power_calculations.md`](./02_nopywer_power_calculations.md)
    — what nopywer's tree walk actually does. Skim if you're
-   already familiar with `analyze.py`. **5 min.**
+   already familiar with `analyze.py`.
 3. [`03_intersection.md`](./03_intersection.md) — concept-by-concept
    mapping nopywer ↔ pandapower. Useful to understand the choices
-   in the conversion layer. **5 min.**
+   in the conversion layer.
 4. [`06_extended_opportunities.md`](./06_extended_opportunities.md) —
    the menu of pandapower-able calculations. Reading this first
-   makes the next doc make sense. **5 min.**
+   makes the next doc make sense.
 5. [`07_optimiser_validation_findings.md`](./07_optimiser_validation_findings.md)
    — what was actually built (opportunity §1) and what running it on
-   the 2025 fixture revealed. Has the diagrams. **8 min.**
+   the 2025 fixture revealed. Has the diagrams.
 
 After that, read the code in this order:
 
 6. `src/nopywer/pp_interop/config.py` — every assumption / default
-   in one file with explanations. **3 min.**
+   in one file with explanations.
 7. `src/nopywer/pp_interop/_conversion.py` — the only file that
-   touches pandapower's `create_*` API. Worth scrutinising. **5 min.**
+   touches pandapower's `create_*` API. Worth scrutinising.
 8. `src/nopywer/pp_interop/_powerflow.py` and `_shortcircuit.py`
-   — thin wrappers over `runpp` and `calc_sc`. **3 min each.**
-9. `tests/test_pp_interop.py` — exercises the public API. **3 min.**
+   — thin wrappers over `runpp` and `calc_sc`.
+9. `tests/test_pp_interop.py` — exercises the public API.
 10. `scripts/validate_optimiser_with_runpp.py` — end-to-end runner;
-    its output is the headline finding. **2 min.**
+    its output is the headline finding.
 
 Skip on first pass: `__init__.py` (re-exports only), older research
 docs `01`, `04`, `05` (background; not required to review the
