@@ -32,6 +32,16 @@ Date of research: April 2026. Pandapower latest at time of writing: **3.4.0**
    what was built for opportunity §1 (AC validation of the optimiser) and
    what running it on the 2025 fixture revealed: tree walk under-reports
    voltage drop by up to 12 percentage points at high-stress nodes.
+8. [`08_why_tree_walk_and_ac_disagree.md`](08_why_tree_walk_and_ac_disagree.md) —
+   power-systems theory walkthrough of why nopywer and pandapower
+   disagree, and why the disagreement runs in opposite directions on
+   different fixtures (max-phase rule vs constant-power feedback).
+9. [`09_sensitivity_to_config_assumptions.md`](09_sensitivity_to_config_assumptions.md) —
+   how much each `pp_interop/config.py` default actually moves the
+   numbers. Three sweeps (`X_OHM_PER_KM`, `PF`, `GEN_XDSS_PU`) with
+   tables and per-knob takeaways. Headline: X is negligible, PF is
+   modest, but X″d moves Isc by 2.2× across realistic generator
+   choices — worth overriding per-event.
 
 ## TL;DR
 
