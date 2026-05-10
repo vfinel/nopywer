@@ -163,7 +163,7 @@ def sweep_gen_xdss_pu() -> None:
     print("== GEN_XDSS_PU sweep (default 0.12, ±range 0.08–0.18) ==")
     print("fixture: 1 cable, 50 m / 32 A, 3 kW load")
     print("metric: Isc at the generator bus, IEC 60909 3-phase max-case")
-    print(f"{'X''d pu':>10}  {'Isc gen kA':>12}  {'Isc load kA':>13}")
+    print(f"{'Xd pu':>10}  {'Isc gen kA':>12}  {'Isc load kA':>13}")
     print("-" * 39)
     base_xdss = 0.12
     for xdss in _frange(0.08, 0.18, 0.01):

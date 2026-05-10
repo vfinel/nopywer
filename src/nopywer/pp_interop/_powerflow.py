@@ -96,17 +96,13 @@ class TreeWalkVsAcDiff:
     def worst_voltage_disagreement(self) -> tuple[str, float] | None:
         if not self.bus_voltage_v:
             return None
-        name, (_, _, delta) = max(
-            self.bus_voltage_v.items(), key=lambda kv: abs(kv[1][2])
-        )
+        name, (_, _, delta) = max(self.bus_voltage_v.items(), key=lambda kv: abs(kv[1][2]))
         return name, delta
 
     def worst_current_disagreement(self) -> tuple[str, float] | None:
         if not self.line_current_a:
             return None
-        cid, (_, _, delta) = max(
-            self.line_current_a.items(), key=lambda kv: abs(kv[1][2])
-        )
+        cid, (_, _, delta) = max(self.line_current_a.items(), key=lambda kv: abs(kv[1][2]))
         return cid, delta
 
 

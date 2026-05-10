@@ -61,9 +61,7 @@ FIELD_MARGIN = 1.864
 # Effective resistance coefficient — derived from physics + assumptions.
 # Numerically ≈ 1/26 at the defaults (within 0.02 %); varies if a
 # caller overrides COPPER_TEMP_C or FIELD_MARGIN.
-RHO_COPPER = (
-    RHO_COPPER_20C * (1 + ALPHA_COPPER * (COPPER_TEMP_C - 20)) * FIELD_MARGIN
-)  # [Ω·mm²/m]
+RHO_COPPER = RHO_COPPER_20C * (1 + ALPHA_COPPER * (COPPER_TEMP_C - 20)) * FIELD_MARGIN  # [Ω·mm²/m]
 
 # Max acceptable voltage drop per NF C 15-100 / IEC 60364
 VDROP_THRESHOLD_PERCENT = 5.0

@@ -163,8 +163,7 @@ def test_deep_linear_chain_compounds_drop_with_depth():
     _, _, gap_a = diff.bus_vdrop_percent["a"]
     _, _, gap_d = diff.bus_vdrop_percent["d"]
     assert gap_d > gap_a, (
-        f"expected gap to grow with depth, got "
-        f"gap@a={gap_a:.3f} %, gap@d={gap_d:.3f} %"
+        f"expected gap to grow with depth, got gap@a={gap_a:.3f} %, gap@d={gap_d:.3f} %"
     )
 
 
@@ -226,12 +225,10 @@ def test_wide_star_branches_are_independent():
     leaf_drops_tw = [diff.bus_vdrop_percent[f"stage_{i + 1}"][0] for i in range(5)]
     leaf_drops_ac = [diff.bus_vdrop_percent[f"stage_{i + 1}"][1] for i in range(5)]
     assert max(leaf_drops_tw) - min(leaf_drops_tw) < 0.05, (
-        f"tree walk should report identical drops on symmetric branches; "
-        f"got {leaf_drops_tw}"
+        f"tree walk should report identical drops on symmetric branches; got {leaf_drops_tw}"
     )
     assert max(leaf_drops_ac) - min(leaf_drops_ac) < 0.05, (
-        f"AC should report identical drops on symmetric branches; "
-        f"got {leaf_drops_ac}"
+        f"AC should report identical drops on symmetric branches; got {leaf_drops_ac}"
     )
 
     # Branch independence: AC and tree walk agree to within 0.5 pp on

@@ -26,17 +26,17 @@ def main() -> None:
     print(f"Loaded {len(nodes)} nodes from {FIXTURE.name}")
 
     grid = optimize_layout(PowerGrid(nodes=nodes, cables={}))
-    print(f"Optimised: {len(grid.cables)} cables, "
-          f"{sum(c.length_m for c in grid.cables.values()):.0f} m total")
+    print(
+        f"Optimised: {len(grid.cables)} cables, "
+        f"{sum(c.length_m for c in grid.cables.values()):.0f} m total"
+    )
 
     diff = compare_with_tree_walk(grid)
     print(f"AC converged: {diff.converged}")
 
     print("\n=== Voltage drop comparison (% at each node) ===")
     print(f"{'node':<32} {'tree':>8} {'AC':>8} {'Δ':>8}")
-    rows = sorted(
-        diff.bus_vdrop_percent.items(), key=lambda kv: kv[1][1], reverse=True
-    )
+    rows = sorted(diff.bus_vdrop_percent.items(), key=lambda kv: kv[1][1], reverse=True)
     for name, (tw, ac, delta) in rows[:15]:
         print(f"{name[:32]:<32} {tw:>8.2f} {ac:>8.2f} {delta:>+8.3f}")
 
@@ -49,9 +49,7 @@ def main() -> None:
 
     print("\n=== Cable current comparison (top 10 by AC current) ===")
     print(f"{'cable':<14} {'tree_max_A':>12} {'ac_A':>10} {'Δ A':>8}")
-    rows = sorted(
-        diff.line_current_a.items(), key=lambda kv: kv[1][1], reverse=True
-    )
+    rows = sorted(diff.line_current_a.items(), key=lambda kv: kv[1][1], reverse=True)
     for cid, (tw, ac, delta) in rows[:10]:
         print(f"{cid[:14]:<14} {tw:>12.1f} {ac:>10.1f} {delta:>+8.2f}")
 
@@ -66,11 +64,15 @@ def main() -> None:
     voltage_deltas = [d for _, _, d in diff.bus_voltage_v.values()]
     current_deltas = [d for _, _, d in diff.line_current_a.values()]
     if voltage_deltas:
-        print(f"Voltage Δ: max |Δ| = {max(abs(d) for d in voltage_deltas):.2f} V, "
-              f"mean |Δ| = {sum(abs(d) for d in voltage_deltas) / len(voltage_deltas):.3f} V")
+        print(
+            f"Voltage Δ: max |Δ| = {max(abs(d) for d in voltage_deltas):.2f} V, "
+            f"mean |Δ| = {sum(abs(d) for d in voltage_deltas) / len(voltage_deltas):.3f} V"
+        )
     if current_deltas:
-        print(f"Current Δ: max |Δ| = {max(abs(d) for d in current_deltas):.2f} A, "
-              f"mean |Δ| = {sum(abs(d) for d in current_deltas) / len(current_deltas):.3f} A")
+        print(
+            f"Current Δ: max |Δ| = {max(abs(d) for d in current_deltas):.2f} A, "
+            f"mean |Δ| = {sum(abs(d) for d in current_deltas) / len(current_deltas):.3f} A"
+        )
 
 
 if __name__ == "__main__":
