@@ -1,15 +1,61 @@
 """Parity tests: nopywer's tree walk and pandapower's AC power flow agree
-exactly when the modelling assumptions are matched.
+exactly when their modelling assumptions are matched.
 
-The point of these tests is to prove the **conversion is faithful** —
-when both tools see the same physics, they produce the same numbers.
-Any divergence on real fixtures (see tests/test_pp_interop_comparison.py)
-is then known to come from physics nopywer simplifies away (load
-feedback, reactive power, line reactance), not from a translation bug.
+== Why this file exists ==
 
-Mirror of `test_compute_voltage_drop_uses_phase_voltage_reference` in
-test_analyze.py — same hand-crafted 26 m / 1 mm² / 10 A fixture, same
-expected 220 V / 4.35 % answer.
+The wider comparison tests (`test_pp_interop_comparison.py`) show
+nopywer and pandapower disagreeing on real fixtures by up to 12
+percentage points of voltage drop. Before reading anything into that
+divergence, a reviewer needs to know it's not a trivial bug: a unit
+error, a √3 mistake, a wrong R formula. This file is the proof.
+
+Under controlled conditions where physics guarantees agreement —
+matched load model, no reactance, no constant-power feedback — the
+two tools must produce **the same number to within rounding**. That's
+the conversion-correctness check. If this file fails, fix the
+conversion first; the comparison tests are noise until then.
+
+== What "matched assumptions" means ==
+
+nopywer's tree walk computes `I = P / V0 / PF` once at nominal
+voltage and uses that current everywhere. The current never updates
+when the local voltage drops. That's a **constant-current load
+model** in disguise.
+
+Pandapower's `pp.create_load` defaults to **constant-power** — the
+load draws its rated P regardless of voltage, so I rises as V falls.
+This is what creates the load-feedback loop and the divergence on
+high-stress fixtures.
+
+To get parity, we ask pandapower to use the constant-current model
+too: `pp.create_load(..., const_i_p_percent=100)`. Then:
+
+- The current is fixed at `I_rated = P_rated / V_rated`.
+- No iteration on load behaviour — the answer falls out in one step.
+- The only physics in play is `ΔV = R · I` and `V = V_source - ΔV`,
+  exactly what the tree walk computes.
+
+With this matched, both tools land on the same answer.
+
+== Festival mapping ==
+
+This test directly mirrors
+`tests/test_analyze.py::test_compute_voltage_drop_uses_phase_voltage_reference`
+— Vincent's canonical unit test of the voltage-reference convention.
+A festival planner reading either test should see the same fixture
+(26 m of 1 mm² carrying 10 A) and the same answer (220 V at the
+load, 4.35 % drop).
+
+The 26 / 1 / 10 numbers are chosen so the arithmetic is integer-clean:
+
+    R = RHO_COPPER × L / A = (1/26) × 26 / 1  =  1.0 Ω exactly
+    ΔV = R × I = 1 × 10                       = 10.0 V exactly
+    V_load = V0 − ΔV = 230 − 10               = 220.0 V
+    vdrop_% = 100 × ΔV / V0 = 100 × 10/230    = 4.347…% → 4.35 (rounded)
+
+Pandapower running on the same fixture in const-I mode lands on
+220.016 V / 4.341 % — within 0.02 V / 0.01 % of the analytical
+answer.
 """
 
 import math
@@ -27,21 +73,56 @@ from nopywer.pp_interop import config
 def test_voltage_drop_matches_pandapower_with_constant_current_load():
     """nopywer == pandapower when the load is modelled as constant-current.
 
-    nopywer's tree walk computes I = P / V0 / PF **once** at nominal
-    voltage and uses that current to derive ΔV = R·I. That's exactly the
-    constant-current load model in pandapower (`const_i_percent=100`):
-    the load draws the rated current regardless of its actual local
-    voltage, so there's no nonlinear feedback to iterate over.
+    What this is comparing
+    ----------------------
+    nopywer side: bypasses `analyze`, hand-builds the tree state, and
+        calls `_compute_voltage_drop` directly — exactly as the
+        canonical test in `tests/test_analyze.py` does.
 
-    Same fixture as test_compute_voltage_drop_uses_phase_voltage_reference:
-        26 m of 1 mm² cable, single-phase load drawing 10 A.
-        With RHO_COPPER = 1/26, R = (1/26) * 26 / 1 = 1.0 Ω exactly.
-        ΔV = R * I = 1 * 10 = 10 V exactly.
-        V_load = 230 - 10 = 220 V, vdrop = 100 * 10/230 = 4.35 %.
+    pandapower side: builds the same scenario from scratch (NOT via
+        `to_pandapower`, to keep the test transparent and
+        self-contained) using:
+            - `vn_kv` = 0.3984 kV (the L-L equivalent of 230 V P-N
+              that our converter uses).
+            - `r_ohm_per_km` = (1/26) × 1000 / 1 = 38.46 Ω/km, so
+              R over 26 m = 1.0 Ω.
+            - `x_ohm_per_km` = 1e-9 (nopywer assumes 0; pandapower's
+              solver init divides by x to compute susceptance and
+              chokes on 0, so we use a negligible non-zero value).
+            - A constant-current load drawing 10 A per phase line:
+              `p_mw = 10 × √3 × V_LL = 6.9 kW`, `const_i_p_percent=100`.
+
+    What this is testing
+    --------------------
+    1. The R formula in `to_pandapower` matches `analyze.py`'s — both
+       give 1.0 Ω for the canonical fixture. (If R diverges the rest
+       can't agree.)
+    2. The voltage-reference convention is right: pandapower returns
+       per-unit on `vn_kv` (L-L), and our `compute_power_flow`
+       converts that back to volts P-N via `× vn_kv × 1000 / √3`.
+       Both ends agree on what "230 V" means.
+    3. The load model is the **only** semantic difference between
+       `_compute_voltage_drop` and `runpp` in this regime. Forcing
+       pandapower to constant-I removes that difference and proves
+       agreement.
+
+    Real-world scenario
+    -------------------
+    Imagine a single 230 V single-phase load (e.g. a small distro
+    feeding a couple of 16 A sockets, drawing 2300 W) at the end of
+    26 m of 1 mm² cable. Both tools must report:
+
+        V at the load                 = 220.0 V
+        voltage drop                  = 10 V (4.35 %)
+        cable current per phase       = 10 A
+
+    A festival electrician working from either nopywer's report or
+    pandapower's runpp output should see the same number — and that
+    number should match what they'd compute by hand.
     """
     # --- nopywer side: bypass `analyze`, hand-build the tree state
     #     and call `_compute_voltage_drop` directly, exactly as the
-    #     original test does. ---
+    #     canonical test does. ---
     generator = PowerNode(
         name="generator",
         lon=0.0,
@@ -71,7 +152,7 @@ def test_voltage_drop_matches_pandapower_with_constant_current_load():
     )
     _compute_voltage_drop(grid)
 
-    # Sanity: the nopywer numbers are the ones the original test pins.
+    # Sanity: the nopywer numbers are the ones the canonical test pins.
     assert cable.vdrop_volts == 10.0
     assert load.voltage == 220.0
     assert load.vdrop_percent == 4.35

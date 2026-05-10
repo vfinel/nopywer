@@ -1,28 +1,44 @@
-"""Side-by-side comparison: nopywer's tree walk vs pandapower's AC flow.
+"""Side-by-side comparison: nopywer's tree walk vs pandapower's AC flow
+on every existing analyze fixture.
 
-These tests pin the divergence between the two tools on each existing
-analyze fixture, so future changes to either side get caught.
+== Why this file exists ==
 
-The divergence is **not one-directional** — three different shapes show
-up depending on the fixture:
+`test_pp_interop_parity.py` proves that under matched assumptions the
+two tools agree exactly. **This file** asks the more interesting
+question: when those assumptions are NOT matched (i.e. on real
+fixtures with real load distributions), how much do nopywer and
+pandapower disagree, and **in which direction**?
 
-1. Low drop, balanced load
-   → tree walk and AC agree to within rounding.
+The answer turns out to depend on the fixture. Three different
+shapes show up, each mapped to a real festival situation:
 
-2. Unbalanced single-phase loads
-   → nopywer's `max(current_per_phase)` rule is conservative and
-     **over-states** voltage drop relative to pandapower's balanced
-     runpp (which our converter currently uses — runpp_3ph is
-     opportunity §3 in 06_extended_opportunities.md).
+    1. Low drop, balanced load    →  agreement to within rounding
+    2. Unbalanced single-phase    →  nopywer over-states drop
+    3. High drop, balanced load   →  nopywer under-states drop
 
-3. High drop, balanced load
-   → constant-power feedback at low local voltage means more current,
-     more drop. The tree walk computes I at nominal V0 once and never
-     iterates, so it **under-states** voltage drop.
+Each test below pins one of these shapes, with both direction-of-
+disagreement assertions and pinned numbers (±2 pp tolerance) so
+future changes to either tool are visible.
 
-Numbers come from running compare_with_tree_walk() against each
-fixture; pinned with ±0.5 V / ±0.5 % tolerance to absorb minor
-numerical noise but tight enough to catch real changes.
+For the underlying physics — why each direction shows up, what the
+constant-current-vs-constant-power distinction means, what
+max(I_per_phase) does to unbalanced loads — see
+[`research/pandapower/08_why_tree_walk_and_ac_disagree.md`](
+../research/pandapower/08_why_tree_walk_and_ac_disagree.md).
+
+== Why both directions matter ==
+
+A festival planner reading a single tool's output needs to know
+whether it's optimistic or pessimistic in their specific scenario.
+The conservative assumption ("trust the worst number") only works
+if you know each tool's bias:
+
+- nopywer's max-phase rule is **conservative for sizing decisions**
+  on unbalanced single-phase loads (small distros).
+- pandapower's iterative AC is **closer to physical truth on
+  high-stress balanced loads** (long radial trunks to heavy loads).
+
+These tests document those biases as code so they can't be forgotten.
 """
 
 import json
@@ -41,13 +57,41 @@ FIXTURES = Path(__file__).parent / "fixtures"
 
 
 def test_named_generator_fixture_low_drop_parity():
-    """Small balanced load — tree walk and AC agree to within rounding.
+    """**Mechanism 1**: small balanced load — both tools agree.
 
-    1 generator + 1 unphased 1 kW load through 10 m cable. Because the
-    load is unphased, io.load_geojson splits it evenly across phases
-    (333 W per phase, balanced). At ~1.6 A per phase through 20 m of
-    2.5 mm² (~ 0.31 Ω), drop is well under 1 V — far too small for
-    constant-power feedback to matter. Both tools land within 0.1 V.
+    What this is comparing
+    ----------------------
+    Fixture: `analyze_named_generator.geojson` — 1 generator + 1
+    unphased 1 kW load through 10 m of 2.5 mm² cable.
+
+    Both views run on the same `PowerGrid`:
+        - nopywer: `analyze(grid)` → tree walk → drop reported on
+          each `PowerNode.vdrop_percent`.
+        - pandapower: `to_pandapower(grid)` → `runpp` → drop derived
+          from `res_bus.vm_pu`.
+
+    What this is testing
+    --------------------
+    That under the most benign conditions both simplifications are
+    inactive and the two tools land on essentially the same number:
+
+        - The load is **unphased** (split evenly across L1/L2/L3) →
+          balanced → nopywer's `max(I_per_phase)` rule degenerates
+          to the right answer.
+        - The drop is **tiny** (~0.5 V / 0.2 %) → constant-current
+          (nopywer) and constant-power (pandapower) make
+          near-identical predictions.
+
+    Pinned within 0.1 V / 0.05 % so a real divergence shows up but
+    rounding noise doesn't.
+
+    Real-world scenario
+    -------------------
+    A small ~1 kW distro (e.g. an info booth, a single PA stack)
+    plugged into a 16 A socket near the generator via a short cable.
+    Both tools should give the planner the same V/I numbers; if
+    they diverge here, something fundamental in the conversion is
+    broken.
     """
     nodes, cables = load_geojson(FIXTURES / "analyze_named_generator.geojson")
     grid = PowerGrid(nodes=nodes, cables=cables)
@@ -71,26 +115,58 @@ def test_named_generator_fixture_low_drop_parity():
 
 
 def test_analyze_input_fixture_unbalanced_max_phase_overstates_drop():
-    """Unbalanced single-phase loads — nopywer's max-phase rule pushes
-    the tree walk's reported drop **above** pandapower's balanced flow.
+    """**Mechanism 2**: unbalanced single-phase loads — nopywer
+    over-states drop relative to pandapower's balanced flow.
 
-    Fixture:
-      generator → cable_0 (20 m) → load_a (3 kW on phase 1)
-                                 → cable_1 (22 m) → load_b (6 kW on phase 2)
+    What this is comparing
+    ----------------------
+    Fixture: `analyze_input.geojson` —
 
-    nopywer cumulates power per phase: cable_0 sees [3 kW, 6 kW, 0],
-    so current_per_phase = [14.5, 29.0, 0] A. ΔV is then computed
-    against `max(current_per_phase) = 29.0 A` — the worst-phase
-    estimate, conservative by design.
+        generator ── cable_0 (20 m) ── load_a (3 kW on L1)
+                                    ── cable_1 (22 m) ── load_b (6 kW on L2)
 
-    Our `to_pandapower` collapses single-phase loads to balanced
-    3-phase loads (runpp_3ph is opportunity §3). So pandapower sees
-    9 kW total, balanced, with per-phase line current ~14.5 A.
-    Result: pandapower reports a smaller drop than the tree walk.
+    nopywer's tree walk sees per-phase power vectors:
+        cable_1 cum_power = [0, 6 kW, 0]   →  I = [0, 29 A, 0]
+        cable_0 cum_power = [3 kW, 6 kW, 0] →  I = [14, 29, 0] A
+    and uses **max** of each I to compute each cable's ΔV.
 
-    This is **not a bug in either tool** — it's two different physical
-    models. The test pins the gap so future changes to either side
-    are visible.
+    pandapower's `runpp` (after our converter collapses single-phase
+    loads to balanced) sees:
+        cable_0 carries 9 kW total → per-phase line I ≈ 14.4 A
+        cable_1 carries 6 kW total → per-phase line I ≈ 9.6 A
+    and computes balanced ΔV.
+
+    What this is testing
+    --------------------
+    1. **Direction**: tree walk reports a *bigger* drop than AC at
+       the worst-stressed node (load_b). This is nopywer's
+       max-phase rule being conservative — it applies the L2 (worst)
+       drop to all three phases.
+    2. **Magnitude**: ~5 percentage-point gap (8.13 % tree walk vs
+       3.12 % AC). Documented in
+       `08_why_tree_walk_and_ac_disagree.md`.
+    3. **Cable currents**: tree walk's reported I per cable is the
+       max-phase value (29 A); pandapower's is the balanced value
+       (10–14 A). Test pins `tw_i > ac_i` for both cables.
+
+    Neither number is the physical truth. Truth needs `runpp_3ph`
+    with `asymmetric_load` (opportunity §3 in
+    `06_extended_opportunities.md`), which would model the actual
+    L1/L2/L3 distribution and the neutral conductor.
+
+    Real-world scenario
+    -------------------
+    A typical small-distro feed: lighting on L1, sound system on L2,
+    kitchen tent on L3 — single-phase loads pinned to specific
+    phases, deliberately balanced by the planner *across the
+    festival* but **unbalanced on any individual cable**.
+
+    nopywer's number tells the planner "the WORST case at any node
+    is X % drop" — useful for cable-sizing decisions where you want
+    a safety margin. pandapower's number tells them "the AVERAGE
+    drop assuming the load is spread out" — useful for sanity-
+    checking that the typical user experience is acceptable. Neither
+    is wrong; they answer different questions.
     """
     nodes, cables = load_geojson(FIXTURES / "analyze_input.geojson")
     grid = PowerGrid(nodes=nodes, cables=cables)
@@ -114,17 +190,55 @@ def test_analyze_input_fixture_unbalanced_max_phase_overstates_drop():
 
 
 def test_optimised_input_nodes_fixture_high_drop_understates_drop():
-    """High-stress balanced case — constant-power feedback makes
-    pandapower's AC drop **larger** than the tree walk's.
+    """**Mechanism 3**: high-stress balanced load — nopywer
+    *under-states* drop because its tree walk doesn't iterate the
+    constant-power feedback.
 
-    This is the headline finding from
-    research/pandapower/07_optimiser_validation_findings.md, captured
-    here as a regression check: at the worst-stressed node `glitch`,
-    the tree walk reports ~27 % drop and AC reports ~39 %.
+    What this is comparing
+    ----------------------
+    Fixture: `input_nodes.geojson` — the 2025 Nowhere event, 51 nodes.
+    Run `optimize_layout` to produce the 50-cable layout, then run
+    `compare_with_tree_walk` on the result.
+
+    nopywer's tree walk computes I = P / V0 / PF **once** at nominal
+    voltage and never iterates. ΔV stacks linearly down the tree.
+    Reports `glitch` at 26.9 % drop (V = 168 V P-N).
+
+    pandapower's `runpp` iterates: at lower local V, the
+    constant-power loads draw more current → more drop → even more
+    current → ... converges around `glitch` at 39.1 % drop (V = 140 V).
+
+    What this is testing
+    --------------------
+    1. **Direction**: AC reports a *bigger* drop than tree walk at
+       the worst-stressed node. This is the opposite direction from
+       Mechanism 2 — different simplification, different bias.
+    2. **Magnitude**: ~12 percentage-point gap (39 % AC vs 27 %
+       tree). Captured in `07_optimiser_validation_findings.md` as
+       the headline finding; pinned here as a regression check.
+    3. **Optimisation stability**: the test uses `optimize_layout`,
+       which involves randomness in tie-breaking. The numbers are
+       pinned with ±2 pp tolerance to absorb that.
 
     If anyone "fixes" the tree walk to be more accurate (e.g. by
-    iterating to fixed-point), this test goes red and forces the
-    07-doc finding to be updated.
+    iterating to a fixed point), this test will go red and force
+    the 07-doc finding to be updated.
+
+    Real-world scenario
+    -------------------
+    A long radial cable run from the generator to a remote stage
+    (or kitchen tent, or ice plant) — heavy balanced load drawn
+    through many cable hops. The kind of layout the optimiser
+    produces when the geographic spread of the festival forces
+    long trunks.
+
+    The headline number (V at glitch = 140 V instead of 168 V) is
+    operationally significant: at 140 V, switch-mode PSUs trip,
+    motors stall, light bulbs noticeably dim. The tree walk's
+    168 V is alarming but understates how bad it actually gets at
+    the load. **This is the case where a planner should NOT trust
+    nopywer alone** — running the AC validator surfaces a real
+    safety issue the tree walk hides.
     """
     with open(FIXTURES / "input_nodes.geojson") as f:
         nodes_geojson = json.load(f)
