@@ -42,6 +42,14 @@ Date of research: April 2026. Pandapower latest at time of writing: **3.4.0**
    tables and per-knob takeaways. Headline: X is negligible, PF is
    modest, but X″d moves Isc by 2.2× across realistic generator
    choices — worth overriding per-event.
+10. [`10_three_phase_asymmetric_modelling.md`](10_three_phase_asymmetric_modelling.md) —
+    detailed shopping list for moving from balanced `runpp` to
+    asymmetric `runpp_3ph`. Covers what pandapower needs (per-load
+    phase, zero-sequence cable params, source vector group), what
+    the existing fixtures contain (the 2025 fixture has no phase
+    data; the small synthetic does), three strategies for
+    synthesising phase data, and a ~5-hour cost estimate for the
+    full implementation.
 
 ## TL;DR
 
