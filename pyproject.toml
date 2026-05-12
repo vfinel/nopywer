@@ -13,6 +13,8 @@ dependencies = [
     "pyproj>=3.7",
     "typer>=0.24",
     "uvicorn>=0.41",
+    "ortools",
+    "openpyxl",
 ]
 
 [dependency-groups]

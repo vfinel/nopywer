@@ -11,6 +11,9 @@ PF = 0.9
 # probably comes from measurements they did.
 # For reference, physical value is 1 / 58 ^^
 RHO_COPPER = 1 / 26  # [Ω·mm²/m]
+T = 50  # [°C]
+T0 = 20  # [°C]
+
 
 # Max acceptable voltage drop per NF C 15-100 / IEC 60364
 VDROP_THRESHOLD_PERCENT = 5.0

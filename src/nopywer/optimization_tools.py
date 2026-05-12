@@ -1,3 +1,5 @@
+import logging
+
 import openpyxl
 
 from nopywer.models import _CABLE_TYPES
@@ -6,6 +8,109 @@ from nopywer.models import _CABLE_TYPES
 # import networkx as nx
 # from qgis.core import QgsDistanceArea
 # from nopywer.minimum_spanning_tree2 import minimum_spanning_tree
+
+def assign_phases_from_grid(nodes: dict, cables: list, logger: logging.Logger) -> tuple:
+    children = {n: [] for n in nodes}
+    cable_map = {}
+    for cable in cables:
+        children[cable.from_node].append(cable.to_node)
+        cable_map[(cable.from_node, cable.to_node)] = cable
+
+    generator = next(n for n, node in nodes.items() if node.is_generator)
+    # Precompute subtree load and descendant count for every node
+    load_cache = {}
+    descendant_cache = {}
+
+    def get_load(root):
+        if root in load_cache:
+            return load_cache[root]
+        total, stack = 0, [root]
+        while stack:
+            n = stack.pop()
+            total += nodes[n].power_watts
+            stack.extend(children[n])
+        load_cache[root] = total
+        return total
+
+    def get_descendants(root):
+        if root in descendant_cache:
+            return descendant_cache[root]
+        count, stack = 0, list(children[root])
+        while stack:
+            n = stack.pop()
+            count += 1
+            stack.extend(children[n])
+        descendant_cache[root] = count
+        return count
+
+    # Precompute all at once
+    for n in nodes:
+        get_load(n)
+        get_descendants(n)
+        
+    total_load = sum(n.power_watts for n in nodes.values() if not n.is_generator)
+    total_nodes = len(nodes) - 1  # exclude generator
+    
+    # Threshold: if a node has more than 1/3 of total descendants
+    # it needs 3-phase to distribute load properly
+    THREE_PHASE_DESCENDANT_THRESHOLD = total_nodes // 3
+    THREE_PHASE_LOAD_THRESHOLD = total_load // 3
+    
+    def should_receive_three_phase(from_node, to_node) -> bool:
+        cable = cable_map.get((from_node, to_node))
+        num_phases = getattr(cable, 'num_phases', 3) if cable else 3
+        if num_phases < 3:
+            return False # cable can't carry 3-phase
+        descendants = get_descendants(to_node)
+        load = get_load(to_node)
+        return (
+            descendants >= THREE_PHASE_DESCENDANT_THRESHOLD or
+            load >= THREE_PHASE_LOAD_THRESHOLD
+        )
+
+    node_phase = {generator: 3}
+    cable_phase = {}
+    phase_loads = {0: 0.0, 1: 0.0, 2: 0.0}
+
+    queue = [(generator, 3)]  # (node, incoming_phase)
+
+    while queue:
+        node, incoming_phase = queue.pop(0)
+        kids = sorted(children[node], key=get_load, reverse=True)
+        if not kids:
+            continue
+        if incoming_phase == 3: # Node receives 3-phase → can assign different phases to children
+            for kid in kids:
+                grandkids = children[kid]
+                if should_receive_three_phase(node, kid) and len(grandkids) >= 2:
+                    # Send 3-phase down: kid can further distribute
+                    cable_phase[(node, kid)] = 3
+                    node_phase[kid] = 3
+                    queue.append((kid, 3))
+                else:
+                    # Assign to least loaded phase
+                    assigned = min(phase_loads, key=lambda p: phase_loads[p])
+                    phase_loads[assigned] += get_load(kid)
+                    cable_phase[(node, kid)] = assigned
+                    node_phase[kid] = assigned
+                    queue.append((kid, assigned))
+        else:
+            # Single-phase incoming → all children inherit same phase
+            for kid in kids:
+                cable_phase[(node, kid)] = incoming_phase
+                node_phase[kid] = incoming_phase
+                queue.append((kid, incoming_phase))
+
+    # Balance report
+    total = sum(phase_loads.values())
+    for p, load in phase_loads.items():
+        pct = 100 * load / total if total else 0
+        logger.info(f"[PHASE] L{p}: {load:.0f}W ({pct:.1f}%)")
+    if total:
+        imbalance = max(phase_loads.values()) - min(phase_loads.values())
+        logger.info(f"[PHASE] imbalance: {imbalance:.0f}W ({100*imbalance/total:.1f}%)")
+
+    return node_phase, cable_phase, phase_loads
 
 # def assign_phases_from_grid(nodes: dict, cables: list, logger: logging.Logger) -> dict:
 #     children = {n: [] for n in nodes}
@@ -43,125 +148,117 @@ from nopywer.models import _CABLE_TYPES
 #     return node_phase  # {node_name: phase_int}
 
 
-def assign_phases_from_grid(nodes: dict, cables: list) -> dict:
-    children = {n: [] for n in nodes}
-    for cable in cables:
-        children[cable.from_node].append(cable.to_node)
+# def assign_phases_from_grid(nodes: dict, cables: list) -> dict:
+#     children = {n: [] for n in nodes}
+#     for cable in cables:
+#         children[cable.from_node].append(cable.to_node)
 
-    generator = next(n for n, node in nodes.items() if node.is_generator)
+#     generator = next(n for n, node in nodes.items() if node.is_generator)
 
-    total_load = sum(n.power_watts for n in nodes.values() if not n.is_generator)
+#     total_load = sum(n.power_watts for n in nodes.values() if not n.is_generator)
 
-    def subtree_load(root):
-        total = 0
-        stack = [root]
-        while stack:
-            n = stack.pop()
-            total += nodes[n].power_watts
-            stack.extend(children[n])
-        return total
+#     def subtree_load(root):
+#         total = 0
+#         stack = [root]
+#         while stack:
+#             n = stack.pop()
+#             total += nodes[n].power_watts
+#             stack.extend(children[n])
+#         return total
 
-    node_phase = {generator: 3}
-    cable_phase = {}  # (from, to) → phase
+#     node_phase = {generator: 3}
+#     cable_phase = {}  # (from, to) → phase
 
-    # (node, incoming phase, node father)
-    queue = [(generator, 3, None)]
+#     # (node, incoming phase, node father)
+#     queue = [(generator, 3, None)]
 
-    while queue:
-        node, incoming_phase, parent = queue.pop(0)
-        cable = (
-            next((c for c in cables if c.from_node == parent and c.to_node == node), None)
-            if parent
-            else None
-        )
-        if node.lower().split()[0] in ("mirror", "distro"):
-            pass
-        kids = sorted(children[node], key=lambda n: subtree_load(n), reverse=True)
+#     while queue:
+#         node, incoming_phase, parent = queue.pop(0)
+#         cable = (
+#             next((c for c in cables if c.from_node == parent and c.to_node == node), None)
+#             if parent
+#             else None
+#         )
+#         kids = sorted(children[node], key=lambda n: subtree_load(n), reverse=True)
 
-        if len(kids) == 0:
-            continue
-        incoming_three_phase = (
-            incoming_phase == 3
-        )  # comes from generator or from a node with 3-phase cable
+#         if len(kids) == 0:
+#             continue
+#         incoming_three_phase = (incoming_phase == 3)  # comes from generator or from a node with 3-phase cable
 
-        # If the incoming cable is three-phase and there are 3 or more children,
-        # this cable must be three-phase
-        if incoming_three_phase and (len(kids) >= 3 or subtree_load(node) > total_load // 3):
-            cable_phase[(parent, node)] = 3
+#         # If the incoming cable is three-phase and there are 3 or more children,
+#         # this cable must be three-phase
+#         if incoming_three_phase and (len(kids) >= 3 or subtree_load(node) > total_load // 3):
+#             cable_phase[(parent, node)] = 3
 
-        if len(kids) == 3:
-            # Incoming cable can be three-phase and there are exactly 3 children:
-            # assign 0, 1, 2 to the children
-            for i, child in enumerate(kids):
-                cable_phase[(node, child)] = i
-                node_phase[child] = i
-                queue.append((child, i, node))
+#         # if len(kids) == 3:
+#         #     # Incoming cable can be three-phase and there are exactly 3 children:
+#         #     # assign 0, 1, 2 to the children
+#         #     for i, child in enumerate(kids):
+#         #         cable_phase[(node, child)] = i
+#         #         node_phase[child] = i
+#         #         queue.append((child, i, node))
 
-        for kid in kids:
-            # if node.lower().split()[0] in ("mirror", "distro"):
-            #     pass
-            cable_can_be_three_phase = cable.num_phases == 3 if cable else True
-            kids_of_kid = sorted(children[kid], key=lambda n: subtree_load(n), reverse=True)
-            if len(kids_of_kid) >= 3 and incoming_three_phase:
-                # stop = 1  # debugging
-                assign_phases_from_grid
-            if incoming_three_phase and cable_can_be_three_phase and len(kids) == 3:
-                # Splits incoming three-phase into three single-phase cables
-                for i, child in enumerate(kids):
-                    cable_phase[(node, child)] = i
-                    node_phase[child] = i
-                    queue.append((child, i, node))
-                break
+#         for kid in kids:
+#             # if node.lower().split()[0] in ("mirror", "distro"):
+#             #     pass
+#             cable_can_be_three_phase = cable.num_phases == 3 if cable else True
+#             kids_of_kid = sorted(children[kid], key=lambda n: subtree_load(n), reverse=True)
+#             if len(kids_of_kid) >= 3 and incoming_three_phase:
+#                 cable_phase[(node, kid)] = 3
+#             if incoming_three_phase and cable_can_be_three_phase and len(kids) == 3:
+#                 # Splits incoming three-phase into three single-phase cables
+#                 for i, child in enumerate(kids):
+#                     cable_phase[(node, child)] = i
+#                     node_phase[child] = i
+#                     queue.append((child, i, node))
+#                 break
 
-            else:
-                # Inherits phase from parent or greedy by load if parent is three-phase
-                if incoming_three_phase:
-                    # comes from gennie but can't split into 3 → assign to
-                    # the phase with less load
-                    total_phase_loads = {0: 0, 1: 0, 2: 0}
-                    for p_node, p in node_phase.items():
-                        if p in total_phase_loads:
-                            total_phase_loads[p] += nodes[p_node].power_watts
+#             else:
+#                 # Inherits phase from parent or greedy by load if parent is three-phase
+#                 if incoming_three_phase:
+#                     # comes from gennie but can't split into 3 → assign to
+#                     # the phase with less load
+#                     total_phase_loads = {0: 0, 1: 0, 2: 0}
+#                     for p_node, p in node_phase.items():
+#                         if p in total_phase_loads:
+#                             total_phase_loads[p] += nodes[p_node].power_watts
 
-                    # Asign phases to kids one by one, starting with the heaviest,
-                    # and always assigning to the phase with less load
-                    for kid in kids:
-                        kid_load = subtree_load(kid)
-                        assigned = min(total_phase_loads, key=lambda p: total_phase_loads[p])
-                        total_phase_loads[assigned] += kid_load
+#                     # Asign phases to kids one by one, starting with the heaviest,
+#                     # and always assigning to the phase with less load
+#                     for kid in kids:
+#                         kid_load = subtree_load(kid)
+#                         assigned = min(total_phase_loads, key=lambda p: total_phase_loads[p])
+#                         total_phase_loads[assigned] += kid_load
 
-                        kids_of_kid = sorted(
-                            children[kid], key=lambda n: subtree_load(n), reverse=True
-                        )
-                        if len(kids_of_kid) >= 3:
-                            cable_phase[(node, kid)] = 3
-                        else:
-                            cable_phase[(node, kid)] = assigned
-                        if len(kids_of_kid) >= 3 and cable_phase.get((node, kid), 0) == 3:
-                            cable_phase[(node, kid)] = 3
-                            assigned = 3
-                        node_phase[kid] = assigned
-                        queue.append((kid, assigned, node))
-                else:
-                    assigned = incoming_phase
+#                         kids_of_kid = sorted(
+#                             children[kid], key=lambda n: subtree_load(n), reverse=True
+#                         )
+#                         if len(kids_of_kid) >= 3:
+#                             cable_phase[(node, kid)] = 3
+#                         else:
+#                             cable_phase[(node, kid)] = assigned
+#                         if len(kids_of_kid) >= 3 and cable_phase.get((node, kid), 0) == 3:
+#                             cable_phase[(node, kid)] = 3
+#                             assigned = 3
+#                         node_phase[kid] = assigned
+#                         queue.append((kid, assigned, node))
+#                 else:
+#                     assigned = incoming_phase
 
-                    cable_phase[(node, kid)] = assigned
-                    node_phase[kid] = assigned
-                    queue.append((kid, assigned, node))
+#                     cable_phase[(node, kid)] = assigned
+#                     node_phase[kid] = assigned
+#                     queue.append((kid, assigned, node))
 
-    # print("Cable phases are", cable_phase)
+#     total_phase_loads = {0: 0.0, 1: 0.0, 2: 0.0}
+#     for n, phase in node_phase.items():
+#         if phase in total_phase_loads and not nodes[n].is_generator:
+#             total_phase_loads[phase] += nodes[n].power_watts
 
-    total_phase_loads = {0: 0.0, 1: 0.0, 2: 0.0}
-    for n, phase in node_phase.items():
-        if phase in total_phase_loads and not nodes[n].is_generator:
-            total_phase_loads[phase] += nodes[n].power_watts
-
-    return node_phase, cable_phase, total_phase_loads
+#     return node_phase, cable_phase, total_phase_loads
 
 
 def segments_cross(p1, p2, p3, p4):
     """Returns True if segment p1-p2 crosses p3-p4"""
-
     def cross(o, a, b):
         return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
 
@@ -169,7 +266,6 @@ def segments_cross(p1, p2, p3, p4):
         return min(p[0], r[0]) <= q[0] <= max(p[0], r[0]) and min(p[1], r[1]) <= q[1] <= max(
             p[1], r[1]
         )
-
     d1 = cross(p3, p4, p1)
     d2 = cross(p3, p4, p2)
     d3 = cross(p1, p2, p3)

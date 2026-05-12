@@ -4,7 +4,7 @@ from typing import ClassVar
 
 import numpy as np
 
-from .constants import PF, RHO_COPPER, V0
+from .constants import PF, RHO_COPPER, T, T0, V0
 
 
 @dataclass
@@ -88,8 +88,10 @@ class Cable:
 
     @property
     def resistance(self) -> float:
-        return RHO_COPPER * self.length_m / self.area_mm2
-
+        # return RHO_COPPER * self.length_m / self.area_mm2
+        return RHO_COPPER*(1+0.0393*(T-T0)) * self.length_m / self.area_mm2 #Temperature correction for 50°C, see https://en.wikipedia.org/wiki/Electrical_resistivity_and_conductivity#Temperature_dependence
+        
+    
     def to_geojson(self) -> dict:
         max_current = max(self.current_per_phase) if self.current_per_phase else 0.0
         cum_power_w = max_current * V0 * PF * type(self).num_phases
@@ -143,7 +145,7 @@ class Cable63A(Cable):
     tier_cost: ClassVar[float] = 8.0
     num_phases: ClassVar[int] = 3
     max_current_a: ClassVar[int] = 63
-    area_mm2: float = 16.0
+    area_mm2: float = 16.0 
     plugs_and_sockets_a: float = 63.0
 
 

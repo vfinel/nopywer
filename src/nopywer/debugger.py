@@ -8,8 +8,8 @@ from nopywer.io import load_geojson
 from nopywer.models import PowerGrid
 
 # from nopywer.optimize import optimize_layout
-from nopywer.ortools_solverV1 import optimize_layout
-
+# from nopywer.ortools_solverV1 import optimize_layout
+from nopywer.optimize_mixed import optimize_layout
 
 class OptimizeResponse(BaseModel):
     cables_geojson: dict
@@ -32,7 +32,8 @@ def optimize(req: OptimizeRequest):
     if not loads:
         raise HTTPException(400, "At least one load is required")
 
-    grid = optimize_layout(grid, extra_cable_m=req.extra_cable_m)
+    grid = optimize_layout(grid, extra_cable_m=req.extra_cable_m,
+                               hub_discount=0.7, radiality_factor=0.3)
 
     return OptimizeResponse(
         cables_geojson=grid.to_geojson(),
@@ -48,7 +49,7 @@ def optimize(req: OptimizeRequest):
 if __name__ == "__main__":
     import json
 
-    with open(Path(__file__).parent.parent.parent / "tests/fixtures/power-nodes.geojson") as f:
+    with open(Path(__file__).parent.parent.parent / "tests/fixtures/export.geojson") as f:
         nodes_geojson = json.load(f)
     req = OptimizeRequest(nodes_geojson=nodes_geojson)
     res = optimize(req)

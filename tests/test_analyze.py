@@ -60,7 +60,7 @@ def test_analyze_raises_when_no_cables_are_present():
         analyze(grid)
 
 
-def test_compute_voltage_drop_uses_phase_voltage_reference():
+def test_ltage_drop_uses_phase_voltage_reference():
     generator = PowerNode(
         name="generator",
         lon=0.0,

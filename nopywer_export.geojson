@@ -1,0 +1,984 @@
+{
+  "type": "FeatureCollection",
+  "crs": {
+    "type": "name",
+    "properties": {
+      "name": "EPSG:4326"
+    }
+  },
+  "power_unit": "W",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          -0.14046027066882047,
+          41.70048109809566
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "fid": 1,
+        "power": 1000.0,
+        "phase": "2",
+        "name": "Mini Camp"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          -0.1403126048615206,
+          41.70021165965277
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "fid": 2,
+        "power": 1000.0,
+        "phase": "3",
+        "name": "EYAO"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          -0.13986458645846486,
+          41.70012838821719
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "fid": 3,
+        "power": 1000.0,
+        "phase": "2",
+        "name": "Glitch"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          -0.14001451226101178,
+          41.69988172981668
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "fid": 4,
+        "power": 1000.0,
+        "phase": "1",
+        "name": "Belly Town"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          -0.14032067533151324,
+          41.699387585580126
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "fid": 5,
+        "power": 1000.0,
+        "phase": "1",
+        "name": "PDR of Fiascostan"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          -0.14037095139108816,
+          41.69906229826065
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "fid": 6,
+        "power": 1000.0,
+        "phase": "2",
+        "name": "Mirage"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          -0.1402769285712588,
+          41.69884015144679
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "fid": 7,
+        "power": 1400.0,
+        "phase": "3",
+        "name": "Wonderever"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          -0.13983096674250983,
+          41.698769513641636
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "fid": 8,
+        "power": 3000.0,
+        "phase": "1",
+        "name": "Oasis Playground"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          -0.1394393620604287,
+          41.69898872265349
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "fid": 9,
+        "power": 1000.0,
+        "phase": "2",
+        "name": "Planet Pulpo"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          -0.1400824723373084,
+          41.699631722152795
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "fid": 10,
+        "power": 1000.0,
+        "phase": "3",
+        "name": "Curious Creatures"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          -0.1403046266028607,
+          41.700765329482905
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "fid": 11,
+        "power": 1000.0,
+        "phase": "1",
+        "name": "Glowy Owl"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          -0.14061462479929102,
+          41.701104168536816
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "fid": 12,
+        "power": 1000.0,
+        "phase": "2",
+        "name": "\nBarrio Espace\n"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          -0.14105640391758656,
+          41.70179263095132
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "fid": 13,
+        "power": 4000.0,
+        "phase": "3",
+        "name": "Ran'Dome"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          -0.14100409056756252,
+          41.70136886602274
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "fid": 14,
+        "power": 6800.0,
+        "phase": "1",
+        "name": "Desert Dessert"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          -0.1407273698750896,
+          41.701997572463505
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "fid": 15,
+        "power": 20000.0,
+        "phase": "2",
+        "name": "Garden of Joy"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          -0.13944698019201643,
+          41.70162190531119
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "fid": 17,
+        "power": 3680.0,
+        "phase": "1",
+        "name": "Barrio del Sol"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          -0.1391394682682699,
+          41.69927405035179
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "fid": 19,
+        "power": 1000.0,
+        "phase": "2,3",
+        "name": "Olive Odissey"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          -0.13952647308927593,
+          41.69998517673939
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "fid": 21,
+        "power": 1000.0,
+        "phase": "2",
+        "name": "distro9"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          -0.1398948350326917,
+          41.70057458012552
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "fid": 22,
+        "power": 0.0,
+        "phase": "",
+        "name": "generator"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          -0.13987204105721388,
+          41.70115113523339
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "fid": 23,
+        "power": 0.0,
+        "phase": "",
+        "name": "distro1"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          -0.14052384215401315,
+          41.70162166285516
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "fid": 24,
+        "power": 1000.0,
+        "phase": "2",
+        "name": "ZAZ"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          -0.13961203403388528,
+          41.70130951714179
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "fid": 25,
+        "power": 1000.0,
+        "phase": "3",
+        "name": "RDTFGH"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          -0.13989622438430727,
+          41.69911385446002
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "fid": 26,
+        "power": 1000.0,
+        "phase": "1",
+        "name": "distro8"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          -0.13951008153297134,
+          41.70022595079415
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "fid": 28,
+        "power": 0.0,
+        "phase": "",
+        "name": "distro2"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          -0.13988830557411927,
+          41.701143908996386
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "fid": 30,
+        "power": 0.0,
+        "phase": null,
+        "name": "distro"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          -0.14040007075315172,
+          41.69928240812505
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "fid": 31,
+        "power": 0.0,
+        "phase": null,
+        "name": "JamHouse"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          -0.1399063474789402,
+          41.69912586313198
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "fid": 32,
+        "power": 0.0,
+        "phase": null,
+        "name": "distro6"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          [
+            [
+              -0.1358634919732599,
+              41.700722885105534
+            ],
+            [
+              -0.13589487185959379,
+              41.700491356829055
+            ]
+          ]
+        ],
+        "type": "MultiLineString"
+      },
+      "properties": {
+        "fid": 38,
+        "id": null,
+        "notes": null,
+        "phase": 2,
+        "area": 2.5,
+        "plugs&sockets": 16.0,
+        "length": 0.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          [
+            [
+              -0.13721678687118344,
+              41.69897332773713
+            ],
+            [
+              -0.13723473774240005,
+              41.699480301357305
+            ]
+          ]
+        ],
+        "type": "MultiLineString"
+      },
+      "properties": {
+        "fid": 50,
+        "id": null,
+        "notes": null,
+        "phase": 3,
+        "area": 2.5,
+        "plugs&sockets": 16.0,
+        "length": 0.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          [
+            [
+              -0.136946721189126,
+              41.70058175298905
+            ],
+            [
+              -0.13696022057941495,
+              41.70077074108049
+            ]
+          ]
+        ],
+        "type": "MultiLineString"
+      },
+      "properties": {
+        "fid": 68,
+        "id": null,
+        "notes": null,
+        "phase": 1,
+        "area": 2.5,
+        "plugs&sockets": 16.0,
+        "length": 0.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          [
+            [
+              -0.13775783580145348,
+              41.701017637026574
+            ],
+            [
+              -0.1377138674373942,
+              41.701476697407855
+            ]
+          ]
+        ],
+        "type": "MultiLineString"
+      },
+      "properties": {
+        "fid": 73,
+        "id": null,
+        "notes": null,
+        "phase": 1,
+        "area": 2.5,
+        "plugs&sockets": 16.0,
+        "length": 0.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          [
+            [
+              -0.13776074711101063,
+              41.70040172314188
+            ],
+            [
+              -0.1383265065243817,
+              41.70047734086633
+            ]
+          ]
+        ],
+        "type": "MultiLineString"
+      },
+      "properties": {
+        "fid": 77,
+        "id": null,
+        "notes": null,
+        "phase": 3,
+        "area": 2.5,
+        "plugs&sockets": 16.0,
+        "length": 0.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          [
+            [
+              -0.1383660635519354,
+              41.701110669984104
+            ],
+            [
+              -0.13867822792326492,
+              41.70159538737178
+            ]
+          ]
+        ],
+        "type": "MultiLineString"
+      },
+      "properties": {
+        "fid": 78,
+        "id": null,
+        "notes": null,
+        "phase": 2,
+        "area": 2.5,
+        "plugs&sockets": 16.0,
+        "length": 0.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          [
+            [
+              -0.13647667037934735,
+              41.700389376705765
+            ],
+            [
+              -0.13654311634408184,
+              41.70064621259186
+            ]
+          ]
+        ],
+        "type": "MultiLineString"
+      },
+      "properties": {
+        "fid": 80,
+        "id": null,
+        "notes": null,
+        "phase": 2,
+        "area": 2.5,
+        "plugs&sockets": 16.0,
+        "length": 0.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          [
+            [
+              -0.1367241540902938,
+              41.70023576191971
+            ],
+            [
+              -0.13647580663116396,
+              41.70038758805697
+            ]
+          ]
+        ],
+        "type": "MultiLineString"
+      },
+      "properties": {
+        "fid": 82,
+        "id": null,
+        "notes": null,
+        "phase": 2,
+        "area": 2.5,
+        "plugs&sockets": 16.0,
+        "length": 0.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          [
+            [
+              -0.13826592688444675,
+              41.701472011492505
+            ],
+            [
+              -0.13836265394923009,
+              41.70111121926144
+            ]
+          ]
+        ],
+        "type": "MultiLineString"
+      },
+      "properties": {
+        "fid": 89,
+        "id": null,
+        "notes": null,
+        "phase": 3,
+        "area": 2.5,
+        "plugs&sockets": 16.0,
+        "length": 0.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          [
+            [
+              -0.13749588811049746,
+              41.699105845853566
+            ],
+            [
+              -0.13723239955287345,
+              41.69947916905125
+            ]
+          ]
+        ],
+        "type": "MultiLineString"
+      },
+      "properties": {
+        "fid": 90,
+        "id": null,
+        "notes": null,
+        "phase": 1,
+        "area": 2.5,
+        "plugs&sockets": 16.0,
+        "length": 0.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          [
+            [
+              -0.1357408714998589,
+              41.700355165532265
+            ],
+            [
+              -0.13589549609553478,
+              41.70048969150146
+            ]
+          ]
+        ],
+        "type": "MultiLineString"
+      },
+      "properties": {
+        "fid": 91,
+        "id": null,
+        "notes": null,
+        "phase": 2,
+        "area": 2.5,
+        "plugs&sockets": 16.0,
+        "length": 0.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          [
+            [
+              -0.13744505973057222,
+              41.70067635384229
+            ],
+            [
+              -0.13711069462072983,
+              41.700737144769114
+            ]
+          ]
+        ],
+        "type": "MultiLineString"
+      },
+      "properties": {
+        "fid": 92,
+        "id": null,
+        "notes": null,
+        "phase": null,
+        "area": 2.5,
+        "plugs&sockets": 16.0,
+        "length": 0.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          [
+            [
+              -0.1377555218615635,
+              41.700402571544025
+            ],
+            [
+              -0.1380753282011498,
+              41.700557438031595
+            ]
+          ]
+        ],
+        "type": "MultiLineString"
+      },
+      "properties": {
+        "fid": 93,
+        "id": null,
+        "notes": null,
+        "phase": null,
+        "area": null,
+        "plugs&sockets": null,
+        "length": 0.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          [
+            [
+              -0.13775686180885907,
+              41.700402604944074
+            ],
+            [
+              -0.13793216684153273,
+              41.7001356003461
+            ]
+          ]
+        ],
+        "type": "MultiLineString"
+      },
+      "properties": {
+        "fid": 94,
+        "id": null,
+        "notes": null,
+        "phase": null,
+        "area": null,
+        "plugs&sockets": null,
+        "length": 0.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          [
+            [
+              -0.1377575602537182,
+              41.7004026716304
+            ],
+            [
+              -0.13767942576414527,
+              41.70010668154157
+            ]
+          ]
+        ],
+        "type": "MultiLineString"
+      },
+      "properties": {
+        "fid": 95,
+        "id": null,
+        "notes": null,
+        "phase": null,
+        "area": null,
+        "plugs&sockets": null,
+        "length": 0.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          [
+            [
+              -0.1377578671371608,
+              41.701016930964016
+            ],
+            [
+              -0.13748051264301162,
+              41.70142233907045
+            ]
+          ]
+        ],
+        "type": "MultiLineString"
+      },
+      "properties": {
+        "fid": 96,
+        "id": null,
+        "notes": null,
+        "phase": null,
+        "area": null,
+        "plugs&sockets": null,
+        "length": 0.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          [
+            [
+              -0.13738260788357232,
+              41.70126408080498
+            ],
+            [
+              -0.13776072486584146,
+              41.70101629535332
+            ]
+          ]
+        ],
+        "type": "MultiLineString"
+      },
+      "properties": {
+        "fid": 97,
+        "id": null,
+        "notes": null,
+        "phase": null,
+        "area": null,
+        "plugs&sockets": null,
+        "length": 0.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          [
+            [
+              -0.13733529820089352,
+              41.701104171330584
+            ],
+            [
+              -0.1377578671371608,
+              41.701016930964016
+            ]
+          ]
+        ],
+        "type": "MultiLineString"
+      },
+      "properties": {
+        "fid": 98,
+        "id": null,
+        "notes": null,
+        "phase": null,
+        "area": null,
+        "plugs&sockets": null,
+        "length": 0.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          [
+            [
+              -0.13743084611499873,
+              41.70096529812862
+            ],
+            [
+              -0.13775601421089068,
+              41.70101617793353
+            ]
+          ]
+        ],
+        "type": "MultiLineString"
+      },
+      "properties": {
+        "fid": 99,
+        "id": null,
+        "notes": null,
+        "phase": null,
+        "area": null,
+        "plugs&sockets": null,
+        "length": 0.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          [
+            [
+              -0.1367370904032387,
+              41.70022974030239
+            ],
+            [
+              -0.13661579870963406,
+              41.69984596268292
+            ]
+          ]
+        ],
+        "type": "MultiLineString"
+      },
+      "properties": {
+        "fid": 100,
+        "id": null,
+        "notes": null,
+        "phase": null,
+        "area": null,
+        "plugs&sockets": null,
+        "length": 0.0
+      }
+    }
+  ]
+}

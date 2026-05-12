@@ -29,11 +29,17 @@
     let nodesGeojson = null;
     let defaultBounds = null;
 
-    function setMessage(text, isError) {
-        messageEl.textContent = text;
-        messageEl.style.color = isError ? "#fca5a5" : "#cbd5e1";
+    // function setMessage(text, isError) {
+    //     messageEl.textContent = text;
+    //     messageEl.style.color = isError ? "#fca5a5" : "#cbd5e1";
+    // }
+    function setMessage(html, isError) {
+    messageEl.innerHTML = html;  // ✅ allows <br /> and <code>
+    messageEl.style.color = isError ? "#fca5a5" : "#cbd5e1";
     }
+    
     function capitalizeName(name) {
+
     return name.replace(/\b\w/g, c => c.toUpperCase());
     }
     
@@ -189,11 +195,11 @@
             const phaseLabel = phase !== null && !isNaN(phase) ? `L${phase + 1}` : "No phase assigned";
             const phaseCol = phaseColor(phase);
             // Scale radius proportionally to power (min 4, max 20)
-            const radius = Math.max(4, Math.min(20, 4 + power * 1));
+            const radius = Math.max(4, Math.min(30, 4 + power * 1));
             const markerOptions = {
                 radius: generator ? Math.max(radius, 8) : radius,
                 weight: generator ? 3 : 2,
-                color: generator ? "#ef4444" : "#a16207",
+                color: "#eecb6b",
                 fillColor: generator ? "#f87171" : phaseCol,
                 // fillColor: generator ? "#f87171" : "#facc15",
                 fillOpacity: 0.95,
@@ -202,7 +208,7 @@
 
             const marker = L.circleMarker(latlng, markerOptions)
                 .bindPopup(`
-                    <strong>${name}</strong><br />
+                    <strong>${capitalizeName(name)}</strong><br />
                     Power: ${power.toFixed(2)} kW<br />
                     Phase: ${phaseLabel}
                 `)
@@ -222,30 +228,32 @@
         }
     }
 
-
     function cableStyle(feature) {
         const plugs = feature.properties && feature.properties.plugs_and_sockets_a
             ? feature.properties.plugs_and_sockets_a
             : 16;
+        const phase = feature.properties?.phase ?? null;
+        const phaseCol = phaseColor(phase);
 
         if (plugs >= 63) {
-            return { color: "#dc2626", weight: 10 };
+            return {color: phaseCol, weight: 10 };
         }
         if (plugs >= 32) {
-            return { color: "#ea580c", weight: 7 };
+            return { color: phaseCol, weight: 7 };
         }
-        return { color: "#f59e0b", weight: 3 };
+        return { color: phaseCol, weight: 3 };
     }
+    
     function getCableWeight(plugs) {
         if (plugs >= 63) return 8;
         if (plugs >= 32) return 6;
         return 4;
     }
-    function getCableColor(plugs) {
-    if (plugs >= 63) return "#dc2626";
-    if (plugs >= 32) return "#ea580c";
-    return "#f59e0b";
-    }
+    // function getCableColor(plugs) {
+    // if (plugs >= 63) return "#dc2626";
+    // if (plugs >= 32) return "#ea580c";
+    // return "#f59e0b";
+    // }
 
     function phaseColor(phase) {
         const p = phase !== null && phase !== "" ? parseInt(phase, 10) : null;
@@ -258,112 +266,97 @@
 
     optimizedCablesLayer.clearLayers();
 
-    const nodeFeatures = cablesGeojson.features.filter(f => f.geometry.type === "Point");
-    console.log("Node features:", nodeFeatures.length, nodeFeatures[0]?.properties);
-
-
     const filter = function (feature) {
         return feature.geometry && feature.geometry.type === "LineString";
     };
 
-    // Capa base: tipo de cable (gruesa, semitransparente)
-    const baseLayer = L.geoJSON(cablesGeojson, {
+    const cableLayer = L.geoJSON(cablesGeojson, {
         filter,
         style: function (feature) {
             const style = cableStyle(feature);
-            return {
-                color: style.color,
-                weight: style.weight * 2,
-                opacity: 0.5,
-            };
+                return {
+                    color: style.color,
+                    weight: style.weight,
+                    opacity: 1,
+                };
         },
-    });
+    onEachFeature: function (feature, layer) {
+        const props = feature.properties || {};
+        const phaseRaw = props.phase ?? null;
+        const phase = phaseRaw !== null && phaseRaw !== "" ? parseInt(phaseRaw, 10) : null;
+        const plugs = props.plugs_and_sockets_a ?? 16;
 
-    // Capa superior: fase (fina, sólida) + popups
-    const phaseLayer = L.geoJSON(cablesGeojson, {
-        filter,
-        style: function (feature) {
-            const plugs = feature.properties?.plugs_and_sockets_a ?? 16;
-            const phase = feature.properties?.phase ?? null;
-            const baseWeight = cableStyle(feature).weight;
-            return {
-                color: phaseColor(phase),
-                weight: baseWeight,
-                opacity: 1,
-            };
-        },
-        onEachFeature: function (feature, layer) {
-            const props = feature.properties || {};
-            const phaseRaw = props.phase ?? null;
-            const phase = phaseRaw !== null && phaseRaw !== "" ? parseInt(phaseRaw, 10) : null;
+        const vdropStr = props.vdrop_pct !== null && props.vdrop_pct !== undefined
+            ? (() => {
+                const vdrop = props.vdrop_pct;
+                const vdropColor = vdrop > 5 ? "#e74c3c" : vdrop > 3 ? "#f39c12" : "#2ecc71";
+                return `<span style="color:${vdropColor}">▼ ${vdrop.toFixed(1)}%</span>`;
+            })()
+            : "";
 
-            const plugs = props.plugs_and_sockets_a ?? 16;
 
-            const phaseLabel =
-                phase === null || isNaN(phase)
-                    ? "?"
-                    : phase === 3
-                    ? "Triphasic"
-                    : "L" + (phase + 1);
+        const phaseLabel =
+            phase === null || isNaN(phase) ? "?"
+            : phase === 3 ? "Triphasic"
+            : "L" + (phase + 1);
 
-            const details =
-                "<strong>" + (props.from || "?") + " → " + (props.to || "?") + "</strong><br />" +
-                "Phase: <span style='color:" + phaseColor(phase) + "'><strong>" + phaseLabel + "</strong></span><br />" +
-                "Cable: <span style='color:" + cableStyle(feature).color + "'><strong>" + plugs + "A</strong></span><br />" +
-                "Length: " + String(props.length_m ?? "?") + " m<br />" +
-                "Current: " + String(props.current_a ?? "?") + " A<br />" +
-                "Load: " + String(props.cum_power_kw ?? "?") + " kW";
+        layer.bindPopup(
+            `<strong>${capitalizeName(props.from || "?")} → ${capitalizeName(props.to || "?")}</strong><br />
+            Phase: <strong>${phaseLabel}</strong><br />
+            Cable: <strong>${plugs}A</strong><br />
+            Length: ${props.length_m ?? "?"} m<br />
+            Current: ${props.current_a ?? "?"} A<br />
+            Load: ${props.cum_power_kw ?? "?"} kW`
+        );
+    },
+});
 
-            layer.bindPopup(details);
-        },
-    });
-
-    baseLayer.addTo(optimizedCablesLayer);
-    phaseLayer.addTo(optimizedCablesLayer);
-
-    if (phaseLayer.getLayers().length > 0) {
-        map.fitBounds(phaseLayer.getBounds().pad(0.08));
-    }
+cableLayer.addTo(optimizedCablesLayer);
     bringNodesToFront();
 }
 function updateNodePhasesFromResponse(nodeFeatures) {
-    nodesLayer.clearLayers();      // ✅ wipe original markers
-    nodeMarkers.length = 0;        // ✅ clear the reference array
+    nodesLayer.clearLayers();
+    nodeMarkers.length = 0;
+    const seen = new Set();
 
     nodeFeatures.forEach((feature) => {
         if (!feature.geometry || feature.geometry.type !== "Point") return;
 
         const coords = feature.geometry.coordinates;
         const latlng = [coords[1], coords[0]];
+
         const name = feature.properties?.name ?? "unnamed";
+        if (seen.has(name)) {
+                    console.warn("Duplicate node skipped:", name);
+                    return;
+                }
+        seen.add(name);
+
         const phase = feature.properties?.phase ?? null;
         const power = (feature.properties?.power_watts ?? 0) / 1000;
-        const phaseLabel = phase !== null && !isNaN(phase) ? `L${phase + 1}` : "?";
+        const nodeColor = phaseColor(phase);
 
+        const phaseLabel = phase !== null && !isNaN(phase) ? `L${phase + 1}` : "No phase";
         const generator = name.toLowerCase().includes("generator");
         const radius = Math.max(4, Math.min(20, 4 + power));
+
         const markerOptions = {
             radius: generator ? Math.max(radius, 8) : radius,
-            weight: generator ? 3 : 2,
-            color: generator ? "#ef4444" : "#a16207",
-            fillColor: generator ? "#f87171" : "#facc15",
+            weight: 3,
+            color: "#eecb6b",
+            fillColor: nodeColor,
             fillOpacity: 0.95,
             opacity: 1,
         };
 
         const marker = L.circleMarker(latlng, markerOptions)
-            .bindPopup(`
-                <strong>${name}</strong><br />
-                Power: ${power.toFixed(2)} kW<br />
-                Phase: ${phaseLabel}
-            `)
+            .bindPopup(`<strong>${capitalizeName(name)}</strong><br />Power: ${power.toFixed(2)} kW<br />Phase: ${phaseLabel}`)
             .addTo(nodesLayer);
 
         marker._originalStyle = markerOptions;
         nodeMarkers.push({ name, layer: marker });
     });
 
-    bringNodesToFront();
 }
 
     function buildNodesGeojson() {
@@ -385,23 +378,52 @@ function updateNodePhasesFromResponse(nodeFeatures) {
         };
     }
 
-    async function loadNodes() {
-        const response = await fetch(DATASET_URL);
-        if (!response.ok) {
-            throw new Error("Bundled power nodes dataset is unavailable");
+    async function loadNodes(file = null) {
+        if (file) {
+            const text = await file.text();
+            nodesGeojson = JSON.parse(text);
+            setMessage("Loaded custom dataset.", false);
+        } else {
+            const response = await fetch(DATASET_URL);
+            if (!response.ok) {
+                throw new Error("Bundled power nodes dataset is unavailable");
+            }
+            nodesGeojson = await response.json();
+            setMessage("Loaded the minimal power-only dataset bundled with nopywer.", false);
         }
-
-        nodesGeojson = await response.json();
         const features = Array.isArray(nodesGeojson.features) ? nodesGeojson.features : [];
         nodeCountEl.textContent = String(features.length);
         addNodes(features);
-        setMessage("Loaded the minimal power-only dataset bundled with nopywer.", false);
     }
+    const uploadButton = document.getElementById("upload-button");
+    const uploadInput = document.getElementById("upload-input");
 
+    uploadButton.addEventListener("click", () => uploadInput.click());
+
+    uploadInput.addEventListener("change", function () {
+        const file = this.files?.[0];
+        if (!file) return;
+
+        // Reset state before loading new nodes
+        optimizedCablesLayer.clearLayers();
+        nodesLayer.clearLayers();
+        nodeMarkers.length = 0;
+        setOptimizerStatus("idle");
+
+        loadNodes(file).catch((error) => {
+            nodeCountEl.textContent = "0";
+            setOptimizerStatus("error");
+            setMessage(escapeHtml(error.message) || "Failed to load file", true);
+        });
+
+        this.value = ""; // ✅ allows re-uploading the same file
+    });
     async function runOptimization() {
         optimizeButton.disabled = true;
         setOptimizerStatus("running");
         setMessage("Optimizing the current bundled power nodes dataset...", false);
+        const hubDiscount = parseFloat(document.getElementById("hub-discount").value);
+        const radialityFactor = parseFloat(document.getElementById("radiality-factor").value);
 
         try {
             const response = await fetch(OPTIMIZE_URL, {
@@ -412,6 +434,8 @@ function updateNodePhasesFromResponse(nodeFeatures) {
                 body: JSON.stringify({
                     nodes_geojson: buildNodesGeojson(),
                     extra_cable_m: 10,
+                    hub_discount: hubDiscount,
+                    radiality_factor: radialityFactor,
                 }),
             });
 
@@ -423,33 +447,24 @@ function updateNodePhasesFromResponse(nodeFeatures) {
             renderOptimizedCables(payload.cables_geojson);
             updateNodePhasesFromResponse(
             payload.cables_geojson.features.filter(f => f.geometry.type === "Point"));
-
             setOptimizerStatus("done");
+            bringNodesToFront();
             setMessage(
-                "Computed and drew " +
-                    payload.num_cables +
-                    " cables for " +
-                    Math.round(payload.total_cable_length_m) +
-                    " m total" +
-                    " Phase loads: L1=" +
-                          Math.round(payload.phase_loads[0]) +
-                          " kW, L2=" +
-                          Math.round(payload.phase_loads[1]) +
-                          " kW, L3=" +  
-                          Math.round(payload.phase_loads[2]),
-                "\n" +
-                    "Phase loads: L1=" +
-                    Math.round(payload.phase_loads[0]) +
-                    " kW, L2=" +
-                    Math.round(payload.phase_loads[1]) +
-                    " kW, L3=" +
-                    Math.round(payload.phase_loads[2]),
-                false,
+                `Computed and drew ${payload.num_cables} cables for ${Math.round(payload.total_cable_length_m)} m total — ` +
+                `Phase loads: L1=${Math.round(payload.phase_loads[0])} kW, ` +
+                `L2=${Math.round(payload.phase_loads[1])} kW, ` +
+                `L3=${Math.round(payload.phase_loads[2])} kW`,
+                false
             );
-        } catch (error) {
+
+        }  catch (error) {
             setOptimizerStatus("error");
-            setMessage(error.message || "Optimization failed", true);
-        } finally {
+            const line = error.stack
+                ? `<br /><code style="font-size:11px;opacity:0.7">${escapeHtml(error.stack.split("\n")[1]?.trim() ?? "")}</code>`
+                : "";
+            setMessage((escapeHtml(error.message) || "Optimization failed") + line, true);
+        }
+ finally {
             optimizeButton.disabled = false;
         }
     }

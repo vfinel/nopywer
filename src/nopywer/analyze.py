@@ -154,7 +154,7 @@ def _compute_voltage_drop(grid: PowerGrid, node_name: str | None = None) -> None
         logger.debug(f"\t\t vdrop: {node.vdrop_percent:.1f}%")
 
         if node.vdrop_percent > VDROP_THRESHOLD_PERCENT:
-            logger.info(f"\t /!\\ vdrop of {node.vdrop_percent:.1f} percent at {node_name}")
+            logger.warning(f"\t /!\\ vdrop of {node.vdrop_percent:.1f} percent at {node_name}")
 
     for child_name in node.children:
         _compute_voltage_drop(grid, child_name)
