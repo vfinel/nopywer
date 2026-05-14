@@ -181,9 +181,18 @@ documented.
 
 ## Filling in the missing per-load phase
 
-The 2025 fixture has 54 nodes with no phase assignment. Three
-strategies for adding phase data, ordered from realistic to
-worst-case:
+The 2025 fixture has 54 nodes with no phase assignment; the 2026
+field export (doc 11) has 26, also unphased. Four strategies for
+adding phase data, ordered from realistic to worst-case.
+
+All four share one modelling input — a **usage factor**. Festival
+loads almost never draw nameplate power simultaneously, so phase
+balancing on nameplate over-fits to a peak that never happens. The
+strategies balance on `power × usage_factor` instead; the working
+assumption (and the default in code) is **0.5×**. The factor also
+sets which loads can be single-phased at all: anything whose
+effective power exceeds a single 16 A leg (~3.3 kW) stays
+multi-phase regardless of strategy.
 
 ### Strategy A — historical reconstruction
 
@@ -216,6 +225,70 @@ phase planning looks like". A planner who runs this on a real
 fixture and sees catastrophic neutral currents has empirical
 evidence for why phase balancing matters.
 
+### Strategy D — greedy least-loaded leg
+
+Size-aware balancing. Sort the single-phase loads heaviest-first
+and drop each onto whichever leg currently carries the least power
+(at the usage factor), seeded with whatever balanced and
+pre-assigned loads are already on the grid:
+
+```python
+legs = fixed_leg_seed(grid, usage_factor)        # balanced + pre-phased loads
+for name, watts in sorted(candidates, key=lambda c: -c[1]):
+    target = min(range(3), key=lambda i: legs[i])
+    legs[target] += watts
+    node.phase = target + 1
+```
+
+Heaviest-first matters: it places the big loads while the legs are
+near-empty and leaves the small loads to fine-tune. This is the
+standard greedy multiway-partition heuristic — not provably
+optimal, but on festival-shaped inputs it lands far closer to a
+level split than round-robin, and unlike B it is insensitive to
+the order loads appear in the fixture. The cost is that it needs
+trustworthy load sizes; if nameplate figures are guesses, B's
+positional honesty may be preferable.
+
+**Recommended over Strategy B when load sizes are reliable.**
+
+## What the strategies actually produce
+
+Strategies B and D are now implemented in `pp_interop/phases`
+(round-robin and greedy in separate modules; shared candidate
+selection, fixed-leg seed, and balance metric in `_common`). Both
+return a `PhaseAssignment` and do not mutate the grid —
+`apply_assignment` commits one.
+
+Running both on the 2026 modified fixture (doc 11) at 0.5× usage —
+19 single-phase candidates; `garden of joy`, `curious creatures`,
+`desert dessert` left multi-phase as too big for one leg:
+
+| Strategy | L1 / L2 / L3 (kW) | Leg balance | Worst tree-walk vdrop |
+|---|---|---:|---:|
+| B  round-robin | 16.17 / 15.13 / 12.83 | 9.5 % | 13.7 % (`jamhouse`) |
+| D  greedy      | 14.67 / 14.83 / 14.63 | **0.6 %** | 13.7 % (`jamhouse`) |
+
+Two findings:
+
+- **Greedy crushes the imbalance** — 9.5 % → 0.6 %, a near-level
+  three-way split — exactly what a size-aware heuristic should do
+  against round-robin's positional lottery.
+- **But the worst node's voltage drop is *identical*.** Leg balance
+  is a property of the *generator* totals; a node's voltage drop is
+  a property of the *radial path* feeding it — the cumulative
+  current on the specific cables between it and the source.
+  Re-balancing the legs at the generator does not re-route which
+  loads sit on a given branch, so the heavily-loaded trunk cables a
+  far node sits behind carry the same current either way. **Phase
+  balancing and voltage-drop relief are decoupled levers.** Greedy
+  is the right tool for neutral-current and generator-loading
+  problems; it is *not* a substitute for cable sizing (doc 11).
+
+This also sharpens a caveat for the eventual `runpp_3ph`
+validation: a strategy that scores beautifully on leg balance can
+still leave a fixture with the same out-of-spec worst node. Both
+metrics have to be reported.
+
 ## Implementation shopping list
 
 Rough estimate of the work, in three layers:
@@ -223,11 +296,13 @@ Rough estimate of the work, in three layers:
 ### Layer 1 — Data / fixtures
 
 - `analyze_input.geojson` — already has `phase` on each load. **No work.**
-- `input_nodes.geojson` — needs phase assignment. **Strategy B (round-robin)
-  via a one-shot script** is the cheapest realistic option. ~5 lines.
+- Phase synthesis for unphased fixtures — **done.** Strategies B and
+  D ship in `pp_interop/phases`; the 2026 modified fixture has had
+  the greedy assignment written into it. `input_nodes.geojson` could
+  get the same treatment with a one-liner.
 - New synthetic fixtures specifically for asymmetric stress (e.g. all
-  loads on L1) could live alongside the existing tests. ~30 lines per
-  fixture.
+  loads on L1, i.e. Strategy C) could live alongside the existing
+  tests. ~30 lines per fixture.
 
 ### Layer 2 — Config defaults
 
@@ -280,12 +355,12 @@ that calls `pp.runpp_3ph` instead of `runpp`.
 | Layer | Lines |
 |---|---:|
 | Add phase to `analyze_input.geojson` (already done) | 0 |
-| Round-robin phase synthesis script for `input_nodes.geojson` | ~5 |
+| Phase synthesis strategies B + D (`pp_interop/phases`, **done**) | 0 |
 | New config defaults (zero-sequence + source vector group) | ~10 |
 | Branch on phase in `_conversion.py` | ~30 |
 | New `compute_power_flow_3ph` function | ~50 |
 | Tests (parity + comparison + topology), mirroring the existing balanced suite | ~150 |
-| Findings doc (`11_runpp_3ph_findings.md`) | ~200 |
+| Findings doc (`12_runpp_3ph_findings.md`) | ~200 |
 
 The biggest unknown is whether `runpp_3ph` converges cleanly on
 the 2025-scale fixture (51 nodes) given its documented sensitivity,
@@ -338,13 +413,12 @@ only way to know is to measure with `runpp_3ph`.
 
 ## Where it slots in
 
-If pursued, this work would land as:
+If pursued, the remaining work would land as:
 
-- A new branch off `feat/pandapower-comparison-tests` (the current
-  PR stack head): `feat/pandapower-runpp-3ph`.
 - A new module file `pp_interop/_powerflow_3ph.py` mirroring
-  `_powerflow.py`'s shape.
-- A new findings doc `11_runpp_3ph_findings.md` capturing the
+  `_powerflow.py`'s shape. (The phase-synthesis half of the work —
+  `pp_interop/phases` — is already done.)
+- A new findings doc `12_runpp_3ph_findings.md` capturing the
   numbers — same register as
   [`07_optimiser_validation_findings.md`](./07_optimiser_validation_findings.md).
 - Extension of `scripts/sensitivity_sweep.py` to add a fourth

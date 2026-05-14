@@ -47,8 +47,12 @@ Date of research: April 2026. Pandapower latest at time of writing: **3.4.0**
     asymmetric `runpp_3ph`. Covers what pandapower needs (per-load
     phase, zero-sequence cable params, source vector group), what
     the existing fixtures contain (the 2025 fixture has no phase
-    data; the small synthetic does), three strategies for
-    synthesising phase data, and a per-layer scope breakdown.
+    data; the small synthetic does), four strategies for
+    synthesising phase data (B round-robin and D greedy now
+    implemented in `pp_interop/phases`), and a per-layer scope
+    breakdown. Key finding: phase balancing and voltage-drop relief
+    are decoupled levers — greedy cuts leg imbalance 9.5 %→0.6 % but
+    leaves the worst node's drop unchanged.
 11. [`11_field_export_fixture_walkthrough.md`](11_field_export_fixture_walkthrough.md) —
     how to plug Martin's `2026-05-14_martin.geojson` field export into
     the pandapower code. Two gaps: a trivial schema mismatch (export
