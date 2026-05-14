@@ -19,15 +19,23 @@ from ._powerflow import (
     compare_with_tree_walk,
     compute_power_flow,
 )
+from ._powerflow_3ph import (
+    PowerFlow3phResults,
+    compute_power_flow_3ph,
+    to_pandapower_3ph,
+)
 from ._shortcircuit import compute_short_circuit
 
 __all__ = [
     "PandapowerGrid",
+    "PowerFlow3phResults",
     "PowerFlowResults",
     "TreeWalkVsAcDiff",
     "compare_with_tree_walk",
     "compute_power_flow",
+    "compute_power_flow_3ph",
     "compute_short_circuit",
     "config",
     "to_pandapower",
+    "to_pandapower_3ph",
 ]

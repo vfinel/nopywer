@@ -99,3 +99,32 @@ FAULT_TYPE: str = "3ph"
 
 # IEC 60909 case: maximum prospective short-circuit current.
 FAULT_CASE: str = "max"
+
+
+# === Three-phase asymmetric flow (runpp_3ph) ===
+#
+# Zero-sequence parameters describe how a cable and the source behave
+# to the imbalance current returning through the neutral and earth —
+# the current that a balanced `runpp` never sees. None of these have a
+# nopywer analogue (the tree walk does not model the neutral at all)
+# and they are not on festival flex spec sheets, so they are
+# engineering rule-of-thumb defaults. See research doc 10.
+
+# Zero-sequence cable R and X as a multiple of the positive-sequence
+# value. For 4-core LV flex with a full-section neutral the
+# neutral-and-earth return loop has roughly 3-5x the resistance and
+# reactance of a single phase conductor; 4x is the mid-range default.
+R0_OVER_R1: float = 4.0
+X0_OVER_X1: float = 4.0
+
+# Zero-sequence capacitance per km. Negligible at LV under 1 km, same
+# as the positive-sequence `C_NF_PER_KM`.
+C0_NF_PER_KM: float = 0.0
+
+# Source vector group / earthing. Most festival diesel gen-sets are
+# TN-S with a solidly grounded star point (Yn), giving a
+# low-impedance zero-sequence return: X0/X1 ~ 1, R0/X0 ~ 0.1. An
+# isolated-neutral (IT) genset would have no zero-sequence return at
+# all and needs these overridden.
+SOURCE_X0X_MAX: float = 1.0
+SOURCE_R0X0_MAX: float = 0.1

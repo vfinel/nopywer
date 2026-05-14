@@ -265,24 +265,37 @@ Running both on the 2026 modified fixture (doc 11) at 0.5× usage —
 
 | Strategy | L1 / L2 / L3 (kW) | Leg balance | Worst tree-walk vdrop |
 |---|---|---:|---:|
-| B  round-robin | 16.17 / 15.13 / 12.83 | 9.5 % | 13.7 % (`jamhouse`) |
-| D  greedy      | 14.67 / 14.83 / 14.63 | **0.6 %** | 13.7 % (`jamhouse`) |
+| B  round-robin | 16.17 / 15.13 / 12.83 | 9.5 % | 13.74 % (`jamhouse`) |
+| D  greedy      | 14.67 / 14.83 / 14.63 | **0.6 %** | 13.70 % (`jamhouse`) |
 
 Two findings:
 
 - **Greedy crushes the imbalance** — 9.5 % → 0.6 %, a near-level
   three-way split — exactly what a size-aware heuristic should do
   against round-robin's positional lottery.
-- **But the worst node's voltage drop is *identical*.** Leg balance
-  is a property of the *generator* totals; a node's voltage drop is
-  a property of the *radial path* feeding it — the cumulative
-  current on the specific cables between it and the source.
-  Re-balancing the legs at the generator does not re-route which
-  loads sit on a given branch, so the heavily-loaded trunk cables a
-  far node sits behind carry the same current either way. **Phase
-  balancing and voltage-drop relief are decoupled levers.** Greedy
-  is the right tool for neutral-current and generator-loading
-  problems; it is *not* a substitute for cable sizing (doc 11).
+- **But the worst node's voltage drop barely moves** — 13.74 % →
+  13.70 %, the same to a tenth of a point. The reasons are
+  structural, not coincidental:
+  - The worst node's *own* feed is unchanged. `jamhouse` is a 3 kW
+    load on L1 under both strategies, so its leaf cable carries the
+    same current and contributes the same ~7.2 V drop either way.
+  - On the *shared trunk* cables, the tree walk charges drop on
+    `max(current_per_phase)` — only the single heaviest leg on each
+    cable matters. Greedy balances the **generator** totals, but
+    that does not balance each intermediate cable's own subtree, and
+    the max-phase rule ignores everything but the top leg. Greedy's
+    gains on one cable are offset by small losses on another; the
+    path total nets out flat.
+  - The big multi-phase loads (`garden of joy`, `curious creatures`)
+    sit on the trunk regardless and dominate its current. Shuffling
+    19 small single-phase candidates around the legs is noise next
+    to them.
+
+  So **phase balancing and voltage-drop relief are decoupled
+  levers.** Greedy is the right tool for neutral-current and
+  generator-loading problems; it is *not* a substitute for cable
+  sizing (doc 11). A strategy can score beautifully on leg balance
+  and leave the worst node exactly where it was.
 
 This also sharpens a caveat for the eventual `runpp_3ph`
 validation: a strategy that scores beautifully on leg balance can
@@ -352,15 +365,19 @@ that calls `pp.runpp_3ph` instead of `runpp`.
 
 ### Scope summary
 
-| Layer | Lines |
-|---|---:|
-| Add phase to `analyze_input.geojson` (already done) | 0 |
-| Phase synthesis strategies B + D (`pp_interop/phases`, **done**) | 0 |
-| New config defaults (zero-sequence + source vector group) | ~10 |
-| Branch on phase in `_conversion.py` | ~30 |
-| New `compute_power_flow_3ph` function | ~50 |
-| Tests (parity + comparison + topology), mirroring the existing balanced suite | ~150 |
-| Findings doc (`12_runpp_3ph_findings.md`) | ~200 |
+| Layer | Status |
+|---|---|
+| Add phase to `analyze_input.geojson` | done |
+| Phase synthesis strategies B + D (`pp_interop/phases`) | **done** |
+| Config defaults — zero-sequence + source vector group (`config.py`) | **done** |
+| Asymmetric conversion + `compute_power_flow_3ph` (`_powerflow_3ph.py`) | **done** |
+| Tests — `_phase_split`, conversion, per-leg flow, neutral current | **done** |
+| Findings doc (`12_runpp_3ph_findings.md`) | not started |
+
+The conversion landed as `to_pandapower_3ph` — it augments the
+balanced `to_pandapower` net (zero-sequence line/source params,
+asymmetric loads swapped in for phased loads) rather than branching
+inside `_conversion.py`, keeping the balanced path untouched.
 
 The biggest unknown is whether `runpp_3ph` converges cleanly on
 the 2025-scale fixture (51 nodes) given its documented sensitivity,
@@ -413,14 +430,19 @@ only way to know is to measure with `runpp_3ph`.
 
 ## Where it slots in
 
-If pursued, the remaining work would land as:
+The code is done — `pp_interop/phases` (phase synthesis),
+`config.py` (zero-sequence defaults), and `pp_interop/_powerflow_3ph.py`
+(`to_pandapower_3ph` + `compute_power_flow_3ph`), all with tests.
+What remains:
 
-- A new module file `pp_interop/_powerflow_3ph.py` mirroring
-  `_powerflow.py`'s shape. (The phase-synthesis half of the work —
-  `pp_interop/phases` — is already done.)
 - A new findings doc `12_runpp_3ph_findings.md` capturing the
   numbers — same register as
   [`07_optimiser_validation_findings.md`](./07_optimiser_validation_findings.md).
+  Early signal: `runpp_3ph` converges on the 2026 modified fixture
+  at 0.5× usage (worst leg ~20 % drop, worst neutral ~20 A) but
+  *not* at full nameplate — asymmetric loading tips a grid past
+  collapse on its heaviest legs even where the balanced solve still
+  finds a fixed point.
 - Extension of `scripts/sensitivity_sweep.py` to add a fourth
   sweep over the new zero-sequence ratio defaults.
 
