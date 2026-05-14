@@ -158,14 +158,97 @@ For Martin, concretely:
    (Strategy B) remains the only option, and only once the grid
    converges balanced.
 
+## Worked example: making the grid converge
+
+`tests/fixtures/2026-05-14_martin_modified.geojson` is an editable
+copy used to test the "fix the under-sized runs" path from step 3
+above. The exercise: resize cables one at a time and watch where
+the bottleneck moves.
+
+**Tracing the worst bus.** At 0.5× load (where the original
+converges), the worst bus is `jamhouse` at 0.66 pu. Walking its
+path back to the generator, one cable dominates: `cable_23`, the
+`generator → distro1` trunk — 2.5 mm² flex (16 A rated) carrying
+45 A, ~55 V of drop on that segment alone. It feeds the entire
+`distro1` subtree: 15 loads, 38.8 kW, with `curious creatures`
+(10 kW) the single biggest lump. The trunk is on the *thinnest*
+cable type in nopywer's catalogue while carrying a third of the
+grid.
+
+**Resizing, one cable at a time.** nopywer's catalogue has exactly
+one single-phase type (`Cable16A`, 2.5 mm²); everything bigger
+(32/63/125 A) is three-phase. So any trunk fix is also a
+1-phase → 3-phase change. Iterating on the modified fixture at
+*full* load:
+
+| Change | Result |
+|---|---|
+| baseline (export as-is) | no AC solution |
+| `cable_23` trunk → 125 A 3P | still no solution; converges at 0.6–0.7× |
+| `cable_3` (GoJ feed) → 32 A 3P | **converges**, vmin 0.576 (`garden of joy`) |
+| `cable_3` → 63 A 3P | vmin 0.707, worst bus → `desert dessert` |
+| `cable_1` (other gen trunk) → 125 A 3P | vmin 0.779, worst bus → `jamhouse` |
+| `cable_2` (CC feed) → 32 A 3P | vmin 0.783, two cables left ~1.0× rating |
+
+**Worst voltage drop across both axes.** Sweeping each cable
+config against the reduced-power scales gives the full picture —
+each cell is the max bus voltage drop (`1 − vmin`); "—" is no AC
+solution at all:
+
+| Cable config | 1× | 0.7× | 0.6× | 0.5× | 0.3× |
+|---|---|---|---|---|---|
+| S0  original (all 2.5 mm²)      | — | —    | —    | 34 % | 16 % |
+| S1  +`cable_23`→125 A           | — | 44 % | 30 % | 23 % | 12 % |
+| S2  +`cable_3`→32 A             | 42 % | 22 % | 18 % | 14 % | 8 % |
+| S3  `cable_3`→63 A              | 29 % | 18 % | 15 % | 12 % | 7 % |
+| S4  +`cable_1`→125 A            | 22 % | 14 % | 12 % | 10 % | 5 % |
+| S5  +`cable_2`→32 A             | 22 % | 14 % | 12 % | 10 % | 5 % |
+
+Two things stand out. First, **cable resizing and load reduction
+buy roughly the same thing** — S1 at 0.5× and S0 at 0.3× both land
+near a 12–16 % drop; you can trade one for the other. Second,
+**even the fully-resized grid (S5) only reaches 22 % drop at full
+load** — better than "no solution", still 4× over the 5 % NF C
+15-100 threshold. Convergence is a low bar; spec compliance is a
+much higher one, and these five cable swaps do not clear it. S5
+only meets 5 % at 0.3× load. (S5 matches S4 because `cable_2` was
+never the binding constraint — that swap was a *type* correction,
+not a capacity one; see below.)
+
+The pattern is the whole point: **every fix exposes the
+next-thinnest segment.** The worst bus hops `garden of joy` →
+`desert dessert` → `jamhouse` as each bottleneck is cleared. This
+is not a one-cable problem — 21 of the 25 cables are 2.5 mm². Going
+from "no solution" to "converges, two cables marginally over" took
+four targeted resizes, and getting fully within the 5 % drop
+threshold would need a systematic `pick_cable_for`-against-actual-
+current pass over every cable, not worst-bus whack-a-mole.
+
+**Asymmetric loads need multi-core cable.** `curious creatures`
+was re-modelled as a genuine two-phase load (5 kW on L1, 5 kW on
+L2) via the new list-valued `phase` support — `phase: [1, 2]`
+splits power evenly across the listed legs. That immediately
+surfaced a modelling error the balanced view hid: its feed
+`cable_2` was a *1-phase* cable, which physically cannot carry two
+phases regardless of rating. It is not "underrated", it is the
+wrong type. The fix is the smallest 3-phase cable
+(`Cable32A`, 6 mm²) — each live leg pulls ~24 A, under the 32 A
+rating, with the unused L3 core idle. The lesson for the doc 10
+`runpp_3ph` work: per-load phase assignment and cable *type* are
+coupled — assigning phases can invalidate the cable feeding the
+load.
+
 ## What this changes upstream
 
-Two things worth carrying back into the codebase rather than
-leaving as research notes:
+Carrying back into the codebase rather than leaving as research
+notes:
 
-- **`io.load_geojson` should accept the export schema.** Exports
-  round-tripping as inputs is a normal workflow; the silent-default
-  behaviour is a trap. Accept both key spellings.
+- **`io.load_geojson` now accepts the export schema** (done —
+  `_EXPORT_KEY_ALIASES` maps `area_mm2`/`plugs_and_sockets_a`/
+  `length_m` onto the input-schema keys) **and list-valued
+  `phase`** for multi-phase loads. Exports round-tripping as
+  inputs is a normal workflow; the old silent-default behaviour
+  was a trap.
 - **The `LoadflowNotConverged` path needs a deliberate story.**
   Right now `compute_power_flow` lets pandapower's exception
   propagate raw. For a planning tool, "this grid has no AC
