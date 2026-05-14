@@ -10,6 +10,20 @@ from .models import Cable, PowerNode
 
 logger = logging.getLogger(__name__)
 
+# A round-tripped nopywer export uses different property keys from the
+# hand-authored input schema (e.g. `area_mm2` vs `area`). Map each export
+# key onto its input-schema equivalent so either form loads.
+_EXPORT_KEY_ALIASES = {
+    "area_mm2": "area",
+    "plugs_and_sockets_a": "plugs&sockets",
+    "length_m": "length",
+}
+
+
+def _normalise_keys(props: dict) -> dict:
+    """Return props with export-schema keys renamed to input-schema keys."""
+    return {_EXPORT_KEY_ALIASES.get(k, k): v for k, v in props.items()}
+
 
 def load_geojson(source: str | Path | dict) -> tuple[dict[str, PowerNode], dict[str, Cable]]:
     """Parse a GeoJSON FeatureCollection (file path or dict).
@@ -28,7 +42,7 @@ def load_geojson(source: str | Path | dict) -> tuple[dict[str, PowerNode], dict[
 
     for feature in fc.get("features", []):
         geom = feature.get("geometry", {})
-        props = feature.get("properties", {})
+        props = _normalise_keys(feature.get("properties", {}))
         gtype = geom.get("type", "")
 
         if gtype == "Point":
@@ -49,6 +63,12 @@ def load_geojson(source: str | Path | dict) -> tuple[dict[str, PowerNode], dict[
             )
             if isinstance(phase, int) and 1 <= phase <= 3:
                 node.power_per_phase[phase - 1] = power
+            elif isinstance(phase, list) and phase:
+                # Multi-phase load: split power evenly across the listed legs
+                # (e.g. phase=[1, 2] on a 10 kW load -> 5 kW on L1, 5 kW on L2).
+                legs = [p for p in phase if isinstance(p, int) and 1 <= p <= 3]
+                for leg in legs:
+                    node.power_per_phase[leg - 1] += power / len(legs)
             else:
                 node.power_per_phase += power / 3
             nodes.append(node)

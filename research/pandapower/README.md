@@ -49,6 +49,13 @@ Date of research: April 2026. Pandapower latest at time of writing: **3.4.0**
     the existing fixtures contain (the 2025 fixture has no phase
     data; the small synthetic does), three strategies for
     synthesising phase data, and a per-layer scope breakdown.
+11. [`11_field_export_fixture_walkthrough.md`](11_field_export_fixture_walkthrough.md) —
+    how to plug Martin's `2026-05-14_martin.geojson` field export into
+    the pandapower code. Two gaps: a trivial schema mismatch (export
+    keys `area_mm2`/`plugs_and_sockets_a` vs input keys
+    `area`/`plugs&sockets`, loads silently to defaults), and a real
+    one — at full load the grid is past voltage collapse and `runpp`
+    will not converge. The non-convergence is itself the finding.
 
 ## TL;DR
 
