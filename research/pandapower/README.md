@@ -60,6 +60,11 @@ Date of research: April 2026. Pandapower latest at time of writing: **3.4.0**
     `area`/`plugs&sockets`, loads silently to defaults), and a real
     one — at full load the grid is past voltage collapse and `runpp`
     will not converge. The non-convergence is itself the finding.
+12. [`13_cable_costs.md`](13_cable_costs.md) — EU web research on finished
+    CEE extension-lead costs for nopywer's four cable tiers. Fits each tier
+    as `a + b * length_m` from complete H07RN-F leads rather than raw cable
+    plus separate connector parts, and compares the fitted slopes with the
+    current `tier_cost` heuristic.
 
 ## TL;DR
 
