@@ -55,12 +55,31 @@ def make_grid(loads: list[tuple[str, float, object]], gen_power: float = 0.0) ->
 
 
 def test_single_phase_capacity_constant():
-    """The capacity cut-off is 16 A x 230 V x 0.9, derived not hard-coded."""
+    """The single-phase capacity cut-off is derived, not a magic number.
+
+    What: `SINGLE_PHASE_CAPACITY_W` equals 16 A x 230 V x 0.9.
+
+    Why it matters: this constant decides which loads are eligible to
+    sit on one leg. It must be *computed* from the catalogue's 16 A
+    rating and the global voltage / power-factor constants — not
+    hard-coded as ~3.3 kW — so that if any of those inputs change the
+    cut-off tracks them instead of silently going stale.
+    """
     assert SINGLE_PHASE_CAPACITY_W == pytest.approx(16 * 230 * 0.9)
 
 
 def test_candidates_include_only_eligible_loads():
-    """Generator, zero-power, pre-phased and over-capacity loads are excluded."""
+    """`single_phase_candidates` applies all four exclusion rules.
+
+    What: a grid with one of every disqualifying case plus one valid
+    load returns only the valid load.
+
+    Why it matters: each excluded category is a distinct bug class if
+    it leaked through — a strategy that tried to phase the generator,
+    a 0 W transit distro, a load already carrying a `phase`, or a load
+    too big for a single 16 A leg would each produce a physically
+    wrong or destructive plan. This pins all four guards at once.
+    """
     grid = make_grid(
         [
             ("small", 2000.0, None),  # eligible
@@ -77,14 +96,34 @@ def test_candidates_include_only_eligible_loads():
 
 
 def test_candidates_return_usage_adjusted_watts_in_grid_order():
-    """Each pair carries effective (usage x nameplate) watts, in grid order."""
+    """Candidates carry usage-adjusted watts and stay in grid order.
+
+    What: at usage 0.5x, two 2 kW / 1 kW loads come back as 1 kW /
+    0.5 kW pairs, in the order they appear in the grid.
+
+    Why it matters: greedy *sorts* on the returned watts, so they must
+    already be effective (usage-adjusted), not nameplate — otherwise
+    greedy would balance a peak that never happens. Round-robin
+    *relies* on grid order for its positional cycling. Both
+    contracts are load-bearing, so both are asserted here.
+    """
     grid = make_grid([("a", 2000.0, None), ("b", 1000.0, None)])
     assert single_phase_candidates(grid, usage_factor=0.5) == [("a", 1000.0), ("b", 500.0)]
 
 
 def test_candidates_capacity_cutoff_moves_with_usage_factor():
-    """A load near the cut-off is a candidate at 0.5x but not at 1.0x."""
-    # 5 kW nameplate: 2.5 kW effective at 0.5x (under ~3.3 kW cap), 5 kW at 1.0x (over).
+    """The eligibility cut-off shifts with the usage factor.
+
+    What: a 5 kW nameplate load is a candidate at 0.5x usage (2.5 kW
+    effective, under the ~3.3 kW single-leg cap) but not at 1.0x
+    (5 kW effective, over it).
+
+    Why it matters: the usage factor is not cosmetic. It changes the
+    physical question "can this load sit on one 16 A leg?" — and so
+    changes the candidate set itself, not just the reported totals.
+    A regression that applied the factor only to reporting would
+    pass the round-robin tests but fail here.
+    """
     grid = make_grid([("borderline", 5000.0, None)])
     assert [n for n, _ in single_phase_candidates(grid, usage_factor=0.5)] == ["borderline"]
     assert single_phase_candidates(grid, usage_factor=1.0) == []
@@ -94,7 +133,19 @@ def test_candidates_capacity_cutoff_moves_with_usage_factor():
 
 
 def test_fixed_leg_seed_spreads_balanced_and_lands_phased():
-    """Balanced loads spread /3; int phase lands on one leg; list phase splits."""
+    """The fixed-leg seed handles every non-candidate load form correctly.
+
+    What: a balanced load spreads evenly (1/3 per leg), an int-phase
+    load lands wholly on its leg, a list-phase load splits evenly
+    across its listed legs — while the generator and any name passed
+    in `candidate_names` contribute nothing.
+
+    Why it matters: the seed is the leg loading a strategy *starts
+    from* — greedy balances around it. If any of the three phase
+    forms were mis-handled, every greedy assignment on a grid with
+    pre-existing phased loads would be silently skewed, and the bug
+    would be invisible on the all-unphased fixtures.
+    """
     grid = make_grid(
         [
             ("balanced", 3000.0, None),  # -> 1000 on each leg
@@ -112,7 +163,17 @@ def test_fixed_leg_seed_spreads_balanced_and_lands_phased():
 
 
 def test_build_assignment_sums_seed_and_placements():
-    """Leg totals are the fixed seed plus the candidate placements."""
+    """`build_assignment` adds candidate placements on top of the seed.
+
+    What: with a balanced 3 kW load (seed: 1 kW/leg) and a 1.2 kW
+    candidate placed on L2, the leg totals are (1000, 2200, 1000) and
+    the usage factor is recorded on the result.
+
+    Why it matters: this is the one place leg totals are computed, so
+    every strategy reports them the same way. The test proves the two
+    contributions — the fixed seed and the strategy's own placements —
+    are both counted, exactly once each.
+    """
     grid = make_grid([("balanced", 3000.0, None), ("c", 1200.0, None)])
     # seed: balanced spreads 1000/leg. placement: c (1200 W) onto L2.
     assignment = build_assignment(grid, {"c": 2}, usage_factor=1.0)
@@ -121,7 +182,17 @@ def test_build_assignment_sums_seed_and_placements():
 
 
 def test_build_assignment_balance_pct_zero_when_level_and_when_empty():
-    """A level split is 0 %; a grid with no load is defined as 0 % too."""
+    """`balance_pct` is well-defined at both ends of the range.
+
+    What: a single load dumped entirely on L1 gives a clearly
+    non-zero imbalance; a grid with no load at all gives exactly 0.0
+    and zeroed leg totals.
+
+    Why it matters: the empty-grid case is the div-by-zero trap —
+    `mean` is 0, and the metric must be *defined* as 0.0 there rather
+    than raising or producing NaN. Without this guard, calling a
+    strategy on a load-free sub-grid would crash.
+    """
     level = build_assignment(make_grid([("x", 900.0, None)]), {"x": 1}, usage_factor=1.0)
     # x on L1 only -> (900, 0, 0) -> heavily imbalanced, definitely not 0
     assert level.balance_pct > 0
@@ -132,7 +203,18 @@ def test_build_assignment_balance_pct_zero_when_level_and_when_empty():
 
 
 def test_build_assignment_balance_pct_matches_std_over_mean():
-    """balance_pct is 100 x std / mean of the three leg totals."""
+    """`balance_pct` is exactly 100 x std / mean of the three leg totals.
+
+    What: for a known imbalanced seed (3000, 1500, 0), the metric
+    matches the std/mean formula computed independently in the test.
+
+    Why it matters: this formula is deliberately the same one
+    `io.print_grid_info` already uses for its "phase balance" line.
+    Keeping them identical means a strategy's `balance_pct` is
+    directly comparable to the number a planner already sees in grid
+    summaries — a divergence here would make the two silently
+    incomparable.
+    """
     grid = make_grid([("a", 3000.0, 1), ("b", 1500.0, 2)])
     # both pre-phased, so candidate set is empty; seed = (3000, 1500, 0)
     assignment = build_assignment(grid, {}, usage_factor=1.0)
@@ -142,7 +224,16 @@ def test_build_assignment_balance_pct_matches_std_over_mean():
 
 
 def test_build_assignment_raises_on_unknown_node():
-    """Naming a node that is not on the grid is a KeyError, not a silent skip."""
+    """Naming a node that is not on the grid fails loud, not silent.
+
+    What: `build_assignment` with a `phases` mapping referencing a
+    non-existent node raises `KeyError`.
+
+    Why it matters: the usual cause is an assignment computed against
+    a different grid object. Silently skipping the unknown name would
+    produce a plausible-looking but wrong result; a hard `KeyError`
+    surfaces the mistake immediately.
+    """
     with pytest.raises(KeyError):
         build_assignment(make_grid([("real", 1000.0, None)]), {"ghost": 1}, usage_factor=1.0)
 
@@ -151,20 +242,45 @@ def test_build_assignment_raises_on_unknown_node():
 
 
 def test_round_robin_cycles_legs_in_grid_order():
-    """Candidates get L1, L2, L3, L1, ... following grid order exactly."""
+    """Round-robin assigns L1, L2, L3, L1, ... down the grid order.
+
+    What: four equal loads `a, b, c, d` get legs 1, 2, 3, 1.
+
+    Why it matters: this *is* Strategy B — purely positional cycling.
+    The test pins the exact sequence so a change to the cycling rule
+    (off-by-one, wrong modulus, wrong iteration order) can't slip
+    through.
+    """
     grid = make_grid([(n, 1000.0, None) for n in ("a", "b", "c", "d")])
     assignment = assign_round_robin(grid, usage_factor=1.0)
     assert assignment.phases == {"a": 1, "b": 2, "c": 3, "d": 1}
 
 
 def test_round_robin_is_reproducible():
-    """Same grid in, same assignment out — no hidden state."""
+    """Round-robin is a pure function — same grid in, same plan out.
+
+    What: two calls on the same grid produce identical `phases`.
+
+    Why it matters: phase plans get committed to fixtures and acted on
+    in the field. Any hidden state or non-determinism would make the
+    fixture and a re-run disagree, which is exactly the kind of drift
+    that erodes trust in a planning tool.
+    """
     grid = make_grid([(n, 1500.0, None) for n in ("a", "b", "c")])
     assert assign_round_robin(grid).phases == assign_round_robin(grid).phases
 
 
 def test_round_robin_usage_factor_changes_totals_not_legs():
-    """The factor rescales leg totals but never moves a load to another leg."""
+    """For round-robin the usage factor rescales totals but never moves a load.
+
+    What: running at 0.5x and 1.0x gives identical `phases` but
+    leg totals that differ by exactly the 2x factor.
+
+    Why it matters: round-robin is positional *by design* — the
+    factor must not leak into the leg choice. This is the property
+    that distinguishes B from D (where the factor genuinely changes
+    the assignment), so it is worth pinning explicitly.
+    """
     grid = make_grid([(n, 1000.0, None) for n in ("a", "b", "c")])
     half = assign_round_robin(grid, usage_factor=0.5)
     full = assign_round_robin(grid, usage_factor=1.0)
@@ -173,7 +289,16 @@ def test_round_robin_usage_factor_changes_totals_not_legs():
 
 
 def test_round_robin_empty_when_no_candidates():
-    """A grid whose loads are all pre-phased yields an empty assignment."""
+    """Round-robin produces an empty plan when nothing is eligible.
+
+    What: a grid whose every load already carries a `phase` yields
+    `phases == {}`.
+
+    Why it matters: a strategy must be a no-op on an already-phased
+    grid, not re-phase loads the planner has deliberately set. The
+    empty result is also what lets `build_assignment` describe a grid
+    that is fully fixed — it should not error or invent placements.
+    """
     grid = make_grid([("a", 1000.0, 1), ("b", 1000.0, 2)])
     assert assign_round_robin(grid).phases == {}
 
@@ -182,13 +307,20 @@ def test_round_robin_empty_when_no_candidates():
 
 
 def test_greedy_places_heaviest_first_onto_lightest_leg():
-    """Known layout: 3 kW + three 1 kW loads, all at usage 1.0.
+    """Greedy follows the longest-processing-time rule, step by step.
 
-    Sorted heaviest-first: a(3000), then b, c, d (1000 each).
+    What: a 3 kW load plus three 1 kW loads, all eligible at usage
+    1.0. Hand-traced:
+      sorted heaviest-first: a(3000), then b, c, d (1000 each)
       a -> L1            legs (3000, 0, 0)
       b -> L2 (lightest) legs (3000, 1000, 0)
       c -> L3 (lightest) legs (3000, 1000, 1000)
       d -> L2 (tie L2/L3 -> lowest index) legs (3000, 2000, 1000)
+
+    Why it matters: this pins the whole heuristic — the heaviest-first
+    sort, the lightest-leg pick, and the lowest-index tie-break — to
+    one fully-worked example. Any single piece breaking changes the
+    expected `phases` or `leg_totals_w`.
     """
     grid = make_grid(
         [("a", 3000.0, None), ("b", 1000.0, None), ("c", 1000.0, None), ("d", 1000.0, None)]
@@ -199,7 +331,17 @@ def test_greedy_places_heaviest_first_onto_lightest_leg():
 
 
 def test_greedy_beats_round_robin_on_uneven_load_sizes():
-    """The whole point of Strategy D: lower imbalance than Strategy B."""
+    """Greedy produces a lower imbalance than round-robin — the reason it exists.
+
+    What: on a grid that interleaves one heavy load among light ones —
+    round-robin's worst case, since position and size are unrelated —
+    greedy's `balance_pct` is strictly lower.
+
+    Why it matters: this is the entire justification for having a
+    second, size-aware strategy. If greedy ever failed to beat
+    round-robin on uneven sizes it would not be worth its extra
+    complexity, and doc 10's recommendation would be wrong.
+    """
     # Grid order interleaves one heavy load among light ones — the worst
     # case for round-robin's positional assignment.
     grid = make_grid(
@@ -211,10 +353,17 @@ def test_greedy_beats_round_robin_on_uneven_load_sizes():
 
 
 def test_greedy_balances_around_the_fixed_seed():
-    """Greedy levels the *whole* grid, not just its candidates.
+    """Greedy levels the whole grid, including loads it did not place.
 
-    A pre-assigned 4 kW load already sits on L1, so greedy should
-    steer its candidates onto L2/L3 to compensate.
+    What: a pre-assigned 4 kW load already sits on L1; greedy's two
+    2 kW candidates both go to L2 and L3, never piling onto the
+    already-heavy L1. Final legs: (4000, 2000, 2000).
+
+    Why it matters: greedy seeds its leg tally from `_fixed_leg_seed`,
+    not from zero. If it ignored the seed it would treat the grid as
+    empty and could stack candidates straight onto L1 — making a grid
+    that was already lopsided worse. This proves it balances around
+    what is already there.
     """
     grid = make_grid(
         [
@@ -230,7 +379,18 @@ def test_greedy_balances_around_the_fixed_seed():
 
 
 def test_greedy_is_reproducible_with_deterministic_tie_break():
-    """Equal-load ties break to the lowest leg index, every run."""
+    """Greedy is deterministic — equal-load ties always break to the lowest leg.
+
+    What: three equal loads land on L1, L2, L3 (each step ties across
+    the remaining empty legs and picks the lowest index), and two
+    runs produce identical `phases`.
+
+    Why it matters: `min` over equal values is only deterministic if
+    the tie-break is defined. Without a stable rule, greedy could
+    return different plans on different runs or platforms — the same
+    drift trap as the round-robin reproducibility test, and just as
+    corrosive to a committed fixture.
+    """
     grid = make_grid([(n, 1000.0, None) for n in ("a", "b", "c")])
     first = assign_greedy(grid)
     second = assign_greedy(grid)
@@ -241,7 +401,17 @@ def test_greedy_is_reproducible_with_deterministic_tie_break():
 
 
 def test_apply_assignment_mutates_candidates_only():
-    """Candidate phases are written; generator and pre-phased loads untouched."""
+    """`apply_assignment` writes only the candidate loads, nothing else.
+
+    What: after applying, a candidate has its assigned phase; a
+    pre-phased load keeps its original phase; the generator stays
+    `None`.
+
+    Why it matters: applying a plan must not clobber loads the planner
+    deliberately phased, nor invent a phase for the generator or a
+    transit node. The blast radius of a write-back is exactly the
+    candidate set — this proves it.
+    """
     grid = make_grid(
         [("cand", 2000.0, None), ("preassigned", 2000.0, 3)],
         gen_power=1000.0,
@@ -254,7 +424,16 @@ def test_apply_assignment_mutates_candidates_only():
 
 
 def test_apply_assignment_is_idempotent():
-    """Applying the same assignment twice leaves the grid unchanged."""
+    """Applying the same plan twice is identical to applying it once.
+
+    What: a snapshot of node phases after one apply equals the state
+    after a second apply.
+
+    Why it matters: idempotence means `apply_assignment` has no
+    accumulating side effect — re-running a pipeline that applies a
+    plan can't corrupt the grid. It also documents that apply is a
+    plain write, not a toggle or an increment.
+    """
     grid = make_grid([(n, 1000.0, None) for n in ("a", "b", "c")])
     assignment = assign_round_robin(grid)
     apply_assignment(grid, assignment)
@@ -264,7 +443,16 @@ def test_apply_assignment_is_idempotent():
 
 
 def test_apply_assignment_raises_on_unknown_node():
-    """An assignment from a different grid fails loudly rather than silently."""
+    """Applying a plan built for a different grid fails loud.
+
+    What: an assignment naming a node absent from the grid raises
+    `KeyError` on apply.
+
+    Why it matters: same failure mode as the `build_assignment`
+    version — mixing up grid objects is an easy mistake, and a hard
+    error at the write-back catches it before a bogus plan is
+    committed to a fixture.
+    """
     grid = make_grid([("real", 1000.0, None)])
     stray = PhaseAssignment(
         phases={"ghost": 1}, usage_factor=1.0, leg_totals_w=(0, 0, 0), balance_pct=0
@@ -277,7 +465,15 @@ def test_apply_assignment_raises_on_unknown_node():
 
 
 def test_default_usage_factor_is_half():
-    """Doc 10's starting assumption: festival loads at 0.5x nameplate."""
+    """The default usage factor is 0.5x.
+
+    What: `DEFAULT_USAGE_FACTOR == 0.5`.
+
+    Why it matters: 0.5x is doc 10's stated starting assumption —
+    festival loads rarely draw nameplate together. Pinning it here
+    means a change to that assumption has to be deliberate (and shows
+    up as a failing test) rather than drifting in unnoticed.
+    """
     assert DEFAULT_USAGE_FACTOR == 0.5
 
 
@@ -287,8 +483,18 @@ def test_default_usage_factor_is_half():
 def test_strategies_run_on_field_export_and_greedy_balances_better():
     """Both strategies handle the real 2026 export; greedy wins on balance.
 
-    `2026-05-14_martin.geojson` is the unmodified field export — every
-    load arrives unphased, so it exercises the full candidate path.
+    What: loaded from the unmodified `2026-05-14_martin.geojson`
+    field export — every load arrives unphased, so the full candidate
+    path runs — both strategies produce a non-trivial assignment over
+    the same set of loads, every leg is valid (1/2/3), and greedy's
+    `balance_pct` beats round-robin's.
+
+    Why it matters: the unit tests above use tidy synthetic grids; this
+    is the proof the strategies survive a real fixture's messiness
+    (mixed load sizes, multi-phase loads already present, zero-power
+    distros). The greedy-beats-round-robin check is the same property
+    as the synthetic test, but confirmed on production-shaped data —
+    which is what doc 10's recommendation actually rests on.
     """
     grid = PowerGrid.from_geojson(FIXTURES / "2026-05-14_martin.geojson")
 
