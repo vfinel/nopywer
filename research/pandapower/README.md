@@ -52,7 +52,13 @@ Date of research: April 2026. Pandapower latest at time of writing: **3.4.0**
     implemented in `pp_interop/phases`), and a per-layer scope
     breakdown. Key finding: phase balancing and voltage-drop relief
     are decoupled levers — greedy cuts leg imbalance 9.5 %→0.6 % but
-    leaves the worst node's drop unchanged.
+    the worst node's drop barely moves (13.74 %→13.70 %).
+    - [`10.1_three_phase_theory.md`](10.1_three_phase_theory.md) — the
+      physics behind doc 10: why a balanced solve collapses 3 phases
+      to 1, symmetrical components, why the zero sequence *is* the
+      neutral, and the worked puzzle of why a single-phase load
+      unbalances the two legs it doesn't touch (with a verification
+      experiment proving it is real physics, not a solver quirk).
 11. [`11_field_export_fixture_walkthrough.md`](11_field_export_fixture_walkthrough.md) —
     how to plug Martin's `2026-05-14_martin.geojson` field export into
     the pandapower code. Two gaps: a trivial schema mismatch (export
