@@ -35,8 +35,8 @@ Cables
 Loads
 - Not modelled at all. IEC 60909 short-circuit current is the source
   contribution; loads vanish during a bolted fault.
-- `PowerNode.phase` (1/2/3/"U"/"Y") is ignored. Three-phase symmetric
-  fault by definition balances all phases.
+- `PowerNode.phase` is ignored. Three-phase symmetric fault by definition
+  balances all phases.
 
 Topology
 - Only the generator-rooted radial tree implied by `from_node`/`to_node`
@@ -66,9 +66,16 @@ F_HZ: float = 50.0
 
 # === Generator (festival diesel default) ===
 
+# Rated generator apparent power in kVA.
 GEN_SN_KVA: float = 100.0
+
+# Generator subtransient reactance in per unit.
 GEN_XDSS_PU: float = 0.12
+
+# Generator resistance-to-reactance ratio.
 GEN_RX: float = 0.1
+
+# Generator/slack bus voltage set point in per unit.
 GEN_VM_PU: float = 1.0
 
 
@@ -87,5 +94,8 @@ MIN_LENGTH_M: float = 1.0
 
 # === Fault calculation ===
 
+# IEC 60909 fault type: balanced three-phase short circuit.
 FAULT_TYPE: str = "3ph"
+
+# IEC 60909 case: maximum prospective short-circuit current.
 FAULT_CASE: str = "max"

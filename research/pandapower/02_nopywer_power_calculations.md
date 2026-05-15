@@ -14,7 +14,7 @@ form factors (16 A / 32 A / 63 A / 125 A).
 A GeoJSON FeatureCollection containing:
 
 - **Point features** → loads or the generator. Properties: `name`, `power`
-  (watts), `phase` (1, 2, 3, "U", "Y", or null). The generator is identified
+  (watts), `phase` (1, 2, 3, or null). The generator is identified
   by the substring `"generator"` in its name.
 - **LineString features** → cables with the two coordinate endpoints.
   Properties: `length` (m, optional — geodesic distance is used otherwise),

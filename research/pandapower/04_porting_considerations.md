@@ -109,11 +109,10 @@ These apply regardless of strategy.
   no upstream traceable source ("Rich's old notes"). Whatever path is
   chosen, this number must be carried forward visibly, with a comment, or
   explicitly retired with a justified replacement.
-- **The "phase" property.** nopywer accepts `phase ∈ {1, 2, 3, "U", "Y",
-  None}`. Phases 1/2/3 map to pandapower's a/b/c. "U" / "Y" are sub-grid
-  labels with no electrical meaning in `analyze.py` (they appear only in
-  the reporting in `print_grid_info`). They have no pandapower equivalent
-  and would need to be threaded around any pandapower path.
+- **The "phase" property.** nopywer accepts numeric phase assignments for
+  single-phase loads. Phases 1/2/3 map to pandapower's a/b/c. Missing or
+  non-numeric phase values have no pandapower equivalent and should be
+  treated as unassigned on any pandapower path.
 - **Performance and packaging.** pandapower with numba is not pip-friendly
   on every platform (Apple Silicon, NixOS, Alpine). Without numba it is
   slower but portable. For a CLI that may run on a laptop in a field,

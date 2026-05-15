@@ -11,8 +11,6 @@ report nopywer's phase-to-neutral volts (`vm_pu * vn_kv * 1000 / sqrt(3)`)
 to match `PowerNode.voltage`.
 """
 
-from __future__ import annotations
-
 import math
 import time
 from dataclasses import dataclass
@@ -101,17 +99,13 @@ class TreeWalkVsAcDiff:
     def worst_voltage_disagreement(self) -> tuple[str, float] | None:
         if not self.bus_voltage_v:
             return None
-        name, (_, _, delta) = max(
-            self.bus_voltage_v.items(), key=lambda kv: abs(kv[1][2])
-        )
+        name, (_, _, delta) = max(self.bus_voltage_v.items(), key=lambda kv: abs(kv[1][2]))
         return name, delta
 
     def worst_current_disagreement(self) -> tuple[str, float] | None:
         if not self.line_current_a:
             return None
-        cid, (_, _, delta) = max(
-            self.line_current_a.items(), key=lambda kv: abs(kv[1][2])
-        )
+        cid, (_, _, delta) = max(self.line_current_a.items(), key=lambda kv: abs(kv[1][2]))
         return cid, delta
 
 
@@ -139,7 +133,7 @@ def compare_with_tree_walk(grid: PowerGrid, **to_pp_kwargs) -> TreeWalkVsAcDiff:
     ac = compute_power_flow(pp_grid)
     end = time.time()
     time_ac = end - start
-    time_diff = (1e3*time_tw, 1e3*time_ac, 1e3*(time_tw-time_ac))
+    time_diff = (1e3 * time_tw, 1e3 * time_ac, 1e3 * (time_tw - time_ac))
 
     bus_voltage_v: dict[str, tuple[float, float, float]] = {}
     bus_vdrop_percent: dict[str, tuple[float, float, float]] = {}

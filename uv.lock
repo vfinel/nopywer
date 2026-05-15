@@ -301,7 +301,7 @@ requires-dist = [
     { name = "numpy", specifier = ">=1.26" },
     { name = "numpy", marker = "extra == 'modern'", specifier = ">=2.4" },
     { name = "odfpy", specifier = ">=1.4" },
-    { name = "pandapower", marker = "extra == 'pandapower'", specifier = ">=3.4" },
+    { name = "pandapower", marker = "extra == 'pandapower'", git = "https://github.com/e2nIEE/pandapower.git?rev=472d8294be2ad56fdb62e439046e802609478bd1" },
     { name = "pandas", specifier = ">=2.3" },
     { name = "pandas", marker = "extra == 'modern'", specifier = ">=3.0" },
     { name = "pyproj", specifier = ">=3.7" },
@@ -513,7 +513,7 @@ wheels = [
 [[package]]
 name = "pandapower"
 version = "3.4.0"
-source = { registry = "https://pypi.org/simple" }
+source = { git = "https://github.com/e2nIEE/pandapower.git?rev=472d8294be2ad56fdb62e439046e802609478bd1#472d8294be2ad56fdb62e439046e802609478bd1" }
 dependencies = [
     { name = "deepdiff" },
     { name = "geojson" },
@@ -525,10 +525,6 @@ dependencies = [
     { name = "scipy" },
     { name = "tqdm" },
     { name = "typing-extensions" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/fd/cd/e7ba8e484505b1af0595b3ce88e12ea32ceea092e483dddc273b0ecd73aa/pandapower-3.4.0.tar.gz", hash = "sha256:bad4e267603fe3ea23e01d9d318d86572ff037cf4968693a851c91b2bb45b8da", size = 5223544, upload-time = "2026-02-09T15:00:09.96Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/7d/d0/048318e7fca4a67fdd89c57b2ac02bc8450ad6ca7a7f738968bec0844ae9/pandapower-3.4.0-py3-none-any.whl", hash = "sha256:8ee08fe37039dac0be6c3469cb01e9ea3e90d900f44ee7f65ae45e4beabd3676", size = 5531008, upload-time = "2026-02-09T15:00:08.026Z" },
 ]
 
 [[package]]
@@ -599,8 +595,8 @@ resolution-markers = [
     "python_full_version < '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 dependencies = [
-    { name = "numpy", version = "2.4.2", source = { registry = "https://pypi.org/simple" } },
-    { name = "python-dateutil" },
+    { name = "numpy", version = "2.4.2", source = { registry = "https://pypi.org/simple" }, marker = "extra == 'extra-7-nopywer-modern' or extra != 'extra-7-nopywer-pandapower'" },
+    { name = "python-dateutil", marker = "extra == 'extra-7-nopywer-modern' or extra != 'extra-7-nopywer-pandapower'" },
     { name = "tzdata", marker = "(sys_platform == 'emscripten' and extra == 'extra-7-nopywer-modern') or (sys_platform == 'emscripten' and extra != 'extra-7-nopywer-pandapower') or (sys_platform == 'win32' and extra == 'extra-7-nopywer-modern') or (sys_platform == 'win32' and extra != 'extra-7-nopywer-pandapower') or (extra == 'extra-7-nopywer-modern' and extra == 'extra-7-nopywer-pandapower')" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/2e/0c/b28ed414f080ee0ad153f848586d61d1878f91689950f037f976ce15f6c8/pandas-3.0.1.tar.gz", hash = "sha256:4186a699674af418f655dbd420ed87f50d56b4cd6603784279d9eef6627823c8", size = 4641901, upload-time = "2026-02-17T22:20:16.434Z" }
