@@ -24,6 +24,7 @@ class PowerNode:
     power_per_phase: np.ndarray = field(default_factory=lambda: np.zeros(3))
     voltage: float = 0.0
     vdrop_percent: float = 0.0
+    i_sc_ka: float = 0.0
 
     cable_to_parent: str | None = None
 
@@ -35,6 +36,8 @@ class PowerNode:
             value = round(value, 1)
         elif name == "vdrop_percent":
             value = round(value, 2)
+        elif name == "i_sc_ka":
+            value = round(float(value), 4)
         super().__setattr__(name, value)
 
     def to_geojson(self) -> dict:
@@ -51,6 +54,7 @@ class PowerNode:
                 "cum_power_watts": round(float(self.cum_power.sum()), 1),
                 "voltage": self.voltage,
                 "vdrop_percent": self.vdrop_percent,
+                "i_sc_ka": self.i_sc_ka,
                 "distro": self.distro,
             },
         }
