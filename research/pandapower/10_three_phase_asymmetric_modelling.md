@@ -46,8 +46,8 @@ nopywer's `PowerNode.phase` already carries this:
 
 - `1`, `2`, `3` → single-phase load on L1/L2/L3
 - `None` → balanced (or "to be assigned later")
-- `"U"`, `"Y"` → sub-grid markers used for reporting in
-  `print_grid_info`; no electrical meaning in `analyze.py`
+- non-numeric values → legacy annotations with no pandapower equivalent;
+  treat them as unassigned for three-phase modelling
 
 So the per-load phase information **already exists in nopywer's
 data model**. The question is whether it's populated in the

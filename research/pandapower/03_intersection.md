@@ -7,7 +7,7 @@ nopywer concepts have a direct pandapower analogue and which do not.
 
 | nopywer concept | pandapower analogue | Notes / friction |
 |---|---|---|
-| `PowerNode` (load) | `net.load` (balanced) or `net.asymmetric_load` (per-phase) | Loads with `phase ∈ {1,2,3}` would need `asymmetric_load` with `p_a_mw / p_b_mw / p_c_mw`. nopywer's "U" / "Y" sub-grid markers have no pandapower analogue. |
+| `PowerNode` (load) | `net.load` (balanced) or `net.asymmetric_load` (per-phase) | Loads with `phase ∈ {1,2,3}` would need `asymmetric_load` with `p_a_mw / p_b_mw / p_c_mw`. Non-numeric or missing phase data has no pandapower analogue and should be treated as unassigned. |
 | `PowerNode` (generator) | `net.ext_grid` (slack bus) | Pandapower needs a slack reference. The generator has no internal impedance in nopywer — would map to a `vm_pu = 1.0` `ext_grid` on a dedicated bus. |
 | `Cable` | `net.line` | The bridge requires R, X, C, max-I per km — see "Cable model gap" below. |
 | `Cable.length_m` | `line.length_km` | Straight conversion `× 1e-3`. Pandapower forbids zero-length lines. |
