@@ -49,7 +49,7 @@ class PandapowerGrid:
             back onto its `PowerNode`s using `bus_idx`.
     """
 
-    net: "pandapowerNet"
+    net: pandapowerNet
     bus_idx: dict[str, int]
     source: PowerGrid
     load_idx: dict[str, int] = field(default_factory=dict)
