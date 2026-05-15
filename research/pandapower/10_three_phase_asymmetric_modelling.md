@@ -372,7 +372,7 @@ that calls `pp.runpp_3ph` instead of `runpp`.
 | Config defaults — zero-sequence + source vector group (`config.py`) | **done** |
 | Asymmetric conversion + `compute_power_flow_3ph` (`_powerflow_3ph.py`) | **done** |
 | Tests — `_phase_split`, conversion, per-leg flow, neutral current | **done** |
-| Findings doc (`12_runpp_3ph_findings.md`) | not started |
+| Findings doc ([`12_runpp_3ph_findings.md`](./12_runpp_3ph_findings.md)) | **done** |
 
 The conversion landed as `to_pandapower_3ph` — it augments the
 balanced `to_pandapower` net (zero-sequence line/source params,
@@ -430,21 +430,22 @@ only way to know is to measure with `runpp_3ph`.
 
 ## Where it slots in
 
-The code is done — `pp_interop/phases` (phase synthesis),
-`config.py` (zero-sequence defaults), and `pp_interop/_powerflow_3ph.py`
-(`to_pandapower_3ph` + `compute_power_flow_3ph`), all with tests.
+The code and the first findings doc are done —
+`pp_interop/phases` (phase synthesis), `config.py` (zero-sequence
+defaults), `pp_interop/_powerflow_3ph.py` (`to_pandapower_3ph` +
+`compute_power_flow_3ph`) all with tests, and
+[`12_runpp_3ph_findings.md`](./12_runpp_3ph_findings.md) with the
+first run on the 2026 modified fixture. Headline result: balanced
+`runpp` is optimistic — at 0.5× usage `runpp_3ph` reports a worst
+leg drop ~2.2× higher than the balanced solve and on a different
+node, and at full nameplate `runpp_3ph` has no AC operating point
+at all while balanced still converges.
+
 What remains:
 
-- A new findings doc `12_runpp_3ph_findings.md` capturing the
-  numbers — same register as
-  [`07_optimiser_validation_findings.md`](./07_optimiser_validation_findings.md).
-  Early signal: `runpp_3ph` converges on the 2026 modified fixture
-  at 0.5× usage (worst leg ~20 % drop, worst neutral ~20 A) but
-  *not* at full nameplate — asymmetric loading tips a grid past
-  collapse on its heaviest legs even where the balanced solve still
-  finds a fixed point.
 - Extension of `scripts/sensitivity_sweep.py` to add a fourth
-  sweep over the new zero-sequence ratio defaults.
+  sweep over the new zero-sequence ratio defaults (the doc 12
+  numbers shift with them; the directions do not).
 
 The conversion layer (`to_pandapower`) and short-circuit module
 stay backward-compatible — `runpp_3ph` is purely additive.
