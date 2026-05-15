@@ -14,6 +14,7 @@ to match `PowerNode.voltage`.
 from __future__ import annotations
 
 import math
+import time
 from dataclasses import dataclass
 
 from ..analyze import analyze
@@ -88,12 +89,14 @@ class TreeWalkVsAcDiff:
     Each entry is `(tree_walk_value, ac_value, delta = ac - tree)`.
     bus_voltage_v / bus_vdrop_percent are keyed by node name.
     line_current_a is keyed by cable id (max phase current vs AC i_ka).
+    time_diff is the time execution of the different algos and their differences
     """
 
     bus_voltage_v: dict[str, tuple[float, float, float]]
     bus_vdrop_percent: dict[str, tuple[float, float, float]]
     line_current_a: dict[str, tuple[float, float, float]]
     converged: bool
+    time_diff: tuple[float, float, float]
 
     def worst_voltage_disagreement(self) -> tuple[str, float] | None:
         if not self.bus_voltage_v:
@@ -123,10 +126,20 @@ def compare_with_tree_walk(grid: PowerGrid, **to_pp_kwargs) -> TreeWalkVsAcDiff:
     this is a no-op — re-running would trip the cycle-detection guard.
     """
     if not grid.tree:
+        start = time.time()
         analyze(grid)
+        end = time.time()
+        time_tw = end - start
+
+    else:
+        time_tw = math.nan
 
     pp_grid = to_pandapower(grid, **to_pp_kwargs)
+    start = time.time()
     ac = compute_power_flow(pp_grid)
+    end = time.time()
+    time_ac = end - start
+    time_diff = (1e3*time_tw, 1e3*time_ac, 1e3*(time_tw-time_ac))
 
     bus_voltage_v: dict[str, tuple[float, float, float]] = {}
     bus_vdrop_percent: dict[str, tuple[float, float, float]] = {}
@@ -149,4 +162,5 @@ def compare_with_tree_walk(grid: PowerGrid, **to_pp_kwargs) -> TreeWalkVsAcDiff:
         bus_vdrop_percent=bus_vdrop_percent,
         line_current_a=line_current_a,
         converged=ac.converged,
+        time_diff=time_diff,
     )
