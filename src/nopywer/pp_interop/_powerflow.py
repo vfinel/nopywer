@@ -133,7 +133,7 @@ def compare_with_tree_walk(grid: PowerGrid, **to_pp_kwargs) -> TreeWalkVsAcDiff:
     ac = compute_power_flow(pp_grid)
     end = time.time()
     time_ac = end - start
-    time_diff = (1e3*time_tw, 1e3*time_ac, 1e3*(time_tw-time_ac))
+    time_diff = (1e3 * time_tw, 1e3 * time_ac, 1e3 * (time_tw - time_ac))
 
     bus_voltage_v: dict[str, tuple[float, float, float]] = {}
     bus_vdrop_percent: dict[str, tuple[float, float, float]] = {}

@@ -68,8 +68,6 @@ def main() -> None:
     print(f"AC: {diff.time_diff[1]:.3f} ms")
     print(f"diff: {abs(diff.time_diff[2]):.3f} ms")
 
-
-
     print("\n=== Summary ===")
     voltage_deltas = [d for _, _, d in diff.bus_voltage_v.values()]
     current_deltas = [d for _, _, d in diff.line_current_a.values()]
