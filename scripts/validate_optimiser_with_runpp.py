@@ -8,6 +8,7 @@ Run with:
 """
 
 import json
+import time
 from pathlib import Path
 
 from nopywer.io import load_geojson
@@ -25,9 +26,11 @@ def main() -> None:
     nodes, _ = load_geojson(nodes_geojson)
     print(f"Loaded {len(nodes)} nodes from {FIXTURE.name}")
 
+    start = time.time()
     grid = optimize_layout(PowerGrid(nodes=nodes, cables={}))
+    optim_duration = time.time() - start
     print(
-        f"Optimised: {len(grid.cables)} cables, "
+        f"Optimised ({optim_duration:.2f} s): {len(grid.cables)} cables, "
         f"{sum(c.length_m for c in grid.cables.values()):.0f} m total"
     )
 
@@ -59,6 +62,11 @@ def main() -> None:
         cid, delta = worst
         tw, ac, _ = diff.line_current_a[cid]
         print(f"{cid}: tree-walk {tw:.1f} A, AC {ac:.1f} A, Δ {delta:+.2f} A")
+
+    print("\n=== Execution time ===")
+    print(f"tree walk: {diff.time_diff[0]:.3f} ms")
+    print(f"AC: {diff.time_diff[1]:.3f} ms")
+    print(f"diff: {abs(diff.time_diff[2]):.3f} ms")
 
     print("\n=== Summary ===")
     voltage_deltas = [d for _, _, d in diff.bus_voltage_v.values()]

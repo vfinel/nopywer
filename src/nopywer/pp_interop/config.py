@@ -35,8 +35,8 @@ Cables
 Loads
 - Not modelled at all. IEC 60909 short-circuit current is the source
   contribution; loads vanish during a bolted fault.
-- `PowerNode.phase` (1/2/3/"U"/"Y") is ignored. Three-phase symmetric
-  fault by definition balances all phases.
+- `PowerNode.phase` is ignored. Three-phase symmetric fault by definition
+  balances all phases.
 
 Topology
 - Only the generator-rooted radial tree implied by `from_node`/`to_node`
