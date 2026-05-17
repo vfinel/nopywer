@@ -47,6 +47,7 @@ export NOPYWER_INVENTORY=inventory.xlsx
 nopywer-analyze
 ```
 
+### companion API server
 To start the companion API server:
 
 ```bash
@@ -58,6 +59,16 @@ Opening [`http://localhost:8042/`](http://localhost:8042/) shows a minimal embed
 <p align="center">
   <img src="docs/frontend.png" alt="nopywer frontend map screenshot" width="720" />
 </p>
+
+### comparing solvers 
+The engine used for calculations can be chosen using the `--engine` flag : 
+```
+# Use the default tree-walk
+python -m nopywer.cli tests/fixtures/analyze_input.geojson --verbose
+
+# Use the pandapower AC solver
+python -m nopywer.cli tests/fixtures/analyze_input.geojson --engine pandapower --verbose
+```
 
 ## Contributing
 

@@ -25,6 +25,10 @@ def analyze_grid(
         Path | None,
         typer.Option("--output", "-o", help="Output GeoJSON file", envvar="NOPYWER_OUTPUT"),
     ] = None,
+    engine: Annotated[
+        str,
+        typer.Option("--engine", "-e", help="Analysis engine to use (tree_walk, pandapower)"),
+    ] = "tree_walk",
     inventory_file: Annotated[
         str | None,
         typer.Option(
@@ -46,7 +50,7 @@ def analyze_grid(
         logging.basicConfig(level=logging.INFO)
 
     grid = PowerGrid.from_geojson(input)
-    analyze(grid)
+    analyze(grid, engine=engine)
 
     if verbose:
         print_grid_info(grid.nodes, grid.cables, grid.tree, grid.generator)

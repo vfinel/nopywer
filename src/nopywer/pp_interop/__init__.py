@@ -22,6 +22,7 @@ from ._conversion import PandapowerGrid, to_pandapower
 from ._powerflow import (
     PowerFlowResults,
     TreeWalkVsAcDiff,
+    analyze_with_pp,
     compare_with_tree_walk,
     compute_power_flow,
 )
@@ -39,6 +40,7 @@ __all__ = [
     "PowerFlow3phResults",
     "PowerFlowResults",
     "TreeWalkVsAcDiff",
+    "analyze_with_pp",
     "compare_with_tree_walk",
     "compute_power_flow",
     "compute_power_flow_3ph",

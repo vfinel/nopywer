@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)  # or DEBUG
 
 
-def _snap_cables_to_nodes(grid: PowerGrid) -> None:
+def snap_cables_to_nodes(grid: PowerGrid) -> None:
     cables_not_snapped = []
     for cable in grid.cables.values():
         # try to find connections (on both sides of the cable)
@@ -86,7 +86,7 @@ def _assign_children(
         _assign_children(grid, child_name, node_cables)
 
 
-def _build_tree(grid: PowerGrid) -> list[list[str]]:
+def build_tree(grid: PowerGrid) -> list[list[str]]:
     node_cables = _build_node_cables(grid)
     _assign_children(grid, grid.generator.name, node_cables)
     return _compute_tree(grid)
@@ -104,7 +104,8 @@ def _compute_tree(grid: PowerGrid) -> list[list[str]]:
     return dlist
 
 
-def _cumulate_current(grid: PowerGrid) -> None:
+
+def cumulate_current(grid: PowerGrid) -> None:
     for depth in range(len(grid.tree) - 1, 0, -1):
         for name in grid.tree[depth]:
             node = grid.nodes[name]
@@ -126,7 +127,7 @@ def _cumulate_current(grid: PowerGrid) -> None:
     )
 
 
-def _compute_distro_requirements(grid: PowerGrid) -> None:
+def compute_distro_requirements(grid: PowerGrid) -> None:
     logger.debug(" compute_distro_requirements...")
     for node in grid.nodes.values():
         logger.debug(f"\t\t {node.name}:")
@@ -170,12 +171,34 @@ def _compute_voltage_drop(grid: PowerGrid, node_name: str | None = None) -> None
         _compute_voltage_drop(grid, child_name)
 
 
-def analyze(grid: PowerGrid) -> None:
-    logger.debug(' analazing grid...')
+def prepare_grid(grid: PowerGrid) -> None:
+    """Prepare the grid topology and metadata.
+
+    Performs cable snapping, tree building, current accumulation, and
+    distro requirement computation. This is the common 'front-end' for
+    every analysis engine.
+    """
     if not grid.cables:
         raise ValueError("At least one cable is required")
-    _snap_cables_to_nodes(grid)
-    grid.tree = _build_tree(grid)
-    _cumulate_current(grid)
-    _compute_distro_requirements(grid)
-    _compute_voltage_drop(grid)
+
+    snap_cables_to_nodes(grid)
+    grid.tree = build_tree(grid)
+    cumulate_current(grid)
+    compute_distro_requirements(grid)
+
+
+def analyze(grid: PowerGrid, engine: str = "tree_walk") -> None:
+    logger.info(f" analyzing grid with {engine} engine...")
+
+    prepare_grid(grid)
+
+    if engine == "tree_walk":
+        _compute_voltage_drop(grid)
+
+    elif engine == "pandapower":
+        from .pp_interop import analyze_with_pp
+
+        analyze_with_pp(grid)
+
+    else:
+        raise ValueError(f"Unknown analysis engine: {engine}")
