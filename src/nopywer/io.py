@@ -5,11 +5,12 @@ import re
 
 import numpy as np
 
-from .constants import EXTRA_CABLE_LENGTH_M, PF, V0
+from .constants import EXTRA_CABLE_LENGTH_M, PF, V0, VDROP_THRESHOLD_PERCENT
 from .geometry import geodesic_distance_m
 from .models import Cable, PowerNode
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)  # DEBUG, INFO, ...
 
 
 def _parse_power_per_phase(power: float, phase: str | int, name: str):
@@ -195,4 +196,16 @@ def print_grid_info(
         logger.info(f"\t deepness {deep}")
         for name in names:
             logger.info(f"\t\t '{name}' distro: {nodes[name].distro}")
+
+    # print voltage drop summary sorted by decreasing vdrop_percent
+    warning_drops = [n for n in nodes.values() if n.vdrop_percent > VDROP_THRESHOLD_PERCENT]
+    if warning_drops:
+        print(' ')
+        logger.warning(" vdrop percentages (sorted by descending order):")
+        for node in sorted(
+            warning_drops, key=lambda item: item.vdrop_percent, reverse=True
+        ):
+            logger.warning(
+                f"\t /!\\ vdrop of {node.vdrop_percent:.1f} percent at {node.name}"
+            )
 
