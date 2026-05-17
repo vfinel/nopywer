@@ -11,14 +11,23 @@ report nopywer's phase-to-neutral volts (`vm_pu * vn_kv * 1000 / sqrt(3)`)
 to match `PowerNode.voltage`.
 """
 
+import logging
 import math
 import time
 from dataclasses import dataclass
 
-from ..analyze import analyze
+from ..analyze import (
+    analyze,
+    build_tree,
+    compute_distro_requirements,
+    cumulate_current,
+    snap_cables_to_nodes,
+)
 from ..constants import V0
 from ..models import PowerGrid
 from ._conversion import PandapowerGrid, _import_pandapower, to_pandapower
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -158,3 +167,34 @@ def compare_with_tree_walk(grid: PowerGrid, **to_pp_kwargs) -> TreeWalkVsAcDiff:
         converged=ac.converged,
         time_diff=time_diff,
     )
+
+
+def analyze_with_pp(grid: PowerGrid, **to_pp_kwargs) -> None:
+    """Equivalent to `analyze(grid)` but uses pandapower AC power flow.
+
+    Mutates the `PowerGrid` object in-place, updating node voltages,
+    vdrop percentages, and cable currents using AC results.
+
+    Assumes `prepare_grid(grid)` has already been run to populate
+    topology and tree metadata.
+    """
+    # 1. AC Power Flow
+    pp_grid = to_pandapower(grid, **to_pp_kwargs)
+    res = compute_power_flow(pp_grid)
+
+    if not res.converged:
+        logger.warning("pandapower did not converge! Results may be invalid.")
+
+    # 2. Write-back AC results
+    for name, node in grid.nodes.items():
+        if name in res.bus_voltage_v:
+            node.voltage = res.bus_voltage_v[name]
+            node.vdrop_percent = res.bus_vdrop_percent[name]
+
+    for cable_id, cable in grid.cables.items():
+        if cable_id in res.line_current_a:
+            i_a = res.line_current_a[cable_id]
+            # Overwrite tree-walk currents with AC currents. AC results are
+            # balanced, so we apply the same current to all active phases.
+            cable.current_per_phase = [i_a] * type(cable).num_phases
+            cable.vdrop_volts = cable.resistance * i_a
