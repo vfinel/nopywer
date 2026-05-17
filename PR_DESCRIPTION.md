@@ -46,9 +46,9 @@ solve structurally cannot:
 Doc 12 (`12_runpp_3ph_findings.md`) is the first set of numbers from
 this on the real 2026 east-grid fixture; the headline is that
 balanced `runpp` is optimistic (~2.2× lower worst leg drop than
-asymmetric at 0.5× usage), and that `cable_15` carries 20.4 A on its
-neutral under the greedy phase plan, which would have been invisible
-in any balanced analysis.
+asymmetric at `--load-factor 0.5`), and that `cable_15` carries
+20.4 A on its neutral under the greedy phase plan, which would have
+been invisible in any balanced analysis.
 
 ## How a reviewer can try it
 
@@ -116,7 +116,9 @@ worth flagging here:
 - **`DEFAULT_USAGE_FACTOR = 0.5`** — single conservative festival
   diversity factor. Required at every `phases` call site (no
   function default — the choice is event-specific and we don't
-  want it disappearing into a default).
+  want it disappearing into a default). Also the default for the
+  `run_asymmetric.py` `--load-factor` flag, so library and CLI
+  agree on the project-wide reference value.
 - **`phase = [1, 2]` splits power evenly across the listed legs** —
   the multi-phase-loads-self-balance-evenly assumption. Documented
   in `research/pandapower/10.md` under "Modelling assumption —

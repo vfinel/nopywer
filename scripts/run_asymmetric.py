@@ -82,6 +82,21 @@ import logging
 import sys
 from pathlib import Path
 
+
+def _positive_float(raw: str) -> float:
+    """argparse type — reject zero, negative, and absurd factors."""
+    value = float(raw)
+    if value <= 0:
+        raise argparse.ArgumentTypeError(
+            f"--load-factor must be > 0, got {value!r}"
+        )
+    if value > 5:
+        raise argparse.ArgumentTypeError(
+            f"--load-factor {value!r} is implausibly large (> 5x nameplate). "
+            "If you really mean this, override the bound in scripts/run_asymmetric.py."
+        )
+    return value
+
 from nopywer.analyze import _snap_cables_to_nodes
 from nopywer.io import load_geojson
 from nopywer.models import PowerGrid
@@ -141,7 +156,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument(
         "--load-factor",
-        type=float,
+        type=_positive_float,
         default=config.DEFAULT_USAGE_FACTOR,
         help=(
             "Single multiplier on nameplate applied to BOTH phase "
@@ -226,10 +241,10 @@ def main(argv: list[str] | None = None) -> int:
     # --- asymmetric runpp_3ph ---------------------------------------
     print("\n=== runpp_3ph (asymmetric) ===")
     pp_3ph = to_pandapower_3ph(grid)
-    print(f"  loads (balanced     -> net.load):           "
-          f"{len(pp_3ph.balanced_load_idx)}")
-    print(f"  loads (asymmetric   -> net.asymmetric_load):"
-          f" {len(pp_3ph.asymmetric_load_idx)}")
+    n_bal = len(pp_3ph.balanced_load_idx)
+    n_asym = len(pp_3ph.asymmetric_load_idx)
+    print(f"  loads in net.load            (balanced):   {n_bal:3d}")
+    print(f"  loads in net.asymmetric_load (per-leg):    {n_asym:3d}")
 
     try:
         res = compute_power_flow_3ph(pp_3ph)
