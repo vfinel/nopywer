@@ -43,6 +43,7 @@ _KNOWN_FEATURE_KEYS: frozenset[str] = frozenset(
         # / `Cable.to_geojson`) — silently ignored on re-load
         "power_watts",
         "cum_power_watts",
+        "cum_power",  # legacy export key (pre-2026); kept for back-compat
         "voltage",
         "vdrop_percent",
         "i_sc_ka",
