@@ -1,22 +1,28 @@
 """Shared scaffolding for per-load phase distribution strategies.
 
 A festival grid that will be solved with pandapower's asymmetric
-`runpp_3ph` needs every single-phase load to declare which leg
-(L1 / L2 / L3) it sits on. The strategies in this package fill that
-gap in for fixtures that ship without phase data.
+`runpp_3ph` benefits from every single-phase load declaring which
+leg (L1 / L2 / L3) it sits on. The strategies in this package
+synthesise that assignment for fixtures that ship unphased or
+partially phased.
 
 Everything the individual strategies have in common lives here:
 
-  - the **usage factor** — festival loads rarely draw nameplate
-    power simultaneously, so balancing decisions use an assumed
-    fraction of nameplate (default 0.5x).
-  - **candidate selection** — which loads get a single leg vs which
-    stay multi-phase (too big for a 1-phase connection, or already
-    carrying an explicit `phase`).
-  - the **leg-balance metric** used to compare strategies.
+  - **candidate selection** (`single_phase_candidates`) — which
+    loads get a single leg vs which stay multi-phase (too big for a
+    1-phase connection, or already carrying an explicit `phase`).
+  - the **leg-balance metric** (`build_assignment`) — used to score
+    and compare strategies.
+  - the **write-back** (`apply_assignment`) — the one place a plan
+    actually touches the grid.
 
-A strategy is just a function `PowerGrid -> PhaseAssignment`. It does
-not mutate the grid; call `apply_assignment` to write the result back.
+A strategy is a function
+`(PowerGrid, *, usage_factor: float) -> PhaseAssignment`. It does
+not mutate the grid; call `apply_assignment` to write the result
+back. The `usage_factor` (festival diversity factor — loads rarely
+draw nameplate together) is required at every call site; the
+project-wide reference value lives in
+`pp_interop.config.DEFAULT_USAGE_FACTOR`.
 
 == The data model it bridges ==
 

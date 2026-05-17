@@ -27,10 +27,18 @@ engineering rule-of-thumb defaults in `config.py`
 (`R0_OVER_R1`, `X0_OVER_X1`, `SOURCE_X0X_MAX`, `SOURCE_R0X0_MAX`).
 See research doc 10 for the reasoning behind the numbers.
 
-`to_pandapower_3ph` builds on the balanced `to_pandapower` and
-augments it rather than duplicating the conversion: it bolts the
-zero-sequence params onto the lines and ext_grid, and swaps each
-explicitly-phased load's balanced `pp.load` for a `pp.asymmetric_load`.
+`to_pandapower_3ph` builds an **independent** pandapower net via the
+shared `_build_net_skeleton` (which `to_pandapower` also uses). It
+does **not** mutate the balanced converter's output. The two paths
+are sibling consumers of the same skeleton, so converting the same
+`PowerGrid` for both flows is a no-shared-state operation: each call
+produces a fresh net and a fresh result object.
+
+The returned `Pandapower3phGrid` keeps the dual load layout visible
+in the type: `balanced_load_idx` for loads that stayed in `net.load`
+(those with `phase is None`), `asymmetric_load_idx` for loads in
+`net.asymmetric_load` (those with an explicit `phase`). Callers can
+tell which table a load is in without re-inspecting the net.
 
 Voltage convention: identical to `_powerflow.py`. pandapower returns
 per-unit on `vn_kv` (line-to-line); we report nopywer's
@@ -46,11 +54,61 @@ exercise (doc 12), not a drop-in mirror of `compare_with_tree_walk`.
 """
 
 import math
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING, Any
 
 from ..constants import PF, V0
+from ..models import PowerGrid
 from . import config
-from ._conversion import PandapowerGrid, _import_pandapower, to_pandapower
+from ._conversion import _build_net_skeleton, _import_pandapower
+
+if TYPE_CHECKING:
+    from pandapower.auxiliary import pandapowerNet
+else:
+    pandapowerNet = Any
+
+
+@dataclass
+class Pandapower3phGrid:
+    """A `PowerGrid` translated for *asymmetric* three-phase power flow.
+
+    Produced by `to_pandapower_3ph(grid)` and consumed by
+    `compute_power_flow_3ph`. A distinct dataclass from
+    `PandapowerGrid` because the load layout in `net` is genuinely
+    different: loads split across two pandapower tables.
+
+    Attributes:
+        net: the `pandapowerNet`, with zero-sequence line parameters
+            and source vector-group fields populated. Mutable —
+            `compute_power_flow_3ph` writes into `net.res_*_3ph`.
+        bus_idx: maps `PowerNode.name` to its pandapower bus index.
+            Same shape and meaning as on `PandapowerGrid`.
+        balanced_load_idx: maps `PowerNode.name` to its index in
+            `net.load`. Contains the loads with `phase is None` —
+            `runpp_3ph` treats a plain `pp.load` as an even
+            three-phase draw, so balanced loads stay in the balanced
+            table.
+        asymmetric_load_idx: maps `PowerNode.name` to its index in
+            `net.asymmetric_load`. Contains the loads with an
+            explicit `phase` (int or list) — these go to
+            `pp.asymmetric_load` with per-leg P / Q.
+        source: the original `PowerGrid`. Kept as a back-reference
+            so callers debugging a converted grid can trace any
+            bus/load row back to the nopywer node it came from
+            without re-running the conversion. Not read or written
+            by `compute_power_flow_3ph` itself.
+
+    A given load name appears in **at most one** of
+    `balanced_load_idx` / `asymmetric_load_idx`. The split is decided
+    at conversion time from `node.phase` and is fixed for the
+    lifetime of this grid object.
+    """
+
+    net: pandapowerNet
+    bus_idx: dict[str, int]
+    source: PowerGrid
+    balanced_load_idx: dict[str, int] = field(default_factory=dict)
+    asymmetric_load_idx: dict[str, int] = field(default_factory=dict)
 
 
 def _phase_split(phase: object, power_watts: float) -> tuple[float, float, float]:
@@ -64,9 +122,15 @@ def _phase_split(phase: object, power_watts: float) -> tuple[float, float, float
       - `phase` is a list, e.g. `[1, 2]` — the load is split evenly
         across the listed legs (a 10 kW load on `[1, 2]` is 5 kW on
         L1, 5 kW on L2, nothing on L3).
-      - anything else (`None`, the `"U"` / `"Y"` sub-grid markers, an
-        empty or malformed list) — balanced: an even third on each
-        leg.
+      - anything else (the `"U"` / `"Y"` sub-grid markers, an empty
+        or malformed list, or `None`) — balanced: an even third on
+        each leg.
+
+    Note on `None`: `to_pandapower_3ph` routes `phase is None` loads
+    straight to `pp.load` and never calls this function for them.
+    The `None` branch is therefore purely defensive — it exists so
+    `_phase_split` is correct in isolation, e.g. for tests that
+    parametrise across every `phase` form.
 
     Args:
         phase: the node's `phase` field, in any of its forms.
@@ -88,83 +152,107 @@ def _phase_split(phase: object, power_watts: float) -> tuple[float, float, float
 
 
 def to_pandapower_3ph(
-    grid: PandapowerGrid | object, *, load_pf: float = PF, **to_pp_kwargs: object
-) -> PandapowerGrid:
-    """Convert a `PowerGrid` for asymmetric flow.
+    grid: PowerGrid,
+    *,
+    load_pf: float = PF,
+    **skeleton_kwargs: object,
+) -> Pandapower3phGrid:
+    """Convert a `PowerGrid` for asymmetric flow — fresh net, no mutation.
 
-    Starts from the balanced `to_pandapower` net and augments it for
-    `runpp_3ph`:
+    Builds an **independent** pandapower net via the shared
+    `_build_net_skeleton` (which the balanced `to_pandapower` also
+    uses), then adds the 3ph-only pieces:
 
       1. **Zero-sequence line params** — `r0`, `x0`, `c0` on every
          line, derived from the positive-sequence values via the
          `R0_OVER_R1` / `X0_OVER_X1` config ratios.
       2. **Source vector group** — `r0x0_max` / `x0x_max` on the
          ext_grid, describing the genset's zero-sequence return path.
-      3. **Asymmetric loads** — every load with an explicit `phase`
-         (single int or list) has its balanced `pp.load` dropped and
-         replaced with a `pp.asymmetric_load` carrying the per-leg
-         split from `_phase_split`. Truly balanced loads (`phase`
-         `None`) keep their `pp.load` — `runpp_3ph` already treats
-         that as an even three-phase draw.
+      3. **Loads in their right table** — each non-generator load is
+         classified by `node.phase`:
 
-    The returned `PandapowerGrid.load_idx` is pruned to only the
-    loads that remain balanced `pp.load`s; the asymmetric ones live
-    in `net.asymmetric_load` and are keyed by name there.
+           - `phase is None` → balanced: a `pp.load` in `net.load`,
+             keyed by name in `balanced_load_idx`. `runpp_3ph`
+             treats this as an even three-phase draw.
+           - explicit `int` or `list` → asymmetric: a
+             `pp.asymmetric_load` in `net.asymmetric_load`, keyed by
+             name in `asymmetric_load_idx`, with per-leg P / Q from
+             `_phase_split`.
+
+    No load is in both tables; the split is fixed at conversion
+    time. Nothing this function does touches a previously-built
+    `PandapowerGrid` — converting the same source grid for both
+    balanced and asymmetric flow produces two genuinely independent
+    objects.
 
     Args:
         grid: the nopywer `PowerGrid` to convert. Its cables must
             already be snapped (run `analyze` or load via GeoJSON).
-        load_pf: load power factor, used to derive per-leg reactive
-            power for the asymmetric loads. Defaults to the global
-            `PF`.
-        **to_pp_kwargs: forwarded verbatim to `to_pandapower`
-            (generator ratings, `x_ohm_per_km`, etc.).
+        load_pf: load power factor, used to derive reactive power
+            for both balanced and asymmetric loads. Defaults to the
+            global `PF`.
+        **skeleton_kwargs: forwarded verbatim to
+            `_build_net_skeleton` (generator ratings,
+            `x_ohm_per_km`, etc.).
 
     Returns:
-        A `PandapowerGrid` whose `net` is ready for
+        A `Pandapower3phGrid` whose `net` is ready for
         `compute_power_flow_3ph`.
 
     Raises:
-        ValueError: propagated from `to_pandapower` if the grid has
-            no cables or a cable references an unknown node.
+        ValueError: propagated from `_build_net_skeleton` if the
+            grid has no cables or a cable references an unknown node.
         ImportError: if pandapower is not installed.
     """
     pp, _ = _import_pandapower()
-    pp_grid = to_pandapower(grid, load_pf=load_pf, **to_pp_kwargs)
-    net = pp_grid.net
+    net, bus_idx = _build_net_skeleton(grid, **skeleton_kwargs)  # type: ignore[arg-type]
 
-    # 1. zero-sequence line parameters
+    # zero-sequence line parameters
     net.line["r0_ohm_per_km"] = net.line["r_ohm_per_km"] * config.R0_OVER_R1
     net.line["x0_ohm_per_km"] = net.line["x_ohm_per_km"] * config.X0_OVER_X1
     net.line["c0_nf_per_km"] = config.C0_NF_PER_KM
 
-    # 2. source vector group / earthing
+    # source vector group / earthing
     net.ext_grid["r0x0_max"] = config.SOURCE_R0X0_MAX
     net.ext_grid["x0x_max"] = config.SOURCE_X0X_MAX
 
-    # 3. swap explicitly-phased loads for asymmetric loads
+    # loads, each into the right table by node.phase
+    balanced_load_idx: dict[str, int] = {}
+    asymmetric_load_idx: dict[str, int] = {}
     tan_phi = math.tan(math.acos(load_pf)) if 0 < load_pf < 1 else 0.0
     for name, node in grid.nodes.items():
         if node.is_generator or node.power_watts <= 0:
             continue
-        p_l1, p_l2, p_l3 = _phase_split(node.phase, node.power_watts)
-        if p_l1 == p_l2 == p_l3:
-            continue  # balanced — to_pandapower's pp.load is already correct
+        if node.phase is None:
+            p_mw = node.power_watts / 1e6
+            balanced_load_idx[name] = pp.create_load(
+                net,
+                bus=bus_idx[name],
+                p_mw=p_mw,
+                q_mvar=p_mw * tan_phi,
+                name=name,
+            )
+        else:
+            p_l1, p_l2, p_l3 = _phase_split(node.phase, node.power_watts)
+            asymmetric_load_idx[name] = pp.create_asymmetric_load(
+                net,
+                bus=bus_idx[name],
+                p_a_mw=p_l1 / 1e6,
+                p_b_mw=p_l2 / 1e6,
+                p_c_mw=p_l3 / 1e6,
+                q_a_mvar=p_l1 * tan_phi / 1e6,
+                q_b_mvar=p_l2 * tan_phi / 1e6,
+                q_c_mvar=p_l3 * tan_phi / 1e6,
+                name=name,
+            )
 
-        net.load.drop(index=pp_grid.load_idx.pop(name), inplace=True)
-        pp.create_asymmetric_load(
-            net,
-            bus=pp_grid.bus_idx[name],
-            p_a_mw=p_l1 / 1e6,
-            p_b_mw=p_l2 / 1e6,
-            p_c_mw=p_l3 / 1e6,
-            q_a_mvar=p_l1 * tan_phi / 1e6,
-            q_b_mvar=p_l2 * tan_phi / 1e6,
-            q_c_mvar=p_l3 * tan_phi / 1e6,
-            name=name,
-        )
-
-    return pp_grid
+    return Pandapower3phGrid(
+        net=net,
+        bus_idx=bus_idx,
+        source=grid,
+        balanced_load_idx=balanced_load_idx,
+        asymmetric_load_idx=asymmetric_load_idx,
+    )
 
 
 @dataclass
@@ -236,16 +324,17 @@ class PowerFlow3phResults:
         return cid, current
 
 
-def compute_power_flow_3ph(pp_grid: PandapowerGrid) -> PowerFlow3phResults:
+def compute_power_flow_3ph(pp_grid: Pandapower3phGrid) -> PowerFlow3phResults:
     """Run asymmetric AC power flow on a net from `to_pandapower_3ph`.
 
     Calls `pp.runpp_3ph` and translates `res_bus_3ph` / `res_line_3ph`
     into nopywer-native units (volts P-N, amps, percent). Does not
     mutate the source `PowerGrid`.
 
-    The net must have been built by `to_pandapower_3ph` — a plain
-    `to_pandapower` net lacks the zero-sequence parameters and
-    `runpp_3ph` will not solve it.
+    Takes a `Pandapower3phGrid` specifically, not a `PandapowerGrid`
+    — the type-checker will catch the "I passed the balanced grid to
+    the 3ph solver" mistake at the call site rather than at runtime
+    with a cryptic pandapower error.
 
     Args:
         pp_grid: the converted grid from `to_pandapower_3ph`.

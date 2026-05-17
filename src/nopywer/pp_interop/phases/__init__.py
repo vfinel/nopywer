@@ -15,6 +15,12 @@ Two strategies, deliberately kept in separate modules:
 Both return a `PhaseAssignment` and do not mutate the grid; call
 `apply_assignment` to write the chosen plan back. All modelling
 assumptions (usage factor, single-phase capacity) live in `_common`.
+
+For the common "load a fixture, phase it, write it out" workflow
+see `phase_geojson` (`_export.py`) — a single-call wrapper around
+the whole pipeline aimed at scripts and the CLI. Internal callers
+should keep using the individual primitives so every step is
+visible at the call site.
 """
 
 from ..config import DEFAULT_USAGE_FACTOR
@@ -24,6 +30,7 @@ from ._common import (
     apply_assignment,
     single_phase_candidates,
 )
+from ._export import phase_geojson
 from ._greedy import assign_greedy
 from ._round_robin import assign_round_robin
 
@@ -34,5 +41,6 @@ __all__ = [
     "apply_assignment",
     "assign_greedy",
     "assign_round_robin",
+    "phase_geojson",
     "single_phase_candidates",
 ]

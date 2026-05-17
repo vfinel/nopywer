@@ -31,6 +31,7 @@ from nopywer.pp_interop.phases import (
     apply_assignment,
     assign_greedy,
     assign_round_robin,
+    phase_geojson,
     single_phase_candidates,
 )
 from nopywer.pp_interop.phases._common import _fixed_leg_seed, build_assignment
@@ -519,3 +520,136 @@ def test_strategies_run_on_field_export_and_greedy_balances_better():
     assert all(leg in (1, 2, 3) for leg in greedy.phases.values())
     # the reason Strategy D exists
     assert greedy.balance_pct < rr.balance_pct
+
+
+def test_phase_assignment_round_trips_through_geojson(tmp_path):
+    """Planned phases survive a `to_geojson` → `load_geojson` cycle.
+
+    What: plan with greedy, apply, export the grid, reload it,
+    re-plan with the same factor — the second plan finds nothing left
+    to do (all candidates are already phased) and the per-node phases
+    on the reloaded grid match the original assignment exactly.
+
+    Why it matters: this is the contract that lets a planner commit
+    a plan to a fixture and have a future run see it. Without it the
+    `apply_assignment` → `grid.to_geojson` → file → `load_geojson`
+    pipeline silently drops phase data, and "I already planned this
+    grid" becomes unobservable on reload.
+    """
+    import json
+
+    from nopywer.io import load_geojson
+
+    grid = PowerGrid.from_geojson(FIXTURES / "2026-05-14_martin.geojson")
+    plan = assign_greedy(grid, usage_factor=DEFAULT_USAGE_FACTOR)
+    apply_assignment(grid, plan)
+    assert plan.phases  # sanity: there was something to assign
+
+    out_path = tmp_path / "phased.geojson"
+    with open(out_path, "w") as f:
+        json.dump(grid.to_geojson(), f)
+
+    reloaded_nodes, reloaded_cables = load_geojson(out_path)
+    reloaded = PowerGrid(nodes=reloaded_nodes, cables=reloaded_cables)
+
+    # Every planned phase appears on the reloaded grid, unchanged.
+    for name, leg in plan.phases.items():
+        assert reloaded.nodes[name].phase == leg
+
+    # A second planning pass on the reloaded grid is a no-op: the
+    # loads we just phased are no longer candidates.
+    second = assign_greedy(reloaded, usage_factor=DEFAULT_USAGE_FACTOR)
+    assert set(second.phases).isdisjoint(plan.phases)
+
+
+# --- phase_geojson (one-call wrapper) ----------------------------------------
+
+
+def test_phase_geojson_matches_step_by_step_pipeline(tmp_path):
+    """`phase_geojson` is equivalent to running the primitives by hand.
+
+    What: calling the wrapper on the field export with the greedy
+    strategy produces a file whose per-node phases match what you
+    get from a manual `load → assign_greedy → apply → to_geojson`
+    pipeline, and the returned `PhaseAssignment` matches the
+    in-process one.
+
+    Why it matters: the wrapper exists so scripts and the CLI don't
+    have to assemble the pipeline by hand. If it ever drifts from
+    the primitives the convenience becomes a footgun — a user
+    relying on `phase_geojson` would silently get a different plan
+    from a user reading the README's step-by-step snippet.
+    """
+    import json
+
+    from nopywer.io import load_geojson
+
+    src = FIXTURES / "2026-05-14_martin.geojson"
+
+    # Manual pipeline (the reference)
+    manual_nodes, manual_cables = load_geojson(src)
+    manual_grid = PowerGrid(nodes=manual_nodes, cables=manual_cables)
+    manual_plan = assign_greedy(manual_grid, usage_factor=DEFAULT_USAGE_FACTOR)
+    apply_assignment(manual_grid, manual_plan)
+
+    # Wrapper
+    out_path = tmp_path / "phased.geojson"
+    wrapper_plan = phase_geojson(
+        src,
+        out_path,
+        usage_factor=DEFAULT_USAGE_FACTOR,
+        strategy="greedy",
+    )
+
+    assert wrapper_plan.phases == manual_plan.phases
+    assert wrapper_plan.balance_pct == manual_plan.balance_pct
+
+    # The written file matches the manual grid node-for-node on phase.
+    reloaded_nodes, _ = load_geojson(out_path)
+    for name, node in manual_grid.nodes.items():
+        assert reloaded_nodes[name].phase == node.phase
+
+
+def test_phase_geojson_strategy_selection_changes_result(tmp_path):
+    """The `strategy` argument actually picks a different strategy.
+
+    What: running the wrapper with `"greedy"` and with `"round_robin"`
+    on the same fixture produces different `balance_pct` values
+    (greedy lower), matching the property pinned for the underlying
+    strategies.
+
+    Why it matters: a string-keyed dispatch is easy to mis-wire (e.g.
+    both keys pointing at the same function); this proves the two
+    keys reach the two distinct strategies.
+    """
+    src = FIXTURES / "2026-05-14_martin.geojson"
+    greedy_plan = phase_geojson(
+        src, tmp_path / "g.geojson", usage_factor=DEFAULT_USAGE_FACTOR, strategy="greedy"
+    )
+    rr_plan = phase_geojson(
+        src,
+        tmp_path / "r.geojson",
+        usage_factor=DEFAULT_USAGE_FACTOR,
+        strategy="round_robin",
+    )
+    assert greedy_plan.balance_pct < rr_plan.balance_pct
+
+
+def test_phase_geojson_rejects_unknown_strategy(tmp_path):
+    """An unknown strategy name fails loud with a list of valid keys.
+
+    What: passing `strategy="bogus"` raises `ValueError` and the
+    message names the accepted strategies.
+
+    Why it matters: the closed string-literal set is part of the
+    wrapper's contract — a typo at a script call site should fail
+    fast with an actionable message, not silently fall through to a
+    default or get a `KeyError` from a dict lookup later.
+    """
+    with pytest.raises(ValueError, match="greedy"):
+        phase_geojson(
+            FIXTURES / "2026-05-14_martin.geojson",
+            tmp_path / "out.geojson",
+            usage_factor=DEFAULT_USAGE_FACTOR,
+            strategy="bogus",  # type: ignore[arg-type]
+        )

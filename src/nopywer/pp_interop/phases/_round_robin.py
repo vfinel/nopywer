@@ -53,8 +53,9 @@ def assign_round_robin(grid: PowerGrid, *, usage_factor: float) -> PhaseAssignme
             result to `apply_assignment` to write it back.
         usage_factor: **required**, keyword-only. Assumed fraction
             of nameplate power loads draw together. No default —
-            see `DEFAULT_USAGE_FACTOR` (0.5) for the project-wide
-            reference figure. Does **not** change *which* leg a
+            see `config.DEFAULT_USAGE_FACTOR` (0.5) for the
+            project-wide reference figure. Does **not** change
+            *which* leg a
             load gets (this strategy is positional), but it does
             scale the reported `leg_totals_w` and `balance_pct`, and
             it shifts the capacity cut-off in

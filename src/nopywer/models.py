@@ -41,22 +41,28 @@ class PowerNode:
         super().__setattr__(name, value)
 
     def to_geojson(self) -> dict:
+        properties = {
+            "name": self.name,
+            "type": "generator" if self.is_generator else "load",
+            "power_watts": round(float(self.power_per_phase.sum()), 1),
+            "cum_power_watts": round(float(self.cum_power.sum()), 1),
+            "voltage": self.voltage,
+            "vdrop_percent": self.vdrop_percent,
+            "i_sc_ka": self.i_sc_ka,
+            "distro": self.distro,
+        }
+        # Omit `phase` when unset so unphased exports stay clean; emit it
+        # whenever a planner (manual or `pp_interop.phases`) has assigned
+        # one, so the choice round-trips through load_geojson.
+        if self.phase is not None:
+            properties["phase"] = self.phase
         return {
             "type": "Feature",
             "geometry": {
                 "type": "Point",
                 "coordinates": [self.lon, self.lat],
             },
-            "properties": {
-                "name": self.name,
-                "type": "generator" if self.is_generator else "load",
-                "power_watts": round(float(self.power_per_phase.sum()), 1),
-                "cum_power_watts": round(float(self.cum_power.sum()), 1),
-                "voltage": self.voltage,
-                "vdrop_percent": self.vdrop_percent,
-                "i_sc_ka": self.i_sc_ka,
-                "distro": self.distro,
-            },
+            "properties": properties,
         }
 
 

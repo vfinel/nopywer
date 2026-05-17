@@ -84,29 +84,32 @@ def test_phase_split(phase, expected):
 # --- to_pandapower_3ph -------------------------------------------------------
 
 
-def test_to_3ph_swaps_phased_loads_for_asymmetric():
-    """A phased load becomes an asymmetric_load; a balanced load stays a pp.load.
+def test_to_3ph_routes_phased_loads_to_the_asymmetric_table():
+    """A phased load lands in `net.asymmetric_load`; a balanced load in `net.load`.
 
     What: a grid with one balanced and one L1 load converts to a net
-    with exactly one `pp.load` and one `pp.asymmetric_load`, and
-    `load_idx` is pruned down to just the load that stayed balanced.
+    with exactly one `pp.load` and one `pp.asymmetric_load`, and the
+    `Pandapower3phGrid`'s two index maps each name exactly the
+    expected member — `balanced_load_idx == {"balanced"}` and
+    `asymmetric_load_idx == {"on_l1"}`, with no overlap.
 
-    Why it matters: `to_pandapower_3ph` builds on the balanced
-    converter and *mutates* its output — dropping the balanced
-    `pp.load` rows for phased loads and re-adding them as asymmetric.
-    Get the swap wrong and a phased load is either counted twice (a
-    leftover `pp.load` plus the asymmetric one) or lost entirely. The
-    `load_idx` check guards the bookkeeping: it must end up describing
-    only the loads that remain plain `pp.load`s, or downstream
-    write-back keyed off it would touch the wrong rows.
+    Why it matters: `to_pandapower_3ph` decides per load which
+    pandapower table to put it in based on `node.phase`. The
+    distinct index maps are the only way a downstream caller can
+    tell which table a load is in without re-inspecting the net.
+    A phased load that landed in the balanced table — or appeared
+    in both maps — would be silently counted with the wrong model
+    by `runpp_3ph`.
     """
     grid = _grid([("balanced", 3000.0, None), ("on_l1", 3000.0, 1)])
     pp_grid = to_pandapower_3ph(grid)
 
     assert len(pp_grid.net.load) == 1  # only the balanced one
     assert len(pp_grid.net.asymmetric_load) == 1  # the phased one
-    # load_idx is pruned to the loads that stayed balanced
-    assert set(pp_grid.load_idx) == {"balanced"}
+    assert set(pp_grid.balanced_load_idx) == {"balanced"}
+    assert set(pp_grid.asymmetric_load_idx) == {"on_l1"}
+    # A load is in at most one map; no name appears in both.
+    assert set(pp_grid.balanced_load_idx).isdisjoint(pp_grid.asymmetric_load_idx)
 
 
 def test_to_3ph_sets_zero_sequence_line_params():

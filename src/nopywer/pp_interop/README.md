@@ -15,8 +15,11 @@ Two solver paths live here:
   no balanced tool and no nopywer tree walk can produce.
 
 A separate `phases/` subpackage synthesises per-load phase
-assignments for fixtures that arrive unphased. The asymmetric solver
-needs that to be populated; the balanced solver ignores it.
+assignments for fixtures that arrive unphased or partially phased.
+The balanced solver always ignores `phase`. The asymmetric solver
+*uses* it where it's set and falls back to a balanced draw where
+it isn't — so phase planning is an enhancement to the 3ph path,
+not a prerequisite.
 
 See `research/pandapower/` (docs 10, 10.1, 11, 12) for the modelling
 theory and findings behind these choices.
@@ -66,11 +69,11 @@ theory and findings behind these choices.
                 ▼                                   ▼
     ┌────────────────────────┐         ┌──────────────────────────────┐
     │ to_pandapower(grid)    │         │ to_pandapower_3ph(grid)      │
-    │  (balanced)            │         │  (asymmetric — augments      │
-    │                        │         │   the balanced net with      │
-    │                        │         │   zero-seq params + swaps    │
-    │                        │         │   phased loads for           │
-    │                        │         │   asymmetric_loads)          │
+    │  → PandapowerGrid      │         │  → Pandapower3phGrid         │
+    │  (balanced loads in    │         │  (independent net; loads     │
+    │   net.load)            │         │   split across net.load and  │
+    │                        │         │   net.asymmetric_load by     │
+    │                        │         │   node.phase)                │
     └──────────┬─────────────┘         └────────────────┬─────────────┘
                │                                        │
                ▼                                        ▼
@@ -97,7 +100,7 @@ theory and findings behind these choices.
 | **Cable endpoints** | Cables must reference existing node names via `from_node` / `to_node`. The GeoJSON loader populates these by snapping; the converter raises `ValueError` if any are missing. |
 | **Per-load phase** | Only required for the **asymmetric** path. For balanced `to_pandapower` it's ignored. For `to_pandapower_3ph`, any load whose `phase` is an `int` or `list` becomes an `asymmetric_load`; `None` stays balanced. Use the `phases` package to synthesise an assignment if your fixture arrives unphased. |
 | **`usage_factor`** | **Required, keyword-only**, on every public function in `pp_interop.phases`. There is no default. Use `config.DEFAULT_USAGE_FACTOR` (0.5) as the project-wide reference if you want it. |
-| **Modelling constants** | All in `pp_interop/config.py`: generator rating (`GEN_SN_KVA`, `GEN_XDSS_PU`, `GEN_RX`), cable reactance (`X_OHM_PER_KM`), zero-sequence ratios (`R0_OVER_R1`, `X0_OVER_X1`), source earthing (`SOURCE_X0X_MAX`, `SOURCE_R0X0_MAX`), and `DEFAULT_USAGE_FACTOR`. All have working defaults; override via kwargs to `to_pandapower(...)`. |
+| **Modelling constants** | All in `pp_interop/config.py`: generator rating (`GEN_SN_KVA`, `GEN_XDSS_PU`, `GEN_RX`), cable reactance (`X_OHM_PER_KM`), zero-sequence ratios (`R0_OVER_R1`, `X0_OVER_X1`), source earthing (`SOURCE_X0X_MAX`, `SOURCE_R0X0_MAX`), and `DEFAULT_USAGE_FACTOR`. All have working defaults. Generator and cable values are also exposed as kwargs on `to_pandapower(...)` / `to_pandapower_3ph(...)` for per-call overrides; zero-sequence and source-earthing values are read directly from `config` at conversion time and must be changed there. |
 | **Optional dep** | `uv sync --extra pandapower` — without it, `_import_pandapower` raises a clear `ImportError`. |
 
 ## Outputs
@@ -124,6 +127,57 @@ pp_grid = to_pandapower(grid)                # → PandapowerGrid
 results = compute_power_flow(pp_grid)        # → PowerFlowResults
 print(results.bus_vdrop_percent["jamhouse"])
 ```
+
+**Phase a fixture and write it out** — for the common workflow,
+use the `phase_geojson` one-call wrapper:
+
+```python
+from nopywer.pp_interop import config
+from nopywer.pp_interop.phases import phase_geojson
+
+plan = phase_geojson(
+    "tests/fixtures/2026-05-14_martin.geojson",
+    "2026-05-14_martin_phased.geojson",
+    usage_factor=config.DEFAULT_USAGE_FACTOR,
+    strategy="greedy",          # or "round_robin"
+)
+print(plan.balance_pct)
+```
+
+`phase_geojson` loads the input, runs the chosen strategy, applies
+the assignment, and writes a pretty-printed GeoJSON to the output
+path. `usage_factor` is required (no default — the right value is
+event-specific). The source fixture is never modified in place.
+
+The same workflow done by hand — useful when you want to inspect
+or compare plans before writing, or to use the strategies from
+inside larger pipelines:
+
+```python
+import json
+from nopywer.io import load_geojson
+from nopywer.models import PowerGrid
+from nopywer.pp_interop import config
+from nopywer.pp_interop.phases import assign_greedy, apply_assignment
+
+nodes, cables = load_geojson("tests/fixtures/2026-05-14_martin.geojson")
+grid = PowerGrid(nodes=nodes, cables=cables)
+
+plan = assign_greedy(grid, usage_factor=config.DEFAULT_USAGE_FACTOR)
+apply_assignment(grid, plan)                # writes plan.phases onto the grid
+
+with open("2026-05-14_martin_phased.geojson", "w") as f:
+    json.dump(grid.to_geojson(), f, indent=2)
+```
+
+`PowerNode.to_geojson` emits `phase` whenever it is non-`None` and
+omits it otherwise, so the export stays clean for fully-balanced
+fixtures and round-trips faithfully for planned ones. Reload the
+written file with `load_geojson` and the assignment is in place —
+`assign_greedy` will then treat those loads as pre-assigned and
+leave them alone. The existing `python -m nopywer <in> -o <out>`
+CLI uses the same `grid.to_geojson()` and so picks up the phase
+field automatically.
 
 **Asymmetric power flow with phase planning** — the full doc 12
 pipeline:
@@ -153,13 +207,64 @@ print(results.worst_phase_vdrop())      # ('jamhouse', 2, 13.7)
 print(results.worst_neutral_current())  # ('cable_15', 20.4)
 ```
 
+## Two converters, two grid types
+
+`to_pandapower` and `to_pandapower_3ph` return **distinct dataclasses**
+and produce **independent** `pandapowerNet` objects. They share a
+private skeleton builder (buses, lines, ext_grid), but neither
+mutates the other's output. Converting the same `PowerGrid` for
+both flows is a no-shared-state operation.
+
+| Converter | Return type | Loads in net |
+|---|---|---|
+| `to_pandapower(grid)` | `PandapowerGrid` | Every load in `net.load`; one `load_idx` map. |
+| `to_pandapower_3ph(grid)` | `Pandapower3phGrid` | Loads split across `net.load` and `net.asymmetric_load`; **two** index maps: `balanced_load_idx` and `asymmetric_load_idx`. |
+
+### Why the 3ph grid splits loads into two tables
+
+The split is not an implementation quirk — it tracks a real
+distinction in the source data:
+
+- **`phase is None`** → load goes to `net.load`, keyed in
+  `balanced_load_idx`. The planner has not declared a leg; nopywer
+  treats this as an even three-phase draw, which is exactly what
+  pandapower's `pp.load` means under `runpp_3ph`. Using `pp.load`
+  here is not a shortcut — it's the right primitive.
+- **`phase` is an `int` or `list`** → load goes to
+  `net.asymmetric_load`, keyed in `asymmetric_load_idx`. The
+  planner has nailed the load to specific legs. Only
+  `pp.asymmetric_load` lets us tell pandapower "8 kW on L1, 0 on
+  L2, 0 on L3" or "5 kW on L1, 5 kW on L2, 0 on L3".
+
+A load name appears in **at most one** map. The split is decided at
+conversion time from `node.phase` and is fixed for the lifetime of
+the `Pandapower3phGrid`.
+
+### What this means for you
+
+- **Convert once per flow.** Build a `PandapowerGrid` for the
+  balanced solve; build a separate `Pandapower3phGrid` for the
+  asymmetric solve. The two are independent — modifying one does
+  not affect the other.
+- **`compute_power_flow_3ph` requires `Pandapower3phGrid`.** The
+  type-checker will catch "I passed the balanced grid to the 3ph
+  solver" at the call site rather than letting it fail at runtime
+  with a cryptic pandapower error.
+- **To check whether a specific load has been planned**, look at
+  `pp_grid_3ph.asymmetric_load_idx` (or equivalently
+  `name in pp_grid_3ph.balanced_load_idx`). You do not need to
+  inspect `net` directly — the type surfaces the planning state.
+- **A fully-planned fixture leaves `balanced_load_idx` empty.** Same
+  code path; no special handling. Likewise, a fully-unphased fixture
+  leaves `asymmetric_load_idx` empty and `runpp_3ph` solves a
+  balanced grid (the same one `runpp` would solve, plus the
+  zero-sequence overhead).
+- **Write-back keyed on names is safe.** Iterating
+  `pp_grid_3ph.bus_idx` reaches every node exactly once regardless
+  of the load split.
+
 ## Things to remember
 
-- `to_pandapower_3ph` **augments and mutates** the balanced net
-  produced by `to_pandapower` (pops phased loads out of `net.load`,
-  adds them to `net.asymmetric_load`). Don't reuse the same
-  `PandapowerGrid` for both balanced and asymmetric solves — convert
-  fresh each time.
 - `usage_factor` is required everywhere in `pp_interop.phases`.
   Forgetting it is a `TypeError`, by design — the right value is
   event-specific and we don't want it disappearing into a default.
