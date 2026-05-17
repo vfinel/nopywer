@@ -6,9 +6,10 @@ current. These tests check three things:
 
   - `_phase_split` turns a `PowerNode.phase` field into a per-leg
     power tuple the same way the rest of nopywer does;
-  - `to_pandapower_3ph` augments the balanced net correctly —
-    zero-sequence params on lines and ext_grid, asymmetric loads
-    swapped in for phased loads;
+  - `to_pandapower_3ph` builds an independent `Pandapower3phGrid`
+    with zero-sequence params on lines and ext_grid, balanced loads
+    routed to `net.load` and explicitly-phased loads to
+    `net.asymmetric_load`;
   - `compute_power_flow_3ph` converges and returns results with the
     physical signatures we expect: a balanced load draws ~no neutral
     current and sags all three legs equally; a single-phase load

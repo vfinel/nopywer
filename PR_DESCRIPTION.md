@@ -143,7 +143,10 @@ Also worth a second pair of eyes:
 ## Required reading for the technical reviewer
 
 - `src/nopywer/pp_interop/README.md` — API surface, runnable examples,
-  the balanced/asymmetric type distinction, logging surface.
+  the balanced/asymmetric type distinction (`PandapowerGrid` vs
+  `Pandapower3phGrid` — independent nets, no shared state), the
+  "What `phase = None` means at each layer" per-layer table, and the
+  logging surface.
 - `research/pandapower/10_three_phase_asymmetric_modelling.md` — what
   the work was and the shopping list it came from.
 - `research/pandapower/10.1_three_phase_theory.md` — physics of why

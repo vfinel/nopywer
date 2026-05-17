@@ -150,7 +150,7 @@ For Martin, concretely:
    converges with sane voltages and `compare_with_tree_walk`
    becomes meaningful.
 4. **Phase assignment is still absent.** Every node in this export
-   has `phase = None` — Martin's note that the phase work went
+   has `phase = None` — note that the phase work went
    "without great results" is borne out; none of it made it into
    the file. So the asymmetric `runpp_3ph` path from doc 10 has no
    real data to chew on here either. Round-robin synthesis

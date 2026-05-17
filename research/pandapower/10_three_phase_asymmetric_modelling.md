@@ -399,10 +399,16 @@ that calls `pp.runpp_3ph` instead of `runpp`.
 | Tests — `_phase_split`, conversion, per-leg flow, neutral current | **done** |
 | Findings doc ([`12_runpp_3ph_findings.md`](./12_runpp_3ph_findings.md)) | **done** |
 
-The conversion landed as `to_pandapower_3ph` — it augments the
-balanced `to_pandapower` net (zero-sequence line/source params,
-asymmetric loads swapped in for phased loads) rather than branching
-inside `_conversion.py`, keeping the balanced path untouched.
+The conversion landed as `to_pandapower_3ph` returning a distinct
+`Pandapower3phGrid` type. It builds an **independent** pandapower
+net via the shared `_build_net_skeleton` (which `to_pandapower` also
+uses), so the balanced and asymmetric paths are sibling consumers of
+the same scaffold — no mutation of either's output, no shared state.
+Loads are split into `net.load` (for `phase is None`) and
+`net.asymmetric_load` (for explicit `int` / `list` phases), keyed in
+`balanced_load_idx` and `asymmetric_load_idx` respectively so the
+dual-table layout is visible in the type. See the pp_interop README
+"Two converters, two grid types" section for the rationale.
 
 The biggest unknown is whether `runpp_3ph` converges cleanly on
 the 2025-scale fixture (51 nodes) given its documented sensitivity,

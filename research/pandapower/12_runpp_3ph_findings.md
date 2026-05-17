@@ -16,7 +16,7 @@ the numbers do *not* support.
 ## What was run
 
 - **Fixture**: `tests/fixtures/2026-05-14_martin_modified.geojson` —
-  Martin's 2026 east-grid export, with the four cable resizes from
+  2026 east-grid export, with the four cable resizes from
   doc 11 (one 1P 16 A trunk → 3P 125 A, the GoJ feeder → 3P 63 A,
   the other generator trunk → 3P 125 A, the curious-creatures feed
   → 3P 32 A) and the asymmetric `curious creatures` modelled as
@@ -181,7 +181,7 @@ rather than per-leg drop.
 - **What the 2026 grid was actually wired as.** The greedy plan we
   ran is a synthetic phase assignment, not a measurement. It is a
   *plausible* assignment with the right structure to expose the
-  mechanisms; it is not a reconstruction of what Martin's
+  mechanisms; it is not a reconstruction of what the
   electricians did. A historical reconstruction (doc 10
   Strategy A) would replace it.
 - **A spec verdict on `cable_15`.** It is over rating *on the

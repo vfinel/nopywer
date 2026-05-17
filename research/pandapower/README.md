@@ -60,7 +60,7 @@ Date of research: April 2026. Pandapower latest at time of writing: **3.4.0**
       unbalances the two legs it doesn't touch (with a verification
       experiment proving it is real physics, not a solver quirk).
 11. [`11_field_export_fixture_walkthrough.md`](11_field_export_fixture_walkthrough.md) —
-    how to plug Martin's `2026-05-14_martin.geojson` field export into
+    how to plug the `2026-05-14_martin.geojson` field export into
     the pandapower code. Two gaps: a trivial schema mismatch (export
     keys `area_mm2`/`plugs_and_sockets_a` vs input keys
     `area`/`plugs&sockets`, loads silently to defaults), and a real
