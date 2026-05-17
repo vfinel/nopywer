@@ -74,32 +74,38 @@ def _parse_power_per_phase(power: float, phase: str | int, name: str):
         - can doctests be ran with pytests ?
     """
     power_per_phase = np.zeros(3)
+    if power > 0:
+        if isinstance(phase, int):
+            if 1 <= phase <= 3:
+                power_per_phase[phase - 1] = power
+            else:
+                raise ValueError(f"phase must be between 1 and 3 but is {phase}")
+        
+        elif isinstance(phase, str):
+            if not phase:
+                raise ValueError(f"no phase assigned to load '{name}'!")
 
-    if isinstance(phase, int):
-        if 1 <= phase <= 3:
-            power_per_phase[phase - 1] = power
-        else:
-            raise ValueError(f"phase must be between 1 and 3 but is {phase}")
-    
-    elif isinstance(phase, str):
-        if (not phase) and (power > 0):
-            raise ValueError(f"no phase assigned to load '{name}'!")
+            else:
+                # search numbers in string and split power accross phases
+                match = re.findall('\\d+', phase) 
+                n_phases = len(match)
+                for ph in match:
+                    if 1 <= int(ph) <= 3:
+                        idx = int(ph)-1
+                        power_per_phase[idx] = power / n_phases
+                    else:
+                        raise ValueError(f"phase of load '{name}' must be between 1 and 3 but is {phase}")
 
         else:
-            # search numbers in string and split power accross phases
-            match = re.findall('\\d+', phase) 
-            n_phases = len(match)
-            for ph in match:
-                if 1 <= int(ph) <= 3:
-                    idx = int(ph)-1
-                    power_per_phase[idx] = power / n_phases
-                else:
-                    raise ValueError(f"phase of load '{name}' must be between 1 and 3 but is {phase}")
+            logger.info(f" unable to parse phase '{phase}' of load '{name}', assuming 3-phases repartition.")
+            power_per_phase += power / 3
+
+    elif power == 0:        
+        pass  
 
     else:
-        logger.info(f" unable to parse phase ({phase}), assuming 3-phases repartition.")
-        power_per_phase += power / 3
-    
+        raise ValueError(f"power of load '{name}' must be positive or zero but is {power}")
+        
     logger.debug(f" load '{name}': {power_per_phase = }")
 
     return power_per_phase 
@@ -246,7 +252,7 @@ def print_grid_info(
         logger.warning(f" Loads not connected to a cable: {loads_not_connected} \n")
         
     # print loads without a phase assigned
-    unphased = [n for n, nd in nodes.items() if not nd.is_generator and nd.phase is None]
+    unphased = [n for n, nd in nodes.items() if nd.power_watts>0 and nd.phase is None]
     if len(unphased):
         logger.info(f" Loads without a phase assigned: ")
         logger.info(f"\t{unphased} \n ")
