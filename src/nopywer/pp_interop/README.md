@@ -240,6 +240,26 @@ A load name appears in **at most one** map. The split is decided at
 conversion time from `node.phase` and is fixed for the lifetime of
 the `Pandapower3phGrid`.
 
+### What `phase = None` means at each layer
+
+`None` is not "missing data" — it is the explicit modelling choice
+"balanced three-phase draw". Each layer treats it consistently with
+that meaning:
+
+| Layer | Behaviour on `phase is None` |
+|---|---|
+| `io.load_geojson` | Sets `node.power_per_phase = [P/3, P/3, P/3]` for any tree-walk analysis downstream. |
+| `PowerNode.to_geojson` | **Omits** the `"phase"` key (not emitted as `null`). Reload is symmetric: missing key → `None`. |
+| `phases.single_phase_candidates` | `None` is the marker for "eligible to be planned". Any other `phase` (int / list / string) is treated as already-decided and left alone. |
+| `phases.apply_assignment` | When a plan assigns a leg, sets `node.phase = 1\|2\|3`. Does **not** recompute `power_per_phase` — that derived cache is stale until the grid is reloaded. The `phase` field is authoritative. |
+| `to_pandapower` (balanced) | Ignores `phase` entirely; every load is a balanced `pp.load`. |
+| `to_pandapower_3ph` (asymmetric) | `None` → `pp.load` in `balanced_load_idx`. `pp.runpp_3ph` treats `pp.load` as an even three-phase draw, so this is the correct primitive for unphased loads, not a workaround. |
+| `compute_power_flow_3ph` | An unphased load sags its three legs equally and contributes zero to neutral current (its three currents cancel in the return). Indistinguishable from a balanced motor. |
+
+The takeaway: a fully-unphased grid solves through `runpp_3ph` just
+fine — it'll just look very similar to the balanced solve, because
+that's what an all-balanced grid genuinely is.
+
 ### What this means for you
 
 - **Convert once per flow.** Build a `PandapowerGrid` for the
