@@ -82,21 +82,6 @@ import logging
 import sys
 from pathlib import Path
 
-
-def _positive_float(raw: str) -> float:
-    """argparse type — reject zero, negative, and absurd factors."""
-    value = float(raw)
-    if value <= 0:
-        raise argparse.ArgumentTypeError(
-            f"--load-factor must be > 0, got {value!r}"
-        )
-    if value > 5:
-        raise argparse.ArgumentTypeError(
-            f"--load-factor {value!r} is implausibly large (> 5x nameplate). "
-            "If you really mean this, override the bound in scripts/run_asymmetric.py."
-        )
-    return value
-
 from nopywer.analyze import _snap_cables_to_nodes
 from nopywer.io import load_geojson
 from nopywer.models import PowerGrid
@@ -113,14 +98,26 @@ from nopywer.pp_interop.phases import (
     assign_round_robin,
 )
 
+
+def _positive_float(raw: str) -> float:
+    """argparse type — reject zero, negative, and absurd factors."""
+    value = float(raw)
+    if value <= 0:
+        raise argparse.ArgumentTypeError(f"--load-factor must be > 0, got {value!r}")
+    if value > 5:
+        raise argparse.ArgumentTypeError(
+            f"--load-factor {value!r} is implausibly large (> 5x nameplate). "
+            "If you really mean this, override the bound in scripts/run_asymmetric.py."
+        )
+    return value
+
+
 _STRATEGIES = {"greedy": assign_greedy, "round_robin": assign_round_robin}
 
 
 def _nameplate_total_w(grid: PowerGrid) -> float:
     """Sum of nameplate power across non-generator loads, in watts."""
-    return sum(
-        n.power_watts for n in grid.nodes.values() if not n.is_generator
-    )
+    return sum(n.power_watts for n in grid.nodes.values() if not n.is_generator)
 
 
 def _scale_loads_in_place(grid: PowerGrid, factor: float) -> None:
@@ -213,12 +210,15 @@ def main(argv: list[str] | None = None) -> int:
         apply_assignment(grid, plan)
         print(f"\nphase plan ({args.plan}):")
         print(f"  loads assigned:  {len(plan.phases)}")
-        print(f"  balance:         {plan.balance_pct:.2f}%  "
-              f"(0 % = perfectly level; lower is better)")
-        print(f"  per-leg totals:  "
-              f"L1={plan.leg_totals_w[0] / 1e3:.2f} kW, "
-              f"L2={plan.leg_totals_w[1] / 1e3:.2f} kW, "
-              f"L3={plan.leg_totals_w[2] / 1e3:.2f} kW")
+        print(
+            f"  balance:         {plan.balance_pct:.2f}%  (0 % = perfectly level; lower is better)"
+        )
+        print(
+            f"  per-leg totals:  "
+            f"L1={plan.leg_totals_w[0] / 1e3:.2f} kW, "
+            f"L2={plan.leg_totals_w[1] / 1e3:.2f} kW, "
+            f"L3={plan.leg_totals_w[2] / 1e3:.2f} kW"
+        )
 
     # --- scale loads in place before conversion ---------------------
     if args.load_factor != 1.0:
@@ -229,9 +229,7 @@ def main(argv: list[str] | None = None) -> int:
     pp_balanced = to_pandapower(grid)
     try:
         bal = compute_power_flow(pp_balanced)
-        worst_bus, worst_drop = max(
-            bal.bus_vdrop_percent.items(), key=lambda kv: kv[1]
-        )
+        worst_bus, worst_drop = max(bal.bus_vdrop_percent.items(), key=lambda kv: kv[1])
         print(f"  converged:        {bal.converged}")
         print(f"  worst bus drop:   {worst_bus!r} = {worst_drop:.2f}%")
     except Exception as exc:
@@ -256,18 +254,18 @@ def main(argv: list[str] | None = None) -> int:
     print(f"  converged:        {res.converged}")
 
     worst_vdrop = sorted(
-        ((name, leg + 1, drop)
-         for name, legs in res.bus_vdrop_percent.items()
-         for leg, drop in enumerate(legs)),
+        (
+            (name, leg + 1, drop)
+            for name, legs in res.bus_vdrop_percent.items()
+            for leg, drop in enumerate(legs)
+        ),
         key=lambda t: -t[2],
     )[: args.top]
     print(f"\n  top {args.top} worst per-leg voltage drops:")
     for name, leg, drop in worst_vdrop:
         print(f"    {name!r:30s} L{leg}  {drop:6.2f} %")
 
-    worst_neutral = sorted(
-        res.line_neutral_current_a.items(), key=lambda kv: -kv[1]
-    )[: args.top]
+    worst_neutral = sorted(res.line_neutral_current_a.items(), key=lambda kv: -kv[1])[: args.top]
     print(f"\n  top {args.top} cables by neutral current:")
     for cable_id, i_n in worst_neutral:
         print(f"    {cable_id!r:20s}  {i_n:6.2f} A")

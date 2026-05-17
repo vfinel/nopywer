@@ -68,10 +68,7 @@ def phase_geojson(
         FileNotFoundError: if `input_path` does not exist.
     """
     if strategy not in _STRATEGIES:
-        raise ValueError(
-            f"unknown strategy {strategy!r}; "
-            f"expected one of {sorted(_STRATEGIES)}"
-        )
+        raise ValueError(f"unknown strategy {strategy!r}; expected one of {sorted(_STRATEGIES)}")
 
     nodes, cables = load_geojson(input_path)
     grid = PowerGrid(nodes=nodes, cables=cables)

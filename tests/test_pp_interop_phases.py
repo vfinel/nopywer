@@ -607,8 +607,6 @@ def test_phase_geojson_matches_step_by_step_pipeline(tmp_path):
     relying on `phase_geojson` would silently get a different plan
     from a user reading the README's step-by-step snippet.
     """
-    import json
-
     from nopywer.io import load_geojson
 
     src = FIXTURES / "2026-05-14_martin.geojson"

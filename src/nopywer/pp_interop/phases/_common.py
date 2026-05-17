@@ -106,9 +106,7 @@ class PhaseAssignment:
     balance_pct: float
 
 
-def single_phase_candidates(
-    grid: PowerGrid, *, usage_factor: float
-) -> list[tuple[str, float]]:
+def single_phase_candidates(grid: PowerGrid, *, usage_factor: float) -> list[tuple[str, float]]:
     """Loads eligible for a single-leg assignment.
 
     A load is a candidate only when *all* of the following hold:

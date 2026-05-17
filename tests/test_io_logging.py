@@ -83,9 +83,7 @@ def test_unknown_property_key_logs_a_debug_diagnostic(caplog):
     load_geojson(_fc(_point_feature("typo_stage", powr=2000.0)))
 
     debug_records = [
-        r
-        for r in caplog.records
-        if r.levelno == logging.DEBUG and "powr" in r.getMessage()
+        r for r in caplog.records if r.levelno == logging.DEBUG and "powr" in r.getMessage()
     ]
     assert len(debug_records) == 1
     assert "typo_stage" in debug_records[0].getMessage()
