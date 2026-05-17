@@ -66,7 +66,7 @@ def analyze_grid(
         with open(output, "w") as f:
             json.dump(result, f, indent=2)
         print(' ')
-        logger.info(f"Results written to {output}")
+        logger.info(f" Results written to {output}")
     elif not do_update:
         print(json.dumps(result, indent=2))
 

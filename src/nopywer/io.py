@@ -161,11 +161,19 @@ def print_grid_info(
         f"/ {np.round(generator.cum_power / PF / V0)}A"
     )
 
+    # print phase balance
     cum = generator.cum_power
     pb = float(100 * np.std(cum) / np.mean(cum))
-    flag = " <<<<<<<<<<" if pb > 5 else ""
-    logger.info(f" phase balance: {pb:.1f} % {flag}")
+    pb_msg = f" phase balance: {pb:.1f}"
+    if pb < 5:
+        logger.info(pb_msg)
 
+    else:
+        logger.warning(pb_msg + " <<<<<<<<<<")
+    
+    # print summary of each node sorted by deepness
+    print(' ')
+    logger.info(" nodes summary (sorted by deepness):")
     for deep, names in enumerate(dlist):
         logger.info(f"\t deepness {deep}")
         for name in names:
