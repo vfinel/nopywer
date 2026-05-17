@@ -91,7 +91,7 @@ def test_candidates_include_only_eligible_loads():
         ],
         gen_power=1000.0,
     )
-    names = [name for name, _ in single_phase_candidates(grid)]
+    names = [name for name, _ in single_phase_candidates(grid, usage_factor=0.5)]
     assert names == ["small"]
 
 
@@ -267,7 +267,10 @@ def test_round_robin_is_reproducible():
     that erodes trust in a planning tool.
     """
     grid = make_grid([(n, 1500.0, None) for n in ("a", "b", "c")])
-    assert assign_round_robin(grid).phases == assign_round_robin(grid).phases
+    assert (
+        assign_round_robin(grid, usage_factor=0.5).phases
+        == assign_round_robin(grid, usage_factor=0.5).phases
+    )
 
 
 def test_round_robin_usage_factor_changes_totals_not_legs():
@@ -300,7 +303,7 @@ def test_round_robin_empty_when_no_candidates():
     that is fully fixed — it should not error or invent placements.
     """
     grid = make_grid([("a", 1000.0, 1), ("b", 1000.0, 2)])
-    assert assign_round_robin(grid).phases == {}
+    assert assign_round_robin(grid, usage_factor=0.5).phases == {}
 
 
 # --- assign_greedy -----------------------------------------------------------
@@ -392,8 +395,8 @@ def test_greedy_is_reproducible_with_deterministic_tie_break():
     corrosive to a committed fixture.
     """
     grid = make_grid([(n, 1000.0, None) for n in ("a", "b", "c")])
-    first = assign_greedy(grid)
-    second = assign_greedy(grid)
+    first = assign_greedy(grid, usage_factor=0.5)
+    second = assign_greedy(grid, usage_factor=0.5)
     assert first.phases == second.phases == {"a": 1, "b": 2, "c": 3}
 
 
@@ -435,7 +438,7 @@ def test_apply_assignment_is_idempotent():
     plain write, not a toggle or an increment.
     """
     grid = make_grid([(n, 1000.0, None) for n in ("a", "b", "c")])
-    assignment = assign_round_robin(grid)
+    assignment = assign_round_robin(grid, usage_factor=0.5)
     apply_assignment(grid, assignment)
     snapshot = {n: grid.nodes[n].phase for n in assignment.phases}
     apply_assignment(grid, assignment)
@@ -464,17 +467,25 @@ def test_apply_assignment_raises_on_unknown_node():
 # --- defaults ----------------------------------------------------------------
 
 
-def test_default_usage_factor_is_half():
-    """The default usage factor is 0.5x.
+def test_reference_usage_factor_is_half():
+    """The project-wide reference usage factor is 0.5x.
 
-    What: `DEFAULT_USAGE_FACTOR == 0.5`.
+    What: `config.DEFAULT_USAGE_FACTOR == 0.5`, and it is exposed
+    via `pp_interop.phases` for callers that want to adopt the
+    project-wide value with one symbol.
 
     Why it matters: 0.5x is doc 10's stated starting assumption —
-    festival loads rarely draw nameplate together. Pinning it here
-    means a change to that assumption has to be deliberate (and shows
-    up as a failing test) rather than drifting in unnoticed.
+    festival loads rarely draw nameplate together. The constant is
+    a *reference*, not a function default — every strategy requires
+    `usage_factor` to be passed explicitly so the choice is always
+    visible at the call site. Pinning the reference here means a
+    change to that assumption has to be deliberate (and shows up
+    as a failing test) rather than drifting in unnoticed.
     """
+    from nopywer.pp_interop import config
+
     assert DEFAULT_USAGE_FACTOR == 0.5
+    assert config.DEFAULT_USAGE_FACTOR is DEFAULT_USAGE_FACTOR
 
 
 # --- integration on the real field export ------------------------------------
@@ -498,8 +509,8 @@ def test_strategies_run_on_field_export_and_greedy_balances_better():
     """
     grid = PowerGrid.from_geojson(FIXTURES / "2026-05-14_martin.geojson")
 
-    rr = assign_round_robin(grid)
-    greedy = assign_greedy(grid)
+    rr = assign_round_robin(grid, usage_factor=DEFAULT_USAGE_FACTOR)
+    greedy = assign_greedy(grid, usage_factor=DEFAULT_USAGE_FACTOR)
 
     # the export has plenty of small loads -> a non-trivial candidate set
     assert len(rr.phases) > 5

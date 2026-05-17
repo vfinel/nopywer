@@ -31,7 +31,6 @@ For the simpler positional strategy see `_round_robin.py` (Strategy B).
 
 from ...models import PowerGrid
 from ._common import (
-    DEFAULT_USAGE_FACTOR,
     PhaseAssignment,
     _fixed_leg_seed,
     build_assignment,
@@ -39,7 +38,7 @@ from ._common import (
 )
 
 
-def assign_greedy(grid: PowerGrid, usage_factor: float = DEFAULT_USAGE_FACTOR) -> PhaseAssignment:
+def assign_greedy(grid: PowerGrid, *, usage_factor: float) -> PhaseAssignment:
     """Assign each single-phase candidate to the currently-lightest leg.
 
     Candidates (from `single_phase_candidates`) are sorted by
@@ -65,13 +64,16 @@ def assign_greedy(grid: PowerGrid, usage_factor: float = DEFAULT_USAGE_FACTOR) -
     Args:
         grid: the grid to plan phases for. Not mutated — pass the
             result to `apply_assignment` to write it back.
-        usage_factor: assumed fraction of nameplate power loads draw
-            together. Unlike round-robin, this **does** affect the
-            assignment: both the lightest-leg decision and the
-            heaviest-first sort run on usage-adjusted watts, and the
-            factor also shifts the candidate capacity cut-off. A
-            different factor can therefore produce a genuinely
-            different leg layout, not just rescaled totals.
+        usage_factor: **required**, keyword-only. Assumed fraction
+            of nameplate power loads draw together. No default —
+            see `config.DEFAULT_USAGE_FACTOR` (0.5) for the
+            project-wide reference figure. Unlike round-robin, this
+            **does** affect the assignment: both the lightest-leg
+            decision and the heaviest-first sort run on usage-
+            adjusted watts, and the factor also shifts the candidate
+            capacity cut-off. A different factor can therefore
+            produce a genuinely different leg layout, not just
+            rescaled totals.
 
     Returns:
         A `PhaseAssignment` whose `balance_pct` is typically far
@@ -79,7 +81,7 @@ def assign_greedy(grid: PowerGrid, usage_factor: float = DEFAULT_USAGE_FACTOR) -
         no single-phase candidates, `phases` is empty and the result
         describes just the fixed (balanced / pre-assigned) loads.
     """
-    candidates = single_phase_candidates(grid, usage_factor)
+    candidates = single_phase_candidates(grid, usage_factor=usage_factor)
     legs = _fixed_leg_seed(grid, {name for name, _ in candidates}, usage_factor)
 
     phases: dict[str, int] = {}

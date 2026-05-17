@@ -17,8 +17,8 @@ Both return a `PhaseAssignment` and do not mutate the grid; call
 assumptions (usage factor, single-phase capacity) live in `_common`.
 """
 
+from ..config import DEFAULT_USAGE_FACTOR
 from ._common import (
-    DEFAULT_USAGE_FACTOR,
     SINGLE_PHASE_CAPACITY_W,
     PhaseAssignment,
     apply_assignment,

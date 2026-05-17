@@ -46,12 +46,37 @@ nopywer's `PowerNode.phase` already carries this:
 
 - `1`, `2`, `3` → single-phase load on L1/L2/L3
 - `None` → balanced (or "to be assigned later")
+- `[1, 2]` (a list of legs) → multi-phase load split across the listed legs
 - non-numeric values → legacy annotations with no pandapower equivalent;
   treat them as unassigned for three-phase modelling
 
 So the per-load phase information **already exists in nopywer's
 data model**. The question is whether it's populated in the
 fixtures we want to validate against.
+
+#### Modelling assumption — multi-phase loads self-balance evenly
+
+When `phase` is a list (e.g. `[1, 2]` for a 10 kW load), both the
+GeoJSON loader (`io.load_geojson`) and the pandapower converter
+(`_powerflow_3ph._phase_split`) divide the total power **evenly**
+across the listed legs — 5 kW on L1, 5 kW on L2, nothing on L3 in
+the example. This is a deliberate assumption, not a measurement:
+
+- It assumes the load itself balances its own internal draw across
+  the legs it has been wired to. For most genuinely multi-phase
+  festival kit (3-phase motors, balanced 2-leg space heaters,
+  battery chargers with multi-input rectifiers) this is reasonable.
+- It will be **wrong** for loads that present an inherently
+  asymmetric draw across the legs they connect to — some
+  line-to-line equipment, and any setup where one phase of a
+  multi-phase plug actually feeds a different sub-load than the
+  other. Flag these explicitly; the data model has no way to
+  represent an uneven multi-phase split today.
+- Today this only matters for `curious creatures` in the 2026 field
+  export (wired `[1, 2]`); doc 11 records the explicit choice. If
+  more multi-phase loads appear with non-symmetric internals, the
+  fix is to add a per-leg-fraction field to `PowerNode.phase`
+  rather than to hack the split site-side.
 
 ### 2. Per-cable zero-sequence parameters
 
@@ -392,9 +417,9 @@ Three things we currently don't know:
 
 On `analyze_input` (2 loads, 1 cable per load) it's a ~5 pp gap.
 On `input_nodes` (51 loads, optimised tree) it could be anywhere
-— and the gap shape is exactly what Vincent's been asking about
-indirectly. Today we report only the balanced-flow numbers; the
-asymmetric numbers might be very different.
+— and the gap shape is the key open question. Today we report only
+the balanced-flow numbers; the asymmetric numbers might be very
+different.
 
 ### 2. Neutral currents per cable
 

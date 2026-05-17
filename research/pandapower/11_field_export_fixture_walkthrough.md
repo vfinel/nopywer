@@ -119,8 +119,7 @@ past anything a real festival grid would tolerate. The grid as
 exported is not a borderline case; it is deep in the
 non-physical region.
 
-This is itself a **finding**, and arguably the most useful one for
-Martin and Vincent:
+This is itself a **finding**, and arguably the most useful one:
 
 - **nopywer's tree walk still produces numbers here** (88.3 kW,
   vdrops up to 56 %) because it is an explicit forward pass — it
@@ -237,6 +236,19 @@ rating, with the unused L3 core idle. The lesson for the doc 10
 `runpp_3ph` work: per-load phase assignment and cable *type* are
 coupled — assigning phases can invalidate the cable feeding the
 load.
+
+**Modelling assumption — the 50/50 split is an assumption.** The
+even L1/L2 split for `curious creatures` is a choice, not a
+measurement. Both the loader and the converter assume any
+multi-phase load self-balances evenly across the legs it has been
+wired to (see doc 10, "Modelling assumption — multi-phase loads
+self-balance evenly"). This is reasonable for genuinely balanced
+2-leg equipment; it would be wrong for a setup where the two legs
+actually feed different sub-loads inside the same plug. There is
+no way to express a non-symmetric multi-phase split in the data
+model today — if the field reality of `curious creatures` (or any
+future multi-phase load) turns out to be e.g. 6/4 rather than 5/5,
+that needs a model change, not a fixture hack.
 
 ## What this changes upstream
 

@@ -43,11 +43,6 @@ from dataclasses import dataclass
 from ...constants import PF, V0
 from ...models import Cable16A, PowerGrid
 
-# Festival loads almost never draw nameplate power all at once. Phase
-# balancing on nameplate would over-fit to a peak that never happens;
-# 0.5x is a deliberately conservative starting assumption (see doc 10).
-DEFAULT_USAGE_FACTOR = 0.5
-
 # Most power a single-phase 16 A connection can carry: I x V x PF.
 # A load whose effective (usage-adjusted) power exceeds this cannot
 # sit on one leg and is left multi-phase. Derived from the catalogue
@@ -77,7 +72,7 @@ class PhaseAssignment:
             `name in assignment.phases` is the precise test for "this
             strategy moved this load".
         usage_factor: the nameplate fraction used for balancing (see
-            `DEFAULT_USAGE_FACTOR`). Recorded so a `PhaseAssignment`
+            `config.DEFAULT_USAGE_FACTOR`). Recorded so a `PhaseAssignment`
             is self-describing — the leg totals below only make sense
             against the factor they were computed with.
         leg_totals_w: effective watts on (L1, L2, L3) *after* this
@@ -103,7 +98,7 @@ class PhaseAssignment:
 
 
 def single_phase_candidates(
-    grid: PowerGrid, usage_factor: float = DEFAULT_USAGE_FACTOR
+    grid: PowerGrid, *, usage_factor: float
 ) -> list[tuple[str, float]]:
     """Loads eligible for a single-leg assignment.
 
@@ -127,8 +122,13 @@ def single_phase_candidates(
 
     Args:
         grid: the grid to inspect. Not mutated.
-        usage_factor: assumed fraction of nameplate power loads draw
-            together. Scales the effective power used for the
+        usage_factor: **required**, keyword-only. Assumed fraction of
+            nameplate power loads draw together. Has no safe default
+            because the right value is event-specific (audio shows
+            with simultaneous peaks differ from food courts with
+            spread loads); see `config.DEFAULT_USAGE_FACTOR` for the
+            project-wide reference figure (0.5) callers can adopt
+            explicitly. Scales the effective power used for the
             capacity test in (4): at 0.5x a 6 kW nameplate load is
             treated as 3 kW and so *is* a single-phase candidate; at
             1.0x the same load is 6 kW and is not.

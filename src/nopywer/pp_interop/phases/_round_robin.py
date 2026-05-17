@@ -26,16 +26,13 @@ order of magnitude.
 
 from ...models import PowerGrid
 from ._common import (
-    DEFAULT_USAGE_FACTOR,
     PhaseAssignment,
     build_assignment,
     single_phase_candidates,
 )
 
 
-def assign_round_robin(
-    grid: PowerGrid, usage_factor: float = DEFAULT_USAGE_FACTOR
-) -> PhaseAssignment:
+def assign_round_robin(grid: PowerGrid, *, usage_factor: float) -> PhaseAssignment:
     """Assign each single-phase candidate a leg, cycling L1 / L2 / L3.
 
     The i-th candidate (in grid order) gets leg `(i % 3) + 1`, so the
@@ -54,13 +51,15 @@ def assign_round_robin(
     Args:
         grid: the grid to plan phases for. Not mutated — pass the
             result to `apply_assignment` to write it back.
-        usage_factor: assumed fraction of nameplate power loads draw
-            together. Does **not** change *which* leg a load gets —
-            this strategy is positional — but it does scale the
-            reported `leg_totals_w` and `balance_pct`, and it shifts
-            the capacity cut-off in `single_phase_candidates` (so a
-            load can move in or out of the candidate set as the
-            factor changes).
+        usage_factor: **required**, keyword-only. Assumed fraction
+            of nameplate power loads draw together. No default —
+            see `DEFAULT_USAGE_FACTOR` (0.5) for the project-wide
+            reference figure. Does **not** change *which* leg a
+            load gets (this strategy is positional), but it does
+            scale the reported `leg_totals_w` and `balance_pct`, and
+            it shifts the capacity cut-off in
+            `single_phase_candidates` (so a load can move in or out
+            of the candidate set as the factor changes).
 
     Returns:
         A `PhaseAssignment`. Fully reproducible for a given grid and
@@ -69,6 +68,6 @@ def assign_round_robin(
         result describes just the fixed (balanced / pre-assigned)
         loads.
     """
-    candidates = single_phase_candidates(grid, usage_factor)
+    candidates = single_phase_candidates(grid, usage_factor=usage_factor)
     phases = {name: (i % 3) + 1 for i, (name, _) in enumerate(candidates)}
     return build_assignment(grid, phases, usage_factor)
