@@ -44,10 +44,13 @@ a list, or a string marker are left exactly as they are — the
 planner (or a previous run) has spoken.
 """
 
+import logging
 from dataclasses import dataclass
 
 from ...constants import PF, V0
 from ...models import Cable16A, PowerGrid
+
+logger = logging.getLogger(__name__)
 
 # Most power a single-phase 16 A connection can carry: I x V x PF.
 # A load whose effective (usage-adjusted) power exceeds this cannot
@@ -207,6 +210,13 @@ def _fixed_leg_seed(grid: PowerGrid, candidate_names: set[str], usage_factor: fl
                 legs[leg - 1] += effective_w / len(legs_used)
         else:
             # balanced / unphased / string marker — spread evenly
+            if isinstance(phase, str):
+                logger.warning(
+                    "Node %r carries legacy string phase marker %r; treating "
+                    "as unphased (balanced across L1/L2/L3) in the leg seed.",
+                    name,
+                    phase,
+                )
             for i in range(3):
                 legs[i] += effective_w / 3
     return legs

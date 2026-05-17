@@ -53,6 +53,7 @@ current rule), so it has no per-leg voltage to line up against
 exercise (doc 12), not a drop-in mirror of `compare_with_tree_walk`.
 """
 
+import logging
 import math
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
@@ -66,6 +67,8 @@ if TYPE_CHECKING:
     from pandapower.auxiliary import pandapowerNet
 else:
     pandapowerNet = Any
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -223,7 +226,19 @@ def to_pandapower_3ph(
     for name, node in grid.nodes.items():
         if node.is_generator or node.power_watts <= 0:
             continue
-        if node.phase is None:
+        # Legacy "U" / "Y" string markers have no electrical meaning;
+        # treat them the same as `phase is None` (balanced). Logged so
+        # the operator knows the marker propagated through to a solve.
+        is_balanced = node.phase is None or isinstance(node.phase, str)
+        if isinstance(node.phase, str):
+            logger.warning(
+                "Node %r carries legacy string phase marker %r; routing to "
+                "balanced pp.load. Phase markers should be int (1/2/3) or "
+                "list ([1, 2]) for runpp_3ph to use them.",
+                name,
+                node.phase,
+            )
+        if is_balanced:
             p_mw = node.power_watts / 1e6
             balanced_load_idx[name] = pp.create_load(
                 net,

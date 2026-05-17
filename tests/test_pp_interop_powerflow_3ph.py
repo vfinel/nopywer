@@ -174,6 +174,40 @@ def test_to_3ph_all_balanced_grid_has_no_asymmetric_loads():
     assert len(pp_grid.net.load) == 2
 
 
+def test_to_3ph_routes_string_phase_marker_to_balanced_table_with_warning(caplog):
+    """A node whose `phase` is a legacy string marker is treated as balanced.
+
+    What: a load with `phase="U"` ends up in `net.load` (and
+    `balanced_load_idx`), not `net.asymmetric_load`, and a single
+    `WARNING`-level log record names the node and the marker.
+
+    Why it matters: `"U"` / `"Y"` are sub-grid reporting markers
+    with no electrical meaning. Routing them to `asymmetric_load`
+    would store a "no electrical meaning" marker as if it were a
+    deliberate per-leg split — functionally equivalent (three
+    equal P's behave like a balanced load) but semantically
+    misleading. Sending them to the balanced table is the honest
+    representation; the warning is the operator's signal that the
+    marker propagated this far.
+    """
+    import logging
+
+    grid = _grid([("stage_left", 3000.0, "U")])
+    caplog.set_level(logging.WARNING, logger="nopywer.pp_interop._powerflow_3ph")
+
+    pp_grid = to_pandapower_3ph(grid)
+
+    assert "stage_left" in pp_grid.balanced_load_idx
+    assert "stage_left" not in pp_grid.asymmetric_load_idx
+    assert len(pp_grid.net.load) == 1
+    assert len(pp_grid.net.asymmetric_load) == 0
+
+    warnings = [r for r in caplog.records if r.levelno == logging.WARNING]
+    assert len(warnings) == 1
+    assert "stage_left" in warnings[0].getMessage()
+    assert "'U'" in warnings[0].getMessage()
+
+
 # --- compute_power_flow_3ph --------------------------------------------------
 
 
