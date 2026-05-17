@@ -14,18 +14,67 @@ any code.
 The balanced `runpp` is also run for comparison so you can read the
 "balanced says X, asymmetric says Y" gap that doc 12 documents.
 
-Notes:
+============================================================
+The single user-facing knob — `--load-factor`
+============================================================
+
+`--load-factor` is **one** multiplier on nameplate that drives the
+entire analysis. The default (0.5) is the project-wide festival
+diversity assumption: "festival loads draw ~50 % of nameplate on
+average". The number says, *for this run*, what fraction of
+nameplate we are modelling.
+
+It has two consistent effects:
+
+  1. **Planning (`--plan`)** — `assign_greedy` / `assign_round_robin`
+     balance the legs against `power_watts × load_factor`. A
+     borderline-large load shifts in or out of the "fits on one leg"
+     category, and greedy's heaviest-first pack order is computed on
+     scaled values.
+  2. **Solve (`runpp` and `runpp_3ph`)** — every load's
+     `power_watts` is multiplied by `load_factor` before conversion,
+     so both solvers see the same scaled demand the planner assumed.
+
+The two effects use the **same number** on purpose. Plan-then-stress-
+test (plan at 0.5, solve at 1.0) is a separate diagnostic workflow,
+not a knob on this script — if you genuinely need it, run the
+script twice or write a 5-line scripted sweep.
+
+What changing it does, intuitively:
+
+  - `--load-factor 1.0` — model worst case: every load peaks
+    simultaneously. The most conservative answer. Often won't
+    converge on real fixtures (the grid is past voltage collapse).
+  - `--load-factor 0.5` (default) — model the festival diversity
+    assumption. The number doc 12's findings use.
+  - `--load-factor 0.2` — model a deep quiet period. Usually
+    converges with plenty of headroom; useful for sanity-checking
+    that the topology is sensible.
+
+============================================================
+Other notes
+============================================================
+
   - `runpp_3ph` will refuse to converge on grids past voltage collapse
     (the P-V nose). This is a *physical* result, not a script bug —
     see research/pandapower/11_field_export_fixture_walkthrough.md.
-  - Phase planning is **optional**. If you pass `--plan greedy` (or
-    `round_robin`), unphased loads get a synthesised assignment first;
-    without it, unphased loads stay `phase=None`. An unphased load
-    becomes a balanced `pp.load` under `runpp_3ph` (three-phase even
-    draw, zero neutral current — `pp.load` *is* the balanced-draw
-    primitive), so the asymmetric solver behaves much like the
-    balanced one. Pass `--plan` to actually exercise the asymmetric
-    machinery.
+  - Phase planning is **optional**. Without `--plan`, unphased loads
+    stay `phase=None`, become balanced `pp.load`s under `runpp_3ph`,
+    and the asymmetric solver behaves much like the balanced one
+    (because the grid genuinely *is* balanced then). Pass
+    `--plan greedy` to actually exercise the asymmetric machinery.
+
+============================================================
+Order of operations
+============================================================
+
+    load  ->  snap  ->  plan (sees power_watts × load_factor)
+          ->  apply  ->  scale (multiply power_watts by load_factor)
+          ->  convert  ->  solve (balanced and asymmetric)
+
+The scale step happens *after* planning so the planner can use the
+unmodified `node.power_watts` field to compute candidates and the
+scaling is the one place that mutates the grid.
 """
 
 import argparse
@@ -52,9 +101,31 @@ from nopywer.pp_interop.phases import (
 _STRATEGIES = {"greedy": assign_greedy, "round_robin": assign_round_robin}
 
 
+def _nameplate_total_w(grid: PowerGrid) -> float:
+    """Sum of nameplate power across non-generator loads, in watts."""
+    return sum(
+        n.power_watts for n in grid.nodes.values() if not n.is_generator
+    )
+
+
+def _scale_loads_in_place(grid: PowerGrid, factor: float) -> None:
+    """Multiply every non-generator load's nameplate power by `factor`.
+
+    Mutates `node.power_watts` directly. Done after planning so the
+    planner sees unmodified nameplate; done before conversion so the
+    solver sees the scaled values.
+    """
+    for node in grid.nodes.values():
+        if not node.is_generator:
+            node.power_watts *= factor
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        description="Asymmetric 3-phase analysis on a nopywer GeoJSON fixture.",
+        description=(
+            "Asymmetric 3-phase analysis on a nopywer GeoJSON fixture. "
+            "See the module docstring for what --load-factor does."
+        ),
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument("fixture", type=Path, help="Input GeoJSON file.")
@@ -62,13 +133,22 @@ def main(argv: list[str] | None = None) -> int:
         "--plan",
         choices=("none", "greedy", "round_robin"),
         default="none",
-        help="Synthesise phase assignments for unphased loads before solving.",
+        help=(
+            "Synthesise phase assignments for unphased loads before "
+            "solving. Without this, runpp_3ph treats unphased loads "
+            "as balanced and behaves like runpp."
+        ),
     )
     parser.add_argument(
-        "--usage-factor",
+        "--load-factor",
         type=float,
         default=config.DEFAULT_USAGE_FACTOR,
-        help="Festival diversity factor used by --plan.",
+        help=(
+            "Single multiplier on nameplate applied to BOTH phase "
+            "planning AND the solver inputs. 1.0 = model worst-case "
+            "(everyone peaks); 0.5 (default) = festival diversity "
+            "assumption; 0.2 = deep quiet period. See module docstring."
+        ),
     )
     parser.add_argument(
         "--top",
@@ -98,20 +178,36 @@ def main(argv: list[str] | None = None) -> int:
     nodes, cables = load_geojson(args.fixture)
     grid = PowerGrid(nodes=nodes, cables=cables)
     _snap_cables_to_nodes(grid)
-    print(f"loaded {len(grid.nodes)} nodes, {len(grid.cables)} cables "
-          f"from {args.fixture}")
 
-    # --- optional phase planning ------------------------------------
+    nameplate_w = _nameplate_total_w(grid)
+    effective_w = nameplate_w * args.load_factor
+
+    # --- pre-flight summary — print what assumptions are in play ----
+    print("=" * 64)
+    print(f"fixture:         {args.fixture}")
+    print(f"loaded:          {len(grid.nodes)} nodes, {len(grid.cables)} cables")
+    print(f"nameplate total: {nameplate_w / 1e3:7.2f} kW (sum of all loads)")
+    print(f"load factor:     {args.load_factor:7.2f}   (applied to BOTH planning and solve)")
+    print(f"effective total: {effective_w / 1e3:7.2f} kW (what the solvers will see)")
+    print(f"plan strategy:   {args.plan}")
+    print("=" * 64)
+
+    # --- optional phase planning (sees nameplate × load_factor) -----
     if args.plan != "none":
-        plan = _STRATEGIES[args.plan](grid, usage_factor=args.usage_factor)
+        plan = _STRATEGIES[args.plan](grid, usage_factor=args.load_factor)
         apply_assignment(grid, plan)
-        print(f"\nphase plan ({args.plan}, usage_factor={args.usage_factor}):")
+        print(f"\nphase plan ({args.plan}):")
         print(f"  loads assigned:  {len(plan.phases)}")
-        print(f"  balance:         {plan.balance_pct:.2f}%")
-        print(f"  leg totals (W):  "
-              f"L1={plan.leg_totals_w[0]:.0f}, "
-              f"L2={plan.leg_totals_w[1]:.0f}, "
-              f"L3={plan.leg_totals_w[2]:.0f}")
+        print(f"  balance:         {plan.balance_pct:.2f}%  "
+              f"(0 % = perfectly level; lower is better)")
+        print(f"  per-leg totals:  "
+              f"L1={plan.leg_totals_w[0] / 1e3:.2f} kW, "
+              f"L2={plan.leg_totals_w[1] / 1e3:.2f} kW, "
+              f"L3={plan.leg_totals_w[2] / 1e3:.2f} kW")
+
+    # --- scale loads in place before conversion ---------------------
+    if args.load_factor != 1.0:
+        _scale_loads_in_place(grid, args.load_factor)
 
     # --- balanced runpp (reference) ---------------------------------
     print("\n=== balanced runpp (for comparison) ===")
@@ -121,25 +217,28 @@ def main(argv: list[str] | None = None) -> int:
         worst_bus, worst_drop = max(
             bal.bus_vdrop_percent.items(), key=lambda kv: kv[1]
         )
-        print(f"  converged: {bal.converged}")
-        print(f"  worst bus drop: {worst_bus!r} = {worst_drop:.2f}%")
+        print(f"  converged:        {bal.converged}")
+        print(f"  worst bus drop:   {worst_bus!r} = {worst_drop:.2f}%")
     except Exception as exc:
         print(f"  did NOT converge: {type(exc).__name__}: {exc}")
-        print("  (grid is past voltage collapse — runpp_3ph will fail too)")
+        print("  (grid past voltage collapse — try a lower --load-factor)")
 
     # --- asymmetric runpp_3ph ---------------------------------------
     print("\n=== runpp_3ph (asymmetric) ===")
     pp_3ph = to_pandapower_3ph(grid)
-    print(f"  loads (balanced):    {len(pp_3ph.balanced_load_idx)}")
-    print(f"  loads (asymmetric):  {len(pp_3ph.asymmetric_load_idx)}")
+    print(f"  loads (balanced     -> net.load):           "
+          f"{len(pp_3ph.balanced_load_idx)}")
+    print(f"  loads (asymmetric   -> net.asymmetric_load):"
+          f" {len(pp_3ph.asymmetric_load_idx)}")
 
     try:
         res = compute_power_flow_3ph(pp_3ph)
     except Exception as exc:
         print(f"  did NOT converge: {type(exc).__name__}: {exc}")
+        print("  (grid past voltage collapse — try a lower --load-factor)")
         return 1
 
-    print(f"  converged: {res.converged}")
+    print(f"  converged:        {res.converged}")
 
     worst_vdrop = sorted(
         ((name, leg + 1, drop)

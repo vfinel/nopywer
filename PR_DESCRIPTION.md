@@ -71,19 +71,31 @@ phase_geojson(
 **Run the asymmetric solve** with a printable report:
 
 ```bash
-# unphased fixture — solves like the balanced one
+# already-phased fixture at festival diversity (0.5x nameplate)
 uv run python scripts/run_asymmetric.py \
-    tests/fixtures/2026-05-14_martin_modified.geojson
+    tests/fixtures/2026-05-14_martin_modified.geojson \
+    --load-factor 0.5
 
-# with phase planning — actually exercises runpp_3ph
+# raw fixture with greedy phase planning
 uv run python scripts/run_asymmetric.py \
     tests/fixtures/2026-05-14_martin.geojson \
-    --plan greedy --usage-factor 0.5
+    --plan greedy --load-factor 0.5
 ```
 
-Reads the fixture, snaps cables, optionally plans phases, runs both
-the balanced and asymmetric solves side-by-side, and prints the top
-worst-leg voltage drops and worst-neutral cables.
+Reads the fixture, snaps cables, optionally plans phases, scales
+loads by `--load-factor`, runs both the balanced and asymmetric
+solves side-by-side, and prints the top worst-leg voltage drops and
+worst-neutral cables.
+
+The script has **one user-facing knob** — `--load-factor` — that
+applies to both phase planning and the solver inputs. See its module
+docstring for the full rationale; the short version is "the fraction
+of nameplate this analysis is modelling" (`1.0` = worst case;
+`0.5` = festival diversity; `0.2` = quiet period). The script's
+pre-flight summary always prints the nameplate total, the load
+factor, and the effective demand the solvers actually saw, so
+reviewers can never be confused about which numbers fed which
+result.
 
 ## What I want a closer look at
 

@@ -179,6 +179,19 @@ leave them alone. The existing `python -m nopywer <in> -o <out>`
 CLI uses the same `grid.to_geojson()` and so picks up the phase
 field automatically.
 
+**Asymmetric power flow from the command line** — for a quick run
+without writing code, `scripts/run_asymmetric.py` wraps the whole
+pipeline behind a single `--load-factor` knob that drives both
+planning and solve consistently. See `scripts/run_asymmetric.py`'s
+module docstring for the rationale behind the one-knob design and
+the implications of each value.
+
+```bash
+uv run python scripts/run_asymmetric.py \
+    tests/fixtures/2026-05-14_martin_modified.geojson \
+    --load-factor 0.5
+```
+
 **Asymmetric power flow with phase planning** — the full doc 12
 pipeline:
 
