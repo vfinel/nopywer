@@ -114,9 +114,6 @@ def optimize_layout(grid: PowerGrid, extra_cable_m=EXTRA_CABLE_LENGTH_M,
 
     tiers = assign_tiers_to_nodes(oriented_tree, nodes, dist_matrix)
     
-    
-    tiers = assign_tiers_to_nodes(oriented_tree, nodes, dist_matrix)
-    
     # vdrop, warnings = compute_voltage_drop(oriented_tree, nodes, dist_matrix, tiers)
 
     # if warnings:
