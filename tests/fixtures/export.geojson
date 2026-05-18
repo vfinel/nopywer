@@ -1,0 +1,1417 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.13953071992767785,
+            41.6999752927288
+          ],
+          [
+            -0.13989663973096164,
+            41.69911453243565
+          ]
+        ]
+      },
+      "properties": {
+        "id": "cable_0",
+        "nodes": [
+          "distro9",
+          "distro8"
+        ],
+        "from": "distro9",
+        "to": "distro8",
+        "length_m": 110.4,
+        "area_mm2": 6.0,
+        "plugs_and_sockets_a": 32.0,
+        "cable_type": "1P 32A \u2014 6.0mm\u00b2",
+        "current_a": 30.6,
+        "cum_power_kw": 6.33,
+        "vdrop_volts": 21.66
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.14053148336696134,
+            41.701600130185604
+          ],
+          [
+            -0.13988015097303447,
+            41.701130634599245
+          ]
+        ]
+      },
+      "properties": {
+        "id": "cable_1",
+        "nodes": [
+          "zaz",
+          "generator"
+        ],
+        "from": "zaz",
+        "to": "generator",
+        "length_m": 85.2,
+        "area_mm2": 6.0,
+        "plugs_and_sockets_a": 32.0,
+        "cable_type": "1P 32A \u2014 6.0mm\u00b2",
+        "current_a": 81.2,
+        "cum_power_kw": 16.8,
+        "vdrop_volts": 44.33
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.139532242707377,
+            41.69998389335092
+          ],
+          [
+            -0.14007635726339934,
+            41.69963441734
+          ]
+        ]
+      },
+      "properties": {
+        "id": "cable_2",
+        "nodes": [
+          "distro9",
+          "curious creatures"
+        ],
+        "from": "distro9",
+        "to": "curious creatures",
+        "length_m": 69.7,
+        "area_mm2": 2.5,
+        "plugs_and_sockets_a": 16.0,
+        "cable_type": "1P 16A \u2014 2.5mm\u00b2",
+        "current_a": 24.2,
+        "cum_power_kw": 5.0,
+        "vdrop_volts": 25.9
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.14072105157337192,
+            41.702002684355925
+          ],
+          [
+            -0.14052755675000794,
+            41.70162945801931
+          ]
+        ]
+      },
+      "properties": {
+        "id": "cable_3",
+        "nodes": [
+          "garden of joy",
+          "zaz"
+        ],
+        "from": "garden of joy",
+        "to": "zaz",
+        "length_m": 54.5,
+        "area_mm2": 2.5,
+        "plugs_and_sockets_a": 16.0,
+        "cable_type": "1P 16A \u2014 2.5mm\u00b2",
+        "current_a": 48.3,
+        "cum_power_kw": 10.0,
+        "vdrop_volts": 40.51
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.13989743376584954,
+            41.69911326307554
+          ],
+          [
+            -0.1394391591861685,
+            41.6989932968759
+          ]
+        ]
+      },
+      "properties": {
+        "id": "cable_4",
+        "nodes": [
+          "distro8",
+          "planet pulpo"
+        ],
+        "from": "distro8",
+        "to": "planet pulpo",
+        "length_m": 50.4,
+        "area_mm2": 2.5,
+        "plugs_and_sockets_a": 16.0,
+        "cable_type": "1P 16A \u2014 2.5mm\u00b2",
+        "current_a": 9.7,
+        "cum_power_kw": 2.0,
+        "vdrop_volts": 7.49
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.13989662913899972,
+            41.69911360709415
+          ],
+          [
+            -0.14028018307834664,
+            41.698835653220975
+          ]
+        ]
+      },
+      "properties": {
+        "id": "cable_5",
+        "nodes": [
+          "distro8",
+          "wonderever"
+        ],
+        "from": "distro8",
+        "to": "wonderever",
+        "length_m": 54.4,
+        "area_mm2": 2.5,
+        "plugs_and_sockets_a": 16.0,
+        "cable_type": "1P 16A \u2014 2.5mm\u00b2",
+        "current_a": 6.8,
+        "cum_power_kw": 1.4,
+        "vdrop_volts": 5.66
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.13983961469861161,
+            41.69878117723728
+          ],
+          [
+            -0.1398980040638073,
+            41.69911389878753
+          ]
+        ]
+      },
+      "properties": {
+        "id": "cable_6",
+        "nodes": [
+          "oasis playground",
+          "distro8"
+        ],
+        "from": "oasis playground",
+        "to": "distro8",
+        "length_m": 47.3,
+        "area_mm2": 2.5,
+        "plugs_and_sockets_a": 16.0,
+        "cable_type": "1P 16A \u2014 2.5mm\u00b2",
+        "current_a": 14.5,
+        "cum_power_kw": 3.0,
+        "vdrop_volts": 10.54
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.13989674641519334,
+            41.69911370103021
+          ],
+          [
+            -0.1403477956168545,
+            41.69906542845324
+          ]
+        ]
+      },
+      "properties": {
+        "id": "cable_7",
+        "nodes": [
+          "distro8",
+          "mirage"
+        ],
+        "from": "distro8",
+        "to": "mirage",
+        "length_m": 47.9,
+        "area_mm2": 2.5,
+        "plugs_and_sockets_a": 16.0,
+        "cable_type": "1P 16A \u2014 2.5mm\u00b2",
+        "current_a": 6.8,
+        "cum_power_kw": 1.4,
+        "vdrop_volts": 4.98
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.13989090923520467,
+            41.70058300170854
+          ],
+          [
+            -0.1403111131585792,
+            41.70021466955112
+          ]
+        ]
+      },
+      "properties": {
+        "id": "cable_8",
+        "nodes": [
+          "distro1",
+          "eyao"
+        ],
+        "from": "distro1",
+        "to": "eyao",
+        "length_m": 63.8,
+        "area_mm2": 2.5,
+        "plugs_and_sockets_a": 16.0,
+        "cable_type": "1P 16A \u2014 2.5mm\u00b2",
+        "current_a": 9.7,
+        "cum_power_kw": 2.0,
+        "vdrop_volts": 9.48
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.13990617156460367,
+            41.69912572222792
+          ],
+          [
+            -0.14031724994819922,
+            41.69938775779702
+          ]
+        ]
+      },
+      "properties": {
+        "id": "cable_9",
+        "nodes": [
+          "distro8",
+          "pdr of fiascostan"
+        ],
+        "from": "distro8",
+        "to": "pdr of fiascostan",
+        "length_m": 54.9,
+        "area_mm2": 2.5,
+        "plugs_and_sockets_a": 16.0,
+        "cable_type": "1P 16A \u2014 2.5mm\u00b2",
+        "current_a": 9.7,
+        "cum_power_kw": 2.0,
+        "vdrop_volts": 8.16
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.13989129991538604,
+            41.7005836394078
+          ],
+          [
+            -0.14032125920402552,
+            41.70076539629761
+          ]
+        ]
+      },
+      "properties": {
+        "id": "cable_10",
+        "nodes": [
+          "distro1",
+          "glowy owl"
+        ],
+        "from": "distro1",
+        "to": "glowy owl",
+        "length_m": 51.1,
+        "area_mm2": 2.5,
+        "plugs_and_sockets_a": 16.0,
+        "cable_type": "1P 16A \u2014 2.5mm\u00b2",
+        "current_a": 9.7,
+        "cum_power_kw": 2.0,
+        "vdrop_volts": 7.59
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.1398907790084798,
+            41.70058278914213
+          ],
+          [
+            -0.1404629446182906,
+            41.70047922303174
+          ]
+        ]
+      },
+      "properties": {
+        "id": "cable_11",
+        "nodes": [
+          "distro1",
+          "mini camp"
+        ],
+        "from": "distro1",
+        "to": "mini camp",
+        "length_m": 59.0,
+        "area_mm2": 2.5,
+        "plugs_and_sockets_a": 16.0,
+        "cable_type": "1P 16A \u2014 2.5mm\u00b2",
+        "current_a": 4.8,
+        "cum_power_kw": 1.0,
+        "vdrop_volts": 4.38
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.1398839389103155,
+            41.70113013731505
+          ],
+          [
+            -0.14061737924151105,
+            41.70110305493381
+          ]
+        ]
+      },
+      "properties": {
+        "id": "cable_12",
+        "nodes": [
+          "generator",
+          "barrio espace"
+        ],
+        "from": "generator",
+        "to": "barrio espace",
+        "length_m": 71.1,
+        "area_mm2": 2.5,
+        "plugs_and_sockets_a": 16.0,
+        "cable_type": "1P 16A \u2014 2.5mm\u00b2",
+        "current_a": 14.5,
+        "cum_power_kw": 3.0,
+        "vdrop_volts": 15.85
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.139874356320217,
+            41.70012865495601
+          ],
+          [
+            -0.13951696030729716,
+            41.70022112725018
+          ]
+        ]
+      },
+      "properties": {
+        "id": "cable_13",
+        "nodes": [
+          "glitch",
+          "distro2"
+        ],
+        "from": "glitch",
+        "to": "distro2",
+        "length_m": 41.5,
+        "area_mm2": 2.5,
+        "plugs_and_sockets_a": 16.0,
+        "cable_type": "1P 16A \u2014 2.5mm\u00b2",
+        "current_a": 19.3,
+        "cum_power_kw": 4.0,
+        "vdrop_volts": 12.34
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.1405228605103245,
+            41.70162137103771
+          ],
+          [
+            -0.14105370474606616,
+            41.70178357945931
+          ]
+        ]
+      },
+      "properties": {
+        "id": "cable_14",
+        "nodes": [
+          "zaz",
+          "ran'dome"
+        ],
+        "from": "zaz",
+        "to": "ran'dome",
+        "length_m": 57.7,
+        "area_mm2": 2.5,
+        "plugs_and_sockets_a": 16.0,
+        "cable_type": "1P 16A \u2014 2.5mm\u00b2",
+        "current_a": 19.3,
+        "cum_power_kw": 4.0,
+        "vdrop_volts": 17.15
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.1405247969713634,
+            41.7016202411872
+          ],
+          [
+            -0.14099377105678132,
+            41.701384425977956
+          ]
+        ]
+      },
+      "properties": {
+        "id": "cable_15",
+        "nodes": [
+          "zaz",
+          "desert dessert"
+        ],
+        "from": "zaz",
+        "to": "desert dessert",
+        "length_m": 57.0,
+        "area_mm2": 2.5,
+        "plugs_and_sockets_a": 16.0,
+        "cable_type": "1P 16A \u2014 2.5mm\u00b2",
+        "current_a": 32.8,
+        "cum_power_kw": 6.8,
+        "vdrop_volts": 28.81
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.13964289449621192,
+            41.70127410398372
+          ],
+          [
+            -0.13945297743107815,
+            41.70160010569251
+          ]
+        ]
+      },
+      "properties": {
+        "id": "cable_16",
+        "nodes": [
+          "rdtfgh",
+          "barrio del sol"
+        ],
+        "from": "rdtfgh",
+        "to": "barrio del sol",
+        "length_m": 49.5,
+        "area_mm2": 2.5,
+        "plugs_and_sockets_a": 16.0,
+        "cable_type": "1P 16A \u2014 2.5mm\u00b2",
+        "current_a": 17.8,
+        "cum_power_kw": 3.68,
+        "vdrop_volts": 13.54
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.14001492449097064,
+            41.69989479508128
+          ],
+          [
+            -0.13951296635310073,
+            41.70022530910071
+          ]
+        ]
+      },
+      "properties": {
+        "id": "cable_17",
+        "nodes": [
+          "belly town",
+          "distro2"
+        ],
+        "from": "belly town",
+        "to": "distro2",
+        "length_m": 65.6,
+        "area_mm2": 2.5,
+        "plugs_and_sockets_a": 16.0,
+        "cable_type": "1P 16A \u2014 2.5mm\u00b2",
+        "current_a": 14.5,
+        "cum_power_kw": 3.0,
+        "vdrop_volts": 14.62
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.13989755914393132,
+            41.69911388770567
+          ],
+          [
+            -0.13914562055063537,
+            41.69927447838743
+          ]
+        ]
+      },
+      "properties": {
+        "id": "cable_18",
+        "nodes": [
+          "distro8",
+          "olive odissey"
+        ],
+        "from": "distro8",
+        "to": "olive odissey",
+        "length_m": 75.1,
+        "area_mm2": 2.5,
+        "plugs_and_sockets_a": 16.0,
+        "cable_type": "1P 16A \u2014 2.5mm\u00b2",
+        "current_a": 9.7,
+        "cum_power_kw": 2.0,
+        "vdrop_volts": 11.16
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.13990704758599418,
+            41.69912641093495
+          ],
+          [
+            -0.14039843147426054,
+            41.69928042564868
+          ]
+        ]
+      },
+      "properties": {
+        "id": "cable_19",
+        "nodes": [
+          "distro8",
+          "jamhouse"
+        ],
+        "from": "distro8",
+        "to": "jamhouse",
+        "length_m": 54.3,
+        "area_mm2": 2.5,
+        "plugs_and_sockets_a": 16.0,
+        "cable_type": "1P 16A \u2014 2.5mm\u00b2",
+        "current_a": 14.5,
+        "cum_power_kw": 3.0,
+        "vdrop_volts": 12.1
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.13990606235151692,
+            41.69912544646274
+          ],
+          [
+            -0.13989660696530037,
+            41.69911410712428
+          ]
+        ]
+      },
+      "properties": {
+        "id": "cable_20",
+        "nodes": [
+          "distro8",
+          "distro8"
+        ],
+        "from": "distro8",
+        "to": "distro8",
+        "length_m": 11.5,
+        "area_mm2": 2.5,
+        "plugs_and_sockets_a": 16.0,
+        "cable_type": "1P 16A \u2014 2.5mm\u00b2",
+        "current_a": 0.0,
+        "cum_power_kw": 0.0,
+        "vdrop_volts": 0.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.13951464719975476,
+            41.70023034587373
+          ],
+          [
+            -0.13989025810158784,
+            41.70058193887645
+          ]
+        ]
+      },
+      "properties": {
+        "id": "cable_21",
+        "nodes": [
+          "distro2",
+          "distro1"
+        ],
+        "from": "distro2",
+        "to": "distro1",
+        "length_m": 60.0,
+        "area_mm2": 16.0,
+        "plugs_and_sockets_a": 63.0,
+        "cable_type": "1P 63A \u2014 16.0mm\u00b2",
+        "current_a": 63.1,
+        "cum_power_kw": 13.07,
+        "vdrop_volts": 9.1
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.1395212435711459,
+            41.69999574982771
+          ],
+          [
+            -0.1395055790930972,
+            41.700220130174756
+          ]
+        ]
+      },
+      "properties": {
+        "id": "cable_22",
+        "nodes": [
+          "distro9",
+          "distro2"
+        ],
+        "from": "distro9",
+        "to": "distro2",
+        "length_m": 35.0,
+        "area_mm2": 16.0,
+        "plugs_and_sockets_a": 63.0,
+        "cable_type": "1P 63A \u2014 16.0mm\u00b2",
+        "current_a": 56.4,
+        "cum_power_kw": 11.67,
+        "vdrop_volts": 4.74
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.1398907032137395,
+            41.700583973416585
+          ],
+          [
+            -0.13987627447357368,
+            41.70111958767342
+          ]
+        ]
+      },
+      "properties": {
+        "id": "cable_23",
+        "nodes": [
+          "distro1",
+          "generator"
+        ],
+        "from": "distro1",
+        "to": "generator",
+        "length_m": 69.5,
+        "area_mm2": 2.5,
+        "plugs_and_sockets_a": 16.0,
+        "cable_type": "1P 16A \u2014 2.5mm\u00b2",
+        "current_a": 77.6,
+        "cum_power_kw": 16.07,
+        "vdrop_volts": 82.99
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.13987287159693085,
+            41.70112776842358
+          ],
+          [
+            -0.1396476485857442,
+            41.70127259284582
+          ]
+        ]
+      },
+      "properties": {
+        "id": "cable_24",
+        "nodes": [
+          "generator",
+          "rdtfgh"
+        ],
+        "from": "generator",
+        "to": "rdtfgh",
+        "length_m": 34.7,
+        "area_mm2": 2.5,
+        "plugs_and_sockets_a": 16.0,
+        "cable_type": "1P 16A \u2014 2.5mm\u00b2",
+        "current_a": 17.8,
+        "cum_power_kw": 3.68,
+        "vdrop_volts": 9.49
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.14046027066882047,
+          41.70048109809566
+        ]
+      },
+      "properties": {
+        "name": "mini camp",
+        "type": "load",
+        "power": 1000.0,
+        "cum_power": 1000.0,
+        "voltage": 142.6,
+        "vdrop_percent": 38.0,
+        "distro": {
+          "in": "1P 16.0A",
+          "out": {}
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.1403126048615206,
+          41.70021165965277
+        ]
+      },
+      "properties": {
+        "name": "eyao",
+        "type": "load",
+        "power": 2000.0,
+        "cum_power": 2000.0,
+        "voltage": 137.5,
+        "vdrop_percent": 40.22,
+        "distro": {
+          "in": "1P 16.0A",
+          "out": {}
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.13986458645846486,
+          41.70012838821719
+        ]
+      },
+      "properties": {
+        "name": "glitch",
+        "type": "load",
+        "power": 4000.0,
+        "cum_power": 4000.0,
+        "voltage": 125.6,
+        "vdrop_percent": 45.39,
+        "distro": {
+          "in": "1P 16.0A",
+          "out": {}
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.14001451226101178,
+          41.69988172981668
+        ]
+      },
+      "properties": {
+        "name": "belly town",
+        "type": "load",
+        "power": 3000.0,
+        "cum_power": 3000.0,
+        "voltage": 123.3,
+        "vdrop_percent": 46.39,
+        "distro": {
+          "in": "1P 16.0A",
+          "out": {}
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.14032067533151324,
+          41.699387585580126
+        ]
+      },
+      "properties": {
+        "name": "pdr of fiascostan",
+        "type": "load",
+        "power": 2000.0,
+        "cum_power": 2000.0,
+        "voltage": 103.3,
+        "vdrop_percent": 55.09,
+        "distro": {
+          "in": "1P 16.0A",
+          "out": {}
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.14037095139108816,
+          41.69906229826065
+        ]
+      },
+      "properties": {
+        "name": "mirage",
+        "type": "load",
+        "power": 1400.0,
+        "cum_power": 1400.0,
+        "voltage": 106.5,
+        "vdrop_percent": 53.7,
+        "distro": {
+          "in": "1P 16.0A",
+          "out": {}
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.1402769285712588,
+          41.69884015144679
+        ]
+      },
+      "properties": {
+        "name": "wonderever",
+        "type": "load",
+        "power": 1400.0,
+        "cum_power": 1400.0,
+        "voltage": 105.8,
+        "vdrop_percent": 54.0,
+        "distro": {
+          "in": "1P 16.0A",
+          "out": {}
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.13983096674250983,
+          41.698769513641636
+        ]
+      },
+      "properties": {
+        "name": "oasis playground",
+        "type": "load",
+        "power": 3000.0,
+        "cum_power": 3000.0,
+        "voltage": 101.0,
+        "vdrop_percent": 56.09,
+        "distro": {
+          "in": "1P 16.0A",
+          "out": {}
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.1394393620604287,
+          41.69898872265349
+        ]
+      },
+      "properties": {
+        "name": "planet pulpo",
+        "type": "load",
+        "power": 2000.0,
+        "cum_power": 2000.0,
+        "voltage": 104.0,
+        "vdrop_percent": 54.78,
+        "distro": {
+          "in": "1P 16.0A",
+          "out": {}
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.1400824723373084,
+          41.699631722152795
+        ]
+      },
+      "properties": {
+        "name": "curious creatures",
+        "type": "load",
+        "power": 10000.0,
+        "cum_power": 10000.0,
+        "voltage": 107.3,
+        "vdrop_percent": 53.35,
+        "distro": {
+          "in": "1P 16.0A",
+          "out": {}
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.1403046266028607,
+          41.700765329482905
+        ]
+      },
+      "properties": {
+        "name": "glowy owl",
+        "type": "load",
+        "power": 2000.0,
+        "cum_power": 2000.0,
+        "voltage": 139.4,
+        "vdrop_percent": 39.39,
+        "distro": {
+          "in": "1P 16.0A",
+          "out": {}
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.14061462479929102,
+          41.701104168536816
+        ]
+      },
+      "properties": {
+        "name": "barrio espace",
+        "type": "load",
+        "power": 3000.0,
+        "cum_power": 3000.0,
+        "voltage": 214.2,
+        "vdrop_percent": 6.87,
+        "distro": {
+          "in": "1P 16.0A",
+          "out": {}
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.14105640391758656,
+          41.70179263095132
+        ]
+      },
+      "properties": {
+        "name": "ran'dome",
+        "type": "load",
+        "power": 4000.0,
+        "cum_power": 4000.0,
+        "voltage": 168.5,
+        "vdrop_percent": 26.74,
+        "distro": {
+          "in": "1P 16.0A",
+          "out": {}
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.14100409056756252,
+          41.70136886602274
+        ]
+      },
+      "properties": {
+        "name": "desert dessert",
+        "type": "load",
+        "power": 6800.0,
+        "cum_power": 6800.0,
+        "voltage": 156.9,
+        "vdrop_percent": 31.78,
+        "distro": {
+          "in": "1P 16.0A",
+          "out": {}
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.1407273698750896,
+          41.701997572463505
+        ]
+      },
+      "properties": {
+        "name": "garden of joy",
+        "type": "load",
+        "power": 30000.0,
+        "cum_power": 30000.0,
+        "voltage": 145.2,
+        "vdrop_percent": 36.87,
+        "distro": {
+          "in": "1P 16.0A",
+          "out": {}
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.1394518880437417,
+          41.701599503491636
+        ]
+      },
+      "properties": {
+        "name": "barrio del sol",
+        "type": "load",
+        "power": 3680.0,
+        "cum_power": 3680.0,
+        "voltage": 207.0,
+        "vdrop_percent": 10.0,
+        "distro": {
+          "in": "1P 16.0A",
+          "out": {}
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.1391394682682699,
+          41.69927405035179
+        ]
+      },
+      "properties": {
+        "name": "olive odissey",
+        "type": "load",
+        "power": 2000.0,
+        "cum_power": 2000.0,
+        "voltage": 100.3,
+        "vdrop_percent": 56.39,
+        "distro": {
+          "in": "1P 16.0A",
+          "out": {}
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.13952647308927593,
+          41.69998517673939
+        ]
+      },
+      "properties": {
+        "name": "distro9",
+        "type": "load",
+        "power": 1000.0,
+        "cum_power": 26800.0,
+        "voltage": 133.2,
+        "vdrop_percent": 42.09,
+        "distro": {
+          "in": "3P 63.0A",
+          "out": {
+            "3P 32.0A": 1,
+            "1P 16.0A": 1
+          }
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.13987842843560366,
+          41.701128430139995
+        ]
+      },
+      "properties": {
+        "name": "generator",
+        "type": "generator",
+        "power": 0.0,
+        "cum_power": 88280.0,
+        "voltage": 230,
+        "vdrop_percent": 0.0,
+        "distro": {
+          "in": "3P 125A",
+          "out": {
+            "3P 32.0A": 1,
+            "1P 16.0A": 3
+          }
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.1398906258410024,
+          41.70058336835788
+        ]
+      },
+      "properties": {
+        "name": "distro1",
+        "type": "load",
+        "power": 0.0,
+        "cum_power": 38800.0,
+        "voltage": 147.0,
+        "vdrop_percent": 36.09,
+        "distro": {
+          "in": "1P 16.0A",
+          "out": {
+            "1P 16.0A": 3,
+            "3P 63.0A": 1
+          }
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.14052384215401315,
+          41.70162166285516
+        ]
+      },
+      "properties": {
+        "name": "distro-zaz",
+        "type": "load",
+        "power": 1000.0,
+        "cum_power": 41800.0,
+        "voltage": 185.7,
+        "vdrop_percent": 19.26,
+        "distro": {
+          "in": "3P 32.0A",
+          "out": {
+            "1P 16.0A": 3
+          }
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.13964561238814718,
+          41.70127284174622
+        ]
+      },
+      "properties": {
+        "name": "distro-rdtfgh",
+        "type": "load",
+        "power": 1000.0,
+        "cum_power": 4680.0,
+        "voltage": 220.5,
+        "vdrop_percent": 4.13,
+        "distro": {
+          "in": "1P 16.0A",
+          "out": {
+            "1P 16.0A": 1
+          }
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.13989622438430727,
+          41.69911385446002
+        ]
+      },
+      "properties": {
+        "name": "distro8",
+        "type": "load",
+        "power": 1000.0,
+        "cum_power": 15800.0,
+        "voltage": 111.5,
+        "vdrop_percent": 51.52,
+        "distro": {
+          "in": "3P 32.0A",
+          "out": {
+            "1P 16.0A": 7
+          }
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.13951008153297134,
+          41.70022595079415
+        ]
+      },
+      "properties": {
+        "name": "distro2",
+        "type": "load",
+        "power": 0.0,
+        "cum_power": 33800.0,
+        "voltage": 137.9,
+        "vdrop_percent": 40.04,
+        "distro": {
+          "in": "3P 63.0A",
+          "out": {
+            "1P 16.0A": 2,
+            "3P 63.0A": 1
+          }
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.1398945488962474,
+          41.700573358856026
+        ]
+      },
+      "properties": {
+        "name": "distro",
+        "type": "load",
+        "power": 0.0,
+        "cum_power": 0.0,
+        "voltage": 0.0,
+        "vdrop_percent": 0.0,
+        "distro": {
+          "in": null,
+          "out": {}
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.14040007075315172,
+          41.69928240812505
+        ]
+      },
+      "properties": {
+        "name": "jamhouse",
+        "type": "load",
+        "power": 3000.0,
+        "cum_power": 3000.0,
+        "voltage": 99.4,
+        "vdrop_percent": 56.78,
+        "distro": {
+          "in": "1P 16.0A",
+          "out": {}
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.1399063474789402,
+          41.69912586313198
+        ]
+      },
+      "properties": {
+        "name": "distro6",
+        "type": "load",
+        "power": 0.0,
+        "cum_power": 0.0,
+        "voltage": 0.0,
+        "vdrop_percent": 0.0,
+        "distro": {
+          "in": null,
+          "out": {}
+        }
+      }
+    }
+  ]
+}

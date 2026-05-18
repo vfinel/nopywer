@@ -1,0 +1,320 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.138464932641509,
+          41.70066854632285
+        ]
+      },
+      "properties": {
+        "name": "MiddleOfNowhere",
+        "power": 8300.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.137879652831478,
+          41.7008596039798
+        ]
+      },
+      "properties": {
+        "name": "NoInfo/Ice",
+        "power": 2489.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.137329960382992,
+          41.70109095318956
+        ]
+      },
+      "properties": {
+        "name": "Werkhaus",
+        "power": 5282.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.13665890443399,
+          41.70131487330722
+        ]
+      },
+      "properties": {
+        "name": "Cantina (Cantina)",
+        "power": 4460.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.136354966884593,
+          41.700651065766074
+        ]
+      },
+      "properties": {
+        "name": "toolhaus",
+        "power": 3340.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.136075607508836,
+          41.70113479538608
+        ]
+      },
+      "properties": {
+        "name": "production",
+        "power": 11085.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.13709553752102,
+          41.70053910616153
+        ]
+      },
+      "properties": {
+        "name": "Kunsthaus",
+        "power": 3170.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.137185016826846,
+          41.70085650841904
+        ]
+      },
+      "properties": {
+        "name": "malfare",
+        "power": 10370.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.137889717750607,
+          41.70121609813784
+        ]
+      },
+      "properties": {
+        "name": "generator",
+        "power": 0,
+        "type": "generator"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.137092621102908,
+          41.70038656610599
+        ]
+      },
+      "properties": {
+        "name": "Swiss Camp",
+        "power": 1840.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.137791038785941,
+          41.70155383234283
+        ]
+      },
+      "properties": {
+        "name": "NIMBY",
+        "power": 7360.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.137967862317445,
+          41.70165498843007
+        ]
+      },
+      "properties": {
+        "name": "Jugaton",
+        "power": 3680.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.137499598926543,
+          41.701263307068864
+        ]
+      },
+      "properties": {
+        "name": "Why Not?",
+        "power": 1840.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.136850621282869,
+          41.69966999243487
+        ]
+      },
+      "properties": {
+        "name": "It's A Grey Area",
+        "power": 1840.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.137285930416049,
+          41.70065526429824
+        ]
+      },
+      "properties": {
+        "name": "Ohana House",
+        "power": 60.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.137001721971925,
+          41.700133470839425
+        ]
+      },
+      "properties": {
+        "name": "Le Gratin",
+        "power": 1840.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.137124644449325,
+          41.700669066078476
+        ]
+      },
+      "properties": {
+        "name": "welfare (malfare)",
+        "power": 1730.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.137228142727426,
+          41.70075879293105
+        ]
+      },
+      "properties": {
+        "name": "guardshack (malfare)",
+        "power": 480.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.137338011431298,
+          41.700861693596636
+        ]
+      },
+      "properties": {
+        "name": "meeting point (malfare)",
+        "power": 250.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.136527711861485,
+          41.70121465703139
+        ]
+      },
+      "properties": {
+        "name": "Fridge Truck",
+        "power": 1000.0,
+        "type": "load"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.13633563273172,
+          41.701240803092176
+        ]
+      },
+      "properties": {
+        "name": "Spoonhaus",
+        "power": 3100.0,
+        "type": "load"
+      }
+    }
+  ]
+}

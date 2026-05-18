@@ -4,7 +4,7 @@ from typing import ClassVar
 
 import numpy as np
 
-from .constants import PF, RHO_COPPER, V0
+from .constants import PF, RHO_COPPER, T, T0, V0
 
 
 @dataclass
@@ -14,7 +14,7 @@ class PowerNode:
     lat: float
     power_watts: float = 0.0
     is_generator: bool = False
-    phase: int | str | list | None = None
+    phase: int = 0
 
     parent: str | None = None
     children: dict[str, str] = field(default_factory=dict)
@@ -56,6 +56,7 @@ class PowerNode:
                 "vdrop_percent": self.vdrop_percent,
                 "i_sc_ka": self.i_sc_ka,
                 "distro": self.distro,
+                "phase": self.phase,
             },
         }
 
@@ -66,7 +67,7 @@ class Cable:
     length_m: float
     area_mm2: float = 2.5
     plugs_and_sockets_a: float = 16.0
-    phase: int | str | list | None = None
+    phase: int = 0
 
     from_node: str = ""
     to_node: str = ""
@@ -91,8 +92,10 @@ class Cable:
 
     @property
     def resistance(self) -> float:
-        return RHO_COPPER * self.length_m / self.area_mm2
-
+        # return RHO_COPPER * self.length_m / self.area_mm2
+        return RHO_COPPER*(1+0.0393*(T-T0)) * self.length_m / self.area_mm2 #Temperature correction for 50°C, see https://en.wikipedia.org/wiki/Electrical_resistivity_and_conductivity#Temperature_dependence
+        
+    
     def to_geojson(self) -> dict:
         max_current = max(self.current_per_phase) if self.current_per_phase else 0.0
         cum_power_w = max_current * V0 * PF * type(self).num_phases
@@ -117,6 +120,7 @@ class Cable:
                 "current_a": round(max_current, 1),
                 "cum_power_kw": round(cum_power_w / 1000, 2),
                 "vdrop_volts": self.vdrop_volts,
+                "phase": self.phase,
             },
         }
 
@@ -128,6 +132,7 @@ class Cable16A(Cable):
     tier_cost: ClassVar[float] = 1.0
     num_phases: ClassVar[int] = 1
     max_current_a: ClassVar[int] = 16
+    area_mm2: float = 2.5
 
 
 @dataclass
@@ -144,7 +149,7 @@ class Cable63A(Cable):
     tier_cost: ClassVar[float] = 8.0
     num_phases: ClassVar[int] = 3
     max_current_a: ClassVar[int] = 63
-    area_mm2: float = 16.0
+    area_mm2: float = 16.0 
     plugs_and_sockets_a: float = 63.0
 
 
@@ -162,7 +167,6 @@ _CABLE_TYPES: list[type[Cable]] = [Cable16A, Cable32A, Cable63A, Cable125A]
 
 def pick_cable_for(power_watts: float) -> type[Cable]:
     """Pick the smallest cable type that can handle the given power.
-
     Each type is checked with: I = P / (num_phases x V0 x PF)
     """
     for cable_cls in _CABLE_TYPES:

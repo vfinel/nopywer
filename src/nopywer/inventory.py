@@ -27,7 +27,6 @@ def find_combinations(arr: list, target_sum, th: float = 5.0):
 
 
 def choose_cables(inventory_file: str, cables_dict: dict) -> None:
-    verbose = 1
     unmatched = []
     logger.info(f"\nReading cables inventory from {inventory_file}")
     df = pd.read_excel(
@@ -36,22 +35,10 @@ def choose_cables(inventory_file: str, cables_dict: dict) -> None:
         skiprows=0,
     )
 
-    if verbose >= 3:
-        logger.debug(f"\t {df}")
-
     sorted_cables = sorted(cables_dict.values(), key=lambda c: c.length_m, reverse=True)
 
     for idx, cable in enumerate(sorted_cables):
-        if verbose >= 2:
-            logger.debug(
-                f"\n\t\t\t taking care of cable {idx + 1}/{len(sorted_cables)}, "
-                f"length {cable.length_m} m"
-            )
-
         n_phases = 3 if cable.plugs_and_sockets_a > 16 else 1
-
-        if verbose >= 2:
-            logger.debug(f" n phases: {n_phases}")
 
         compatible_rows = (
             (df["number of phases"] == n_phases)
@@ -60,13 +47,10 @@ def choose_cables(inventory_file: str, cables_dict: dict) -> None:
         )
 
         compatible_df = df[compatible_rows]
-        if verbose >= 2:
-            logger.debug(f"\t\t\t compatible cables dataframe: \n {compatible_df}")
-
         comb = None
         if compatible_df.empty:
-            if verbose >= 2:
-                logger.debug("DataFrame is empty --> no compatible cables in inventory!")
+            pass
+
         else:
             list_of_cables = [
                 length
@@ -76,18 +60,13 @@ def choose_cables(inventory_file: str, cables_dict: dict) -> None:
 
             target_sum = cable.length_m
             comb = find_combinations(list_of_cables, target_sum)
-            if comb is None or verbose:
+            if comb is None:
                 nodes = [cable.from_node, cable.to_node]
-                logger.debug(f"\t\t\t cable {nodes}: {comb}")
-
             if comb is not None:
                 for c in comb:
-                    df.loc[compatible_rows & (df["length [m]"] == c), "quantity"] -= 1
-                    if verbose >= 2:
-                        remaining = df.loc[
-                            compatible_rows & (df["length [m]"] == c), "quantity"
-                        ].values
-                        logger.debug(f"\t\t\t qty of {c}m remaining: {remaining}")
+                    df.loc[compatible_rows & (df["length [m]"] == c), "quantity"] -= (
+                        1  # One cable is used
+                    )
 
         if comb is None:
             unmatched.append(cable)
@@ -99,7 +78,7 @@ def choose_cables(inventory_file: str, cables_dict: dict) -> None:
             f"\t {unm.plugs_and_sockets_a}{'A':.<4} ({unm.length_m:.0f}m) {'-'.join(nodes)} "
         )
 
-    return None
+    return unmatched
 
 
 def parse_distro_req(req: str) -> tuple[str, float]:

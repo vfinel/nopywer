@@ -8,7 +8,11 @@ from pydantic import BaseModel
 from .constants import EXTRA_CABLE_LENGTH_M
 from .io import load_geojson
 from .models import PowerGrid
-from .optimize import optimize_layout
+
+# from .optimize import optimize_layout
+from .ortools_solverV1 import optimize_layout
+from .optimize_mixed import optimize_layout
+
 
 app = FastAPI(title="nopywer", version="1.0.0")
 frontend_dir = Path(__file__).resolve().parent / "frontend"
@@ -35,12 +39,15 @@ async def disable_frontend_cache(request: Request, call_next):
 class OptimizeRequest(BaseModel):
     nodes_geojson: dict
     extra_cable_m: float = EXTRA_CABLE_LENGTH_M
+    hub_discount: float = 0.7
+    radiality_factor: float = 0.3
 
 
 class OptimizeResponse(BaseModel):
     cables_geojson: dict
     total_cable_length_m: float
     num_cables: int
+    phase_loads: dict[int, float]
 
 
 @app.post("/api/v1/optimize", response_model=OptimizeResponse)
@@ -58,7 +65,10 @@ def optimize(req: OptimizeRequest):
     if not loads:
         raise HTTPException(400, "At least one load is required")
 
-    grid = optimize_layout(grid, extra_cable_m=req.extra_cable_m)
+    grid = optimize_layout(grid, extra_cable_m=req.extra_cable_m,
+        hub_discount=req.hub_discount,
+        radiality_factor=req.radiality_factor,
+                           )
 
     return OptimizeResponse(
         cables_geojson=grid.to_geojson(),
@@ -67,6 +77,7 @@ def optimize(req: OptimizeRequest):
             1,
         ),
         num_cables=len(grid.cables),
+        phase_loads=grid.phase_loads,
     )
 
 

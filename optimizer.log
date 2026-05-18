@@ -1,0 +1,82 @@
+05-18 18:52 nopywer.optimize_mixed INFO     [HUB] scores: [('distro2', 48100.0), ('distro8', 37430.0), ('malfare', 31100.0), ('barrio support', 30770.0), ('le gratin', 25820.0)]
+05-18 18:52 nopywer.optimize_mixed DEBUG    [TIER] generator\u2192distro9: 35.0mm² (95.4A, 46m)
+05-18 18:52 nopywer.optimize_mixed DEBUG    [TIER] generator\u2192distro4: 2.5mm² (7.5A, 73m)
+05-18 18:52 nopywer.optimize_mixed DEBUG    [TIER] generator\u2192distro1: 6.0mm² (22.9A, 39m)
+05-18 18:52 nopywer.optimize_mixed DEBUG    [TIER] generator\u2192distro5-1: 35.0mm² (82.1A, 90m)
+05-18 18:52 nopywer.optimize_mixed DEBUG    [TIER] generator\u2192distro3: 16.0mm² (50.8A, 45m)
+05-18 18:52 nopywer.optimize_mixed WARNING  [TIER] No suitable tier for generator\u2192distro8: flow=26830W, current=129.6A, d=88m — using largest tier (35.0mm²)
+05-18 18:52 nopywer.optimize_mixed DEBUG    [TIER] generator\u2192distro8: 35.0mm² (129.6A, 88m)
+05-18 18:52 nopywer.optimize_mixed DEBUG    [TIER] generator\u2192distro7: 2.5mm² (0.0A, 87m)
+05-18 18:52 nopywer.optimize_mixed DEBUG    [TIER] generator\u2192distro6-1: 16.0mm² (22.6A, 129m)
+05-18 18:52 nopywer.optimize_mixed DEBUG    [TIER] generator\u2192distro2: 35.0mm² (96.0A, 57m)
+05-18 18:52 nopywer.optimize_mixed DEBUG    [TIER] distro9\u2192artinstallation1: 2.5mm² (4.8A, 21m)
+05-18 18:52 nopywer.optimize_mixed DEBUG    [TIER] distro9\u2192noinfo: 6.0mm² (23.9A, 26m)
+05-18 18:52 nopywer.optimize_mixed DEBUG    [TIER] distro9\u2192mon: 35.0mm² (66.7A, 52m)
+05-18 18:52 nopywer.optimize_mixed DEBUG    [TIER] distro4\u2192ohana haus: 2.5mm² (0.3A, 29m)
+05-18 18:52 nopywer.optimize_mixed DEBUG    [TIER] distro4\u2192peach please!: 2.5mm² (7.2A, 44m)
+05-18 18:52 nopywer.optimize_mixed DEBUG    [TIER] distro1\u2192kunsthaus: 6.0mm² (22.9A, 13m)
+05-18 18:52 nopywer.optimize_mixed DEBUG    [TIER] distro5-1\u2192jugaton: 2.5mm² (4.8A, 41m)
+05-18 18:52 nopywer.optimize_mixed DEBUG    [TIER] distro5-1\u2192mooncows: 6.0mm² (14.5A, 52m)
+05-18 18:52 nopywer.optimize_mixed DEBUG    [TIER] distro5-1\u2192camp cambio: 16.0mm² (62.8A, 61m)
+05-18 18:52 nopywer.optimize_mixed DEBUG    [TIER] distro3\u2192le gratin: 2.5mm² (14.5A, 36m)
+05-18 18:52 nopywer.optimize_mixed DEBUG    [TIER] distro3\u2192pink poney paradise: 2.5mm² (4.8A, 49m)
+05-18 18:52 nopywer.optimize_mixed DEBUG    [TIER] distro3\u2192dusty dreamers: 2.5mm² (4.8A, 60m)
+05-18 18:52 nopywer.optimize_mixed DEBUG    [TIER] distro3\u2192nobarrio: 6.0mm² (26.7A, 61m)
+05-18 18:52 nopywer.optimize_mixed DEBUG    [TIER] distro8\u2192la cantina: 16.0mm² (50.7A, 18m)
+05-18 18:52 nopywer.optimize_mixed DEBUG    [TIER] distro8\u2192production: 16.0mm² (62.8A, 24m)
+05-18 18:52 nopywer.optimize_mixed DEBUG    [TIER] distro8\u2192toolhaus: 6.0mm² (16.1A, 43m)
+05-18 18:52 nopywer.optimize_mixed DEBUG    [TIER] distro6-1\u2192hyperflow: 2.5mm² (4.8A, 53m)
+05-18 18:52 nopywer.optimize_mixed DEBUG    [TIER] distro6-1\u2192here & meow: 6.0mm² (17.8A, 54m)
+05-18 18:52 nopywer.optimize_mixed DEBUG    [TIER] distro2\u2192malfare: 16.0mm² (33.8A, 13m)
+05-18 18:52 nopywer.optimize_mixed DEBUG    [TIER] distro2\u2192werkhaus: 6.0mm² (25.5A, 22m)
+05-18 18:52 nopywer.optimize_mixed DEBUG    [TIER] distro2\u2192barrio support: 6.0mm² (17.4A, 27m)
+05-18 18:52 nopywer.optimize_mixed DEBUG    [TIER] distro2\u2192welfare: 6.0mm² (19.3A, 27m)
+05-18 18:52 nopywer.optimize_mixed DEBUG    Assigned tiers from MST: {('generator', 'distro9'): <class 'nopywer.models.Cable125A'>, ('generator', 'distro4'): <class 'nopywer.models.Cable16A'>, ('generator', 'distro1'): <class 'nopywer.models.Cable32A'>, ('generator', 'distro5-1'): <class 'nopywer.models.Cable125A'>, ('generator', 'distro3'): <class 'nopywer.models.Cable63A'>, ('generator', 'distro8'): <class 'nopywer.models.Cable125A'>, ('generator', 'distro7'): <class 'nopywer.models.Cable16A'>, ('generator', 'distro6-1'): <class 'nopywer.models.Cable63A'>, ('generator', 'distro2'): <class 'nopywer.models.Cable125A'>, ('distro9', 'artinstallation1'): <class 'nopywer.models.Cable16A'>, ('distro9', 'noinfo'): <class 'nopywer.models.Cable32A'>, ('distro9', 'mon'): <class 'nopywer.models.Cable125A'>, ('distro4', 'ohana haus'): <class 'nopywer.models.Cable16A'>, ('distro4', 'peach please!'): <class 'nopywer.models.Cable16A'>, ('distro1', 'kunsthaus'): <class 'nopywer.models.Cable32A'>, ('distro5-1', 'jugaton'): <class 'nopywer.models.Cable16A'>, ('distro5-1', 'mooncows'): <class 'nopywer.models.Cable32A'>, ('distro5-1', 'camp cambio'): <class 'nopywer.models.Cable63A'>, ('distro3', 'le gratin'): <class 'nopywer.models.Cable16A'>, ('distro3', 'pink poney paradise'): <class 'nopywer.models.Cable16A'>, ('distro3', 'dusty dreamers'): <class 'nopywer.models.Cable16A'>, ('distro3', 'nobarrio'): <class 'nopywer.models.Cable32A'>, ('distro8', 'la cantina'): <class 'nopywer.models.Cable63A'>, ('distro8', 'production'): <class 'nopywer.models.Cable63A'>, ('distro8', 'toolhaus'): <class 'nopywer.models.Cable32A'>, ('distro6-1', 'hyperflow'): <class 'nopywer.models.Cable16A'>, ('distro6-1', 'here & meow'): <class 'nopywer.models.Cable32A'>, ('distro2', 'malfare'): <class 'nopywer.models.Cable63A'>, ('distro2', 'werkhaus'): <class 'nopywer.models.Cable32A'>, ('distro2', 'barrio support'): <class 'nopywer.models.Cable32A'>, ('distro2', 'welfare'): <class 'nopywer.models.Cable32A'>}
+05-18 18:52 nopywer.optimize_mixed INFO     [PHASE SPLIT] distro8: 26830W \u2192 L0=8943W, L1=8943W, L2=8943W
+05-18 18:52 nopywer.optimize_mixed INFO     [PHASE SPLIT] distro2: 19880W \u2192 L0=6627W, L1=6627W, L2=6627W
+05-18 18:52 nopywer.optimize_mixed INFO     [PHASE SPLIT] distro9: 19740W \u2192 L0=6580W, L1=6580W, L2=6580W
+05-18 18:52 nopywer.optimize_mixed INFO     [PHASE SPLIT] distro5-1: 17000W \u2192 L0=5667W, L1=5667W, L2=5667W
+05-18 18:52 nopywer.optimize_mixed INFO     [PHASE SPLIT] distro3: 10520W \u2192 L0=5260W, L1=5260W
+05-18 18:52 nopywer.optimize_mixed INFO     [PHASE SPLIT] distro1: 4730W \u2192 L2=4730W
+05-18 18:52 nopywer.optimize_mixed INFO     [PHASE SPLIT] distro6-1: 4680W \u2192 L2=4680W
+05-18 18:52 nopywer.optimize_mixed INFO     [PHASE SPLIT] production: 13000W \u2192 L0=4333W, L1=4333W, L2=4333W
+05-18 18:52 nopywer.optimize_mixed INFO     [PHASE SPLIT] la cantina: 10490W \u2192 L1=5245W, L0=5245W
+05-18 18:52 nopywer.optimize_mixed INFO     [PHASE SPLIT] mon: 13800W \u2192 L0=4600W, L1=4600W, L2=4600W
+05-18 18:52 nopywer.optimize_mixed INFO     [PHASE SPLIT] camp cambio: 13000W \u2192 L0=4333W, L1=4333W, L2=4333W
+05-18 18:52 nopywer.optimize_mixed INFO     [PHASE] L0: 35462W (34.3%)
+05-18 18:52 nopywer.optimize_mixed INFO     [PHASE] L1: 36192W (35.0%)
+05-18 18:52 nopywer.optimize_mixed INFO     [PHASE] L2: 31727W (30.7%)
+05-18 18:52 nopywer.optimize_mixed INFO     [PHASE] imbalance: 4465W (4.3%)
+05-18 18:52 nopywer.analyze INFO     compute_distro_requirements...
+05-18 18:52 nopywer.analyze DEBUG    		 noinfo:
+05-18 18:52 nopywer.analyze DEBUG    		 mon:
+05-18 18:52 nopywer.analyze DEBUG    		 malfare:
+05-18 18:52 nopywer.analyze DEBUG    		 kunsthaus:
+05-18 18:52 nopywer.analyze DEBUG    		 dusty dreamers:
+05-18 18:52 nopywer.analyze DEBUG    		 mooncows:
+05-18 18:52 nopywer.analyze DEBUG    		 jugaton:
+05-18 18:52 nopywer.analyze DEBUG    		 camp cambio:
+05-18 18:52 nopywer.analyze DEBUG    		 la cantina:
+05-18 18:52 nopywer.analyze DEBUG    		 toolhaus:
+05-18 18:52 nopywer.analyze DEBUG    		 production:
+05-18 18:52 nopywer.analyze DEBUG    		 peach please!:
+05-18 18:52 nopywer.analyze DEBUG    		 here & meow:
+05-18 18:52 nopywer.analyze DEBUG    		 hyperflow:
+05-18 18:52 nopywer.analyze DEBUG    		 generator:
+05-18 18:52 nopywer.analyze DEBUG    		 distro9:
+05-18 18:52 nopywer.analyze DEBUG    		 distro4:
+05-18 18:52 nopywer.analyze DEBUG    		 distro1:
+05-18 18:52 nopywer.analyze DEBUG    		 distro5-1:
+05-18 18:52 nopywer.analyze DEBUG    		 distro3:
+05-18 18:52 nopywer.analyze DEBUG    		 werkhaus:
+05-18 18:52 nopywer.analyze DEBUG    		 nobarrio:
+05-18 18:52 nopywer.analyze DEBUG    		 pink poney paradise:
+05-18 18:52 nopywer.analyze DEBUG    		 le gratin:
+05-18 18:52 nopywer.analyze DEBUG    		 distro8:
+05-18 18:52 nopywer.analyze DEBUG    		 distro7:
+05-18 18:52 nopywer.analyze DEBUG    		 distro6-1:
+05-18 18:52 nopywer.analyze DEBUG    		 artinstallation1:
+05-18 18:52 nopywer.analyze DEBUG    		 ohana haus:
+05-18 18:52 nopywer.analyze DEBUG    		 welfare:
+05-18 18:52 nopywer.analyze DEBUG    		 barrio support:
+05-18 18:52 nopywer.analyze DEBUG    		 distro2:
