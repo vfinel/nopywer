@@ -7,15 +7,26 @@ license = "GPL-3.0-or-later"
 dependencies = [
     "fastapi>=0.135",
     "networkx>=3.6",
-    "numpy>=2.4",
+    "numpy>=1.26",
     "odfpy>=1.4",
-    "pandas>=3.0",
+    "pandas>=2.3",
     "pyproj>=3.7",
     "typer>=0.24",
     "uvicorn>=0.41",
     "ortools",
     "openpyxl",
 ]
+
+[project.optional-dependencies]
+pandapower = [
+    # Pinned to the merge commit of e2nIEE/pandapower#2860 ("Prepare for
+    # Pandas 3.0") which lands the CoW / read-only fix needed by `runpp`
+    # under pandas >= 2.3. Released 3.4.0 (2026-02-09) is one day too old.
+    # Switch back to a PyPI version constraint once 3.4.1 ships.
+    # Background: https://github.com/e2nIEE/pandapower/pull/2860
+    "pandapower @ git+https://github.com/e2nIEE/pandapower.git@472d8294be2ad56fdb62e439046e802609478bd1",
+]
+modern = ["pandas>=3.0", "numpy>=2.4"]
 
 [dependency-groups]
 dev = [
@@ -32,6 +43,17 @@ nopywer-server = "nopywer.api:run"
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.uv]
+conflicts = [
+    [
+        { extra = "modern" },
+        { extra = "pandapower" },
+    ],
+]
+
+[tool.hatch.metadata]
+allow-direct-references = true
 
 [tool.hatch.build]
 include = ["src/nopywer/frontend/**/*"]
