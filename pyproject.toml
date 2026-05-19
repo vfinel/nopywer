@@ -1,6 +1,6 @@
 [project]
 name = "nopywer"
-version = "1.0.0"
+dynamic = ["version"]
 description = "Power grid analysis and optimization tool for festival sites"
 requires-python = ">=3.12"
 license = "GPL-3.0-or-later"
@@ -39,8 +39,11 @@ nopywer-analyze = "nopywer.cli:app"
 nopywer-server = "nopywer.api:run"
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
+
+[tool.hatch.version]
+source = "vcs"
 
 [tool.uv]
 conflicts = [
