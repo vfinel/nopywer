@@ -57,7 +57,7 @@ conflicts = [
 allow-direct-references = true
 
 [tool.hatch.build]
-include = ["src/nopywer/frontend/**/*"]
+include = ["src/nopywer/**/*",]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/nopywer"]
