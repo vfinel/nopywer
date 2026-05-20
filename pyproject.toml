@@ -1,7 +1,7 @@
 [project]
 name = "nopywer"
 dynamic = ["version"]
-description = "Power grid analysis and optimization tool for festival sites"
+description = "Power grid analysis and optimization tool"
 requires-python = ">=3.12"
 license = "GPL-3.0-or-later"
 dependencies = [
@@ -13,18 +13,18 @@ dependencies = [
     "pyproj>=3.7",
     "typer>=0.24",
     "uvicorn>=0.41",
+    "pandapower @ git+https://github.com/e2nIEE/pandapower.git@472d8294be2ad56fdb62e439046e802609478bd1",
+        # Pinned to the merge commit of e2nIEE/pandapower#2860 ("Prepare for
+        # Pandas 3.0") which lands the CoW / read-only fix needed by `runpp`
+        # under pandas >= 2.3. Released 3.4.0 (2026-02-09) is one day too old.
+        # Switch back to a PyPI version constraint once 3.4.1 ships.
+        # Background: https://github.com/e2nIEE/pandapower/pull/2860
+        # When update is available, one can switch back to modern packages, ie 
+        # ["pandas>=3.0", "numpy>=2.4"]
+
 ]
 
 [project.optional-dependencies]
-pandapower = [
-    # Pinned to the merge commit of e2nIEE/pandapower#2860 ("Prepare for
-    # Pandas 3.0") which lands the CoW / read-only fix needed by `runpp`
-    # under pandas >= 2.3. Released 3.4.0 (2026-02-09) is one day too old.
-    # Switch back to a PyPI version constraint once 3.4.1 ships.
-    # Background: https://github.com/e2nIEE/pandapower/pull/2860
-    "pandapower @ git+https://github.com/e2nIEE/pandapower.git@472d8294be2ad56fdb62e439046e802609478bd1",
-]
-modern = ["pandas>=3.0", "numpy>=2.4"]
 
 [dependency-groups]
 dev = [
@@ -44,14 +44,6 @@ build-backend = "hatchling.build"
 
 [tool.hatch.version]
 source = "vcs"
-
-[tool.uv]
-conflicts = [
-    [
-        { extra = "modern" },
-        { extra = "pandapower" },
-    ],
-]
 
 [tool.hatch.metadata]
 allow-direct-references = true

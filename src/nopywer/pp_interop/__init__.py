@@ -1,7 +1,5 @@
 """Pandapower interop layer.
 
-Optional feature — requires `uv sync --extra pandapower`.
-
 Public API:
     to_pandapower(grid, ...) -> PandapowerGrid
     to_pandapower_3ph(grid, ...) -> Pandapower3phGrid

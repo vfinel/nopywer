@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+import pandapower.shortcircuit as sc 
 from . import config
-from ._conversion import PandapowerGrid, _import_pandapower
+from ._conversion import PandapowerGrid
 
 
 def compute_short_circuit(pp_grid: PandapowerGrid) -> dict[str, float]:
@@ -16,7 +17,6 @@ def compute_short_circuit(pp_grid: PandapowerGrid) -> dict[str, float]:
     `i_sc_ka` is the IEC 60909 initial symmetric short-circuit current
     (Ikss) in kA at the node's bus.
     """
-    _, sc = _import_pandapower()
     sc.calc_sc(pp_grid.net, fault=config.FAULT_TYPE, case=config.FAULT_CASE)
 
     results: dict[str, float] = {}
