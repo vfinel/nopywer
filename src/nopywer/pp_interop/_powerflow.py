@@ -25,7 +25,7 @@ from ..analyze import (
 )
 from ..constants import V0
 from ..models import PowerGrid
-from ._conversion import PandapowerGrid, _import_pandapower, to_pandapower
+from ._conversion import PandapowerGrid, to_pandapower
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +56,7 @@ def compute_power_flow(pp_grid: PandapowerGrid) -> PowerFlowResults:
     different views of the same physics, so we keep them separate
     and let `compare_with_tree_walk` line them up.
     """
-    pp, _ = _import_pandapower()
+    import pandapower as pp
     pp.runpp(pp_grid.net)
 
     converged = bool(pp_grid.net.converged)

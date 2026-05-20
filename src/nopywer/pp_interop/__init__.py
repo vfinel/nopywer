@@ -1,7 +1,5 @@
 """Pandapower interop layer.
 
-Optional feature — requires `uv sync --extra pandapower`.
-
 Public API:
     to_pandapower(grid, ...) -> PandapowerGrid
     compute_short_circuit(pp_grid) -> {name: i_sc_ka}

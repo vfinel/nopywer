@@ -9,26 +9,16 @@ import math
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
-from ..constants import PF, RHO_COPPER
-from ..models import PowerGrid
-from . import config
 
+import pandapower as pp
 if TYPE_CHECKING:
     from pandapower.auxiliary import pandapowerNet
 else:
     pandapowerNet = Any
 
-
-def _import_pandapower():
-    try:
-        import pandapower as pp
-        import pandapower.shortcircuit as sc
-    except ImportError as e:
-        raise ImportError(
-            "pandapower is required for this feature. "
-            "Install it in this project with: uv sync --extra pandapower"
-        ) from e
-    return pp, sc
+from ..constants import PF, RHO_COPPER
+from ..models import PowerGrid
+from . import config
 
 
 @dataclass
@@ -92,8 +82,6 @@ def to_pandapower(
     """
     if not grid.cables:
         raise ValueError("At least one cable is required")
-
-    pp, _ = _import_pandapower()
 
     net = pp.create_empty_network(sn_mva=config.NET_SN_MVA, f_hz=config.F_HZ)
 
