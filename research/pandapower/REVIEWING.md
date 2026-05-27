@@ -80,10 +80,10 @@ extra alone resolves cleanly; you cannot have both.
 These are the choices most likely to provoke a reviewer comment.
 I've laid out the reasoning so you can disagree on the substance.
 
-### 1. `pandapower` extra pinned to a git commit, not a release
+### 1. `pandapower` extra pinned to a ZIP archive, not a release
 
 ```toml
-"pandapower @ git+https://github.com/e2nIEE/pandapower.git@472d8294…"
+"pandapower @ https://github.com/e2nIEE/pandapower/archive/472d8294….zip"
 ```
 
 Pandapower 3.4.0 (the latest release on PyPI) ships a bug
@@ -94,10 +94,15 @@ merged 2026-02-10 — one day after the 3.4.0 release. There is no
 all; only `compute_short_circuit` works (`calc_sc` doesn't traverse
 the buggy path).
 
+**Why use a ZIP URL?** Using a direct ZIP archive URL (GitHub's codeload)
+allows `pip` and `uv` to install the package without requiring the `git`
+binary to be present on the system. This simplifies packaging `nopywer`
+into other software.
+
 **Alternative considered:** wait for 3.4.1. Unknown ETA. Held the
 work back too long.
 
-**TODO** when 3.4.1 ships: replace the git URL with `pandapower>=3.4.1`.
+**TODO** when 3.4.1 ships: replace the URL with `pandapower>=3.4.1`.
 Search for the PR link in `pyproject.toml` to find the spot.
 
 ### 2. Dependency floors lowered

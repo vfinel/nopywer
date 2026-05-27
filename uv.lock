@@ -277,7 +277,7 @@ requires-dist = [
     { name = "networkx", specifier = ">=3.6" },
     { name = "numpy", specifier = ">=1.26" },
     { name = "odfpy", specifier = ">=1.4" },
-    { name = "pandapower", git = "https://github.com/e2nIEE/pandapower.git?rev=472d8294be2ad56fdb62e439046e802609478bd1" },
+    { name = "pandapower", url = "https://github.com/e2nIEE/pandapower/archive/472d8294be2ad56fdb62e439046e802609478bd1.zip" },
     { name = "pandas", specifier = ">=2.3" },
     { name = "pyproj", specifier = ">=3.7" },
     { name = "typer", specifier = ">=0.24" },
@@ -385,7 +385,7 @@ wheels = [
 [[package]]
 name = "pandapower"
 version = "3.4.0"
-source = { git = "https://github.com/e2nIEE/pandapower.git?rev=472d8294be2ad56fdb62e439046e802609478bd1#472d8294be2ad56fdb62e439046e802609478bd1" }
+source = { url = "https://github.com/e2nIEE/pandapower/archive/472d8294be2ad56fdb62e439046e802609478bd1.zip" }
 dependencies = [
     { name = "deepdiff" },
     { name = "geojson" },
@@ -398,6 +398,68 @@ dependencies = [
     { name = "tqdm" },
     { name = "typing-extensions" },
 ]
+sdist = { hash = "sha256:02cdd0db33333c73b558e4b34a61153950f136cdce1143512ee4007094d52c88" }
+
+[package.metadata]
+requires-dist = [
+    { name = "cryptography", marker = "extra == 'fileio'", specifier = "~=46.0" },
+    { name = "deepdiff", specifier = "~=8.6" },
+    { name = "geojson", specifier = "~=3.2" },
+    { name = "geopandas", marker = "extra == 'docs'", specifier = "~=1.1" },
+    { name = "geopandas", marker = "extra == 'fileio'", specifier = "~=1.1" },
+    { name = "geopandas", marker = "extra == 'plotting'", specifier = "~=1.1" },
+    { name = "igraph", marker = "extra == 'plotting'" },
+    { name = "julia", marker = "extra == 'tutorials'" },
+    { name = "juliacall", marker = "extra == 'pandamodels'", specifier = "~=0.9" },
+    { name = "juliacall", marker = "extra == 'tutorials'", specifier = "~=0.9" },
+    { name = "jupyter", marker = "extra == 'tutorials'" },
+    { name = "lightsim2grid", marker = "extra == 'performance'", specifier = "~=0.12.2" },
+    { name = "lxml", marker = "extra == 'converter'", specifier = "~=6.0" },
+    { name = "lxml", marker = "extra == 'fileio'", specifier = "~=6.0" },
+    { name = "matplotlib", marker = "extra == 'docs'", specifier = "~=3.10" },
+    { name = "matplotlib", marker = "extra == 'plotting'", specifier = "~=3.10" },
+    { name = "matpowercaseframes", marker = "extra == 'converter'", specifier = "~=1.1" },
+    { name = "mypy", marker = "extra == 'typing'", specifier = "~=1.18" },
+    { name = "nbmake", marker = "extra == 'test'", specifier = "~=1.5" },
+    { name = "networkx", specifier = "~=3.4" },
+    { name = "notebook", marker = "extra == 'tutorials'" },
+    { name = "numba", marker = "extra == 'performance'", specifier = "~=0.61" },
+    { name = "numpy", specifier = ">=1.26,<2.4" },
+    { name = "numpydoc", marker = "extra == 'docs'", specifier = "~=1.9" },
+    { name = "openpyxl", marker = "extra == 'fileio'", specifier = "~=3.1" },
+    { name = "ortools", marker = "extra == 'performance'", specifier = "~=9.14" },
+    { name = "packaging", specifier = "~=25.0" },
+    { name = "pandapower", extras = ["all", "docs", "pandamodels", "test", "tutorials", "typing"], marker = "extra == 'dev'" },
+    { name = "pandapower", extras = ["control", "converter", "fileio", "performance", "pgm", "plotting"], marker = "extra == 'all'" },
+    { name = "pandapower", extras = ["converter"], marker = "extra == 'docs'" },
+    { name = "pandas", specifier = "~=2.3" },
+    { name = "pandas-stubs", marker = "extra == 'typing'", specifier = "~=2.3" },
+    { name = "pandera", specifier = "~=0.26.1" },
+    { name = "pandera", extras = ["mypy"], marker = "extra == 'typing'", specifier = "~=0.26.1" },
+    { name = "plotly", marker = "extra == 'plotting'", specifier = "~=6.3" },
+    { name = "power-grid-model-io", marker = "extra == 'pgm'", specifier = "~=1.2" },
+    { name = "psycopg", marker = "extra == 'fileio'", specifier = "~=3.2" },
+    { name = "pytest", marker = "extra == 'test'", specifier = "~=9.0" },
+    { name = "pytest-timeout", marker = "extra == 'test'" },
+    { name = "pytest-xdist", marker = "extra == 'test'", specifier = "~=3.8" },
+    { name = "scipy", specifier = "<1.17" },
+    { name = "scipy-stubs", marker = "extra == 'typing'", specifier = "~=1.15" },
+    { name = "seaborn", marker = "extra == 'tutorials'" },
+    { name = "shapely", marker = "extra == 'control'", specifier = "~=2.1" },
+    { name = "sphinx", marker = "extra == 'docs'", specifier = "~=8.1" },
+    { name = "sphinx-pyproject", marker = "extra == 'docs'", specifier = "~=0.3" },
+    { name = "sphinx-rtd-theme", marker = "extra == 'docs'", specifier = "~=3.0" },
+    { name = "sphinxcontrib-imagesvg", marker = "extra == 'docs'", specifier = "~=0.1" },
+    { name = "tqdm", specifier = "~=4.67" },
+    { name = "types-networkx", marker = "extra == 'typing'", specifier = "~=3.4" },
+    { name = "types-openpyxl", marker = "extra == 'typing'", specifier = "~=3.1" },
+    { name = "types-psycopg2", marker = "extra == 'typing'", specifier = "~=2.9" },
+    { name = "types-shapely", marker = "extra == 'typing'", specifier = "~=2.1" },
+    { name = "types-tqdm", marker = "extra == 'typing'", specifier = "~=4.67" },
+    { name = "typing-extensions", specifier = "~=4.9" },
+    { name = "xlsxwriter", marker = "extra == 'fileio'", specifier = "~=3.2" },
+]
+provides-extras = ["docs", "plotting", "test", "performance", "fileio", "converter", "pgm", "control", "pandamodels", "tutorials", "typing", "all", "dev"]
 
 [[package]]
 name = "pandas"
