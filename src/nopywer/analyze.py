@@ -10,7 +10,7 @@ from .geometry import geodesic_distance_m
 from .models import PowerGrid
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)  # DEBUG, INFO, ...
+logger.setLevel(logging.DEBUG)  # DEBUG, INFO, ...
 
 
 def snap_cables_to_nodes(grid: PowerGrid) -> None:
@@ -21,17 +21,27 @@ def snap_cables_to_nodes(grid: PowerGrid) -> None:
             if getattr(cable, attr) != "":
                 logger.debug(f" {cable :} has no attributes !")
                 continue
+
+            close_nodes = {node.name: dist for node in grid.nodes.values() if (dist := geodesic_distance_m(endpoint[0], endpoint[1], node.lon, node.lat)) <= CONNECTION_THRESHOLD_M}
             
-            for node in grid.nodes.values():
-                dist = geodesic_distance_m(endpoint[0], endpoint[1], node.lon, node.lat)
-                connection_found = dist <= CONNECTION_THRESHOLD_M
-                if connection_found:
-                    setattr(cable, attr, node.name)
-                    break
-            
-            if not connection_found:
-                logger.debug(f' \t cable NOT snapped on "{attr:}" end')
-                cables_not_snapped.append(cable)
+            # sort close_nodes by distance
+            close_nodes = dict(sorted(close_nodes.items(), key=lambda kv: kv[1]))
+
+            # snap to the closest one
+            if len(close_nodes) >= 1:
+                node_name = list(close_nodes.keys())[0]
+                if len(close_nodes) == 1:
+                    logger.debug(f" cable {cable.id}: snapping '{attr}' end to node '{node_name}' at distance {list(close_nodes.values())[0]:.1f} m")
+
+                else:
+                    logger.debug(f" cable {cable.id}: multiple nodes are within {CONNECTION_THRESHOLD_M} m : {pformat(close_nodes)}. Snapping to'{node_name}' (closest one).")
+                
+                setattr(cable, attr, node_name)
+                
+                
+            else:
+                logger.warning(f" cable {cable.id}: no node found within {CONNECTION_THRESHOLD_M} m of '{attr}' end")
+                cables_not_snapped.append(cable)            
         
     if len(cables_not_snapped)>1:
         logger.warning(f" {len(cables_not_snapped)} cable(s) could not be snapped ! \n {pformat(cables_not_snapped)}")
