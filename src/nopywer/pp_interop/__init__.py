@@ -4,9 +4,15 @@ Optional feature — requires `uv sync --extra pandapower`.
 
 Public API:
     to_pandapower(grid, ...) -> PandapowerGrid
+    to_pandapower_3ph(grid, ...) -> Pandapower3phGrid
     compute_short_circuit(pp_grid) -> {name: i_sc_ka}
     compute_power_flow(pp_grid) -> PowerFlowResults
+    compute_power_flow_3ph(pp_grid) -> PowerFlow3phResults
     compare_with_tree_walk(grid, ...) -> TreeWalkVsAcDiff
+
+The two converters return distinct dataclasses (`PandapowerGrid` vs
+`Pandapower3phGrid`) and produce independent `pandapowerNet`s — no
+shared state, neither mutates the other's output.
 
 All defaults and modelling assumptions live in `config.py`.
 """
@@ -19,15 +25,25 @@ from ._powerflow import (
     compare_with_tree_walk,
     compute_power_flow,
 )
+from ._powerflow_3ph import (
+    Pandapower3phGrid,
+    PowerFlow3phResults,
+    compute_power_flow_3ph,
+    to_pandapower_3ph,
+)
 from ._shortcircuit import compute_short_circuit
 
 __all__ = [
+    "Pandapower3phGrid",
     "PandapowerGrid",
+    "PowerFlow3phResults",
     "PowerFlowResults",
     "TreeWalkVsAcDiff",
     "compare_with_tree_walk",
     "compute_power_flow",
+    "compute_power_flow_3ph",
     "compute_short_circuit",
     "config",
     "to_pandapower",
+    "to_pandapower_3ph",
 ]

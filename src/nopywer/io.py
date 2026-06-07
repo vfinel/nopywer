@@ -10,6 +10,56 @@ from .models import Cable, PowerNode
 
 logger = logging.getLogger(__name__)
 
+# A round-tripped nopywer export uses different property keys from the
+# hand-authored input schema (e.g. `area_mm2` vs `area`). Map each export
+# key onto its input-schema equivalent so either form loads.
+_EXPORT_KEY_ALIASES = {
+    "area_mm2": "area",
+    "plugs_and_sockets_a": "plugs&sockets",
+    "length_m": "length",
+}
+
+# Property keys we read from features after alias normalisation. Anything
+# outside this set is either a nopywer-export computed field (silently
+# ignored, the loader doesn't need it) or genuinely unknown (worth a
+# DEBUG line so a fixture author can spot a typo). Keep in sync with
+# what `load_geojson` actually reads.
+_KNOWN_FEATURE_KEYS: frozenset[str] = frozenset(
+    {
+        # input-schema keys read by the loader
+        "name",
+        "power",
+        "phase",
+        "area",
+        "plugs&sockets",
+        "length",
+        # widely-used metadata we ignore but recognise
+        "type",
+        "id",
+        "from",
+        "to",
+        "nodes",
+        # nopywer-export computed fields (output of `PowerNode.to_geojson`
+        # / `Cable.to_geojson`) — silently ignored on re-load
+        "power_watts",
+        "cum_power_watts",
+        "cum_power",  # legacy export key (pre-2026); kept for back-compat
+        "voltage",
+        "vdrop_percent",
+        "i_sc_ka",
+        "distro",
+        "cable_type",
+        "current_a",
+        "cum_power_kw",
+        "vdrop_volts",
+    }
+)
+
+
+def _normalise_keys(props: dict) -> dict:
+    """Return props with export-schema keys renamed to input-schema keys."""
+    return {_EXPORT_KEY_ALIASES.get(k, k): v for k, v in props.items()}
+
 
 def load_geojson(source: str | Path | dict) -> tuple[dict[str, PowerNode], dict[str, Cable]]:
     """Parse a GeoJSON FeatureCollection (file path or dict).
@@ -28,8 +78,19 @@ def load_geojson(source: str | Path | dict) -> tuple[dict[str, PowerNode], dict[
 
     for feature in fc.get("features", []):
         geom = feature.get("geometry", {})
-        props = feature.get("properties", {})
+        raw_props = feature.get("properties", {})
+        props = _normalise_keys(raw_props)
         gtype = geom.get("type", "")
+
+        unknown = set(props) - _KNOWN_FEATURE_KEYS
+        if unknown:
+            logger.debug(
+                "Feature %r carries property keys not used by load_geojson: %s. "
+                "If one of these is a typo for a known key the value will be "
+                "silently ignored.",
+                props.get("name") or props.get("id") or "<unnamed>",
+                sorted(unknown),
+            )
 
         if gtype == "Point":
             name = (props.get("name") or "").strip().lower()
@@ -49,7 +110,22 @@ def load_geojson(source: str | Path | dict) -> tuple[dict[str, PowerNode], dict[
             )
             if isinstance(phase, int) and 1 <= phase <= 3:
                 node.power_per_phase[phase - 1] = power
+            elif isinstance(phase, list) and phase:
+                # Multi-phase load: split power evenly across the listed legs
+                # (e.g. phase=[1, 2] on a 10 kW load -> 5 kW on L1, 5 kW on L2).
+                legs = [p for p in phase if isinstance(p, int) and 1 <= p <= 3]
+                for leg in legs:
+                    node.power_per_phase[leg - 1] += power / len(legs)
             else:
+                if isinstance(phase, str):
+                    logger.warning(
+                        "Node %r has legacy string phase marker %r; treating "
+                        "as unphased (balanced across L1/L2/L3). Strip these "
+                        "markers from the fixture once the sub-grid reporting "
+                        "they came from is no longer needed.",
+                        name,
+                        phase,
+                    )
                 node.power_per_phase += power / 3
             nodes.append(node)
 

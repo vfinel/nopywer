@@ -99,3 +99,91 @@ FAULT_TYPE: str = "3ph"
 
 # IEC 60909 case: maximum prospective short-circuit current.
 FAULT_CASE: str = "max"
+
+
+# === Three-phase asymmetric flow (runpp_3ph) ===
+#
+# Zero-sequence parameters describe how a cable and the source behave
+# to the imbalance current returning through the neutral and earth —
+# the current that a balanced `runpp` never sees. None of these have a
+# nopywer analogue (the tree walk does not model the neutral at all)
+# and they are not on festival flex spec sheets, so they are
+# engineering rule-of-thumb defaults. See research doc 10.
+
+# Zero-sequence cable R and X as a multiple of the positive-sequence
+# value.
+#
+# Physically, Z0 ≈ Z_phase + 3·Z_return, where Z_return is the
+# impedance of the loop that the imbalance (neutral) current closes
+# through. The ratio Z0/Z1 therefore depends on what conductors
+# actually carry that return — which in turn depends on the cable
+# build AND on the earthing topology of the wider system. The
+# default 4.0 assumes the festival-typical case below; override it
+# if your kit or wiring differs. See research/pandapower/10.1 for
+# the derivation and sources.
+#
+# Assumed cable build (festival HO7RN-F 5-core flex):
+#   - 3 phase conductors + 1 full-section Neutral + 1 full-section
+#     Protective Earth, all the same copper cross-section.
+#   - "Full-section N" means N has the same area as a phase, so the
+#     return path through N alone has R_N ≈ R_phase. (A reduced-
+#     section neutral — common in fixed building wiring — would
+#     push R0/R1 closer to 5-6.)
+#
+# Assumed earthing topology (festival TN-S diesel genset):
+#   - N and PE are bonded ONLY at the generator star point. PE is
+#     full-section for fault-current capacity, but does not act as
+#     a parallel return for steady-state neutral current — it sits
+#     at near-zero potential and carries no imbalance current.
+#   - Steady-state zero-sequence current returns through the Neutral
+#     conductor alone, giving Z_return ≈ Z_phase and therefore
+#     Z0 ≈ Z_phase + 3·Z_phase = 4·Z_phase  →  R0/R1 ≈ 4.
+#
+# How to choose a different value:
+#   - **Reduced-section neutral** (half-section N, no PE return):
+#     Z_return ≈ 2·Z_phase → R0/R1 ≈ 7. Rare on festival flex.
+#   - **N and PE bonded at every distro** (mesh-earthed or
+#     repeatedly-bonded TN-C-S): the two full-section conductors
+#     act as a parallel return, Z_return ≈ Z_phase/2 → R0/R1 ≈ 2.5.
+#     Check the site earthing scheme before assuming this.
+#   - **IT system** (isolated neutral, no source bond): no zero-
+#     sequence return at all; runpp_3ph cannot solve and the source
+#     earthing constants below need overriding too.
+#
+# X0/X1 is the same number by convention but for a different
+# reason: reactance is set by conductor geometry (spacing, twist,
+# return-loop area enclosed), not by cross-section. The 3-5×
+# range for X0/X1 is the established LV-cable rule of thumb (IEC
+# 60909-2 cable data tables); 4.0 is the mid-range default. It
+# does not move when you change R0/R1 unless you have a measured
+# value for the specific cable.
+R0_OVER_R1: float = 4.0
+X0_OVER_X1: float = 4.0
+
+# Zero-sequence capacitance per km. Negligible at LV under 1 km, same
+# as the positive-sequence `C_NF_PER_KM`.
+C0_NF_PER_KM: float = 0.0
+
+# Source vector group / earthing. Most festival diesel gen-sets are
+# TN-S with a solidly grounded star point (Yn), giving a
+# low-impedance zero-sequence return: X0/X1 ~ 1, R0/X0 ~ 0.1. An
+# isolated-neutral (IT) genset would have no zero-sequence return at
+# all and needs these overridden.
+SOURCE_X0X_MAX: float = 1.0
+SOURCE_R0X0_MAX: float = 0.1
+
+
+# === Phase distribution ===
+
+# Project-wide reference usage factor. Festival loads almost never
+# draw nameplate power all at once; phase-balancing on nameplate
+# would over-fit to a peak that never happens. 0.5x is the
+# deliberately conservative starting assumption documented in doc 10.
+#
+# This is **not** a default on any function in `pp_interop.phases` —
+# every public entry point requires `usage_factor` to be passed
+# explicitly so the choice is always visible at the call site. The
+# constant exists only so callers (scripts, tests, notebooks) can
+# adopt the project-wide value with one symbol rather than re-
+# typing 0.5.
+DEFAULT_USAGE_FACTOR: float = 0.5

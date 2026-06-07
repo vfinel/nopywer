@@ -41,7 +41,7 @@ With this matched, both tools land on the same answer.
 
 This test directly mirrors
 `tests/test_analyze.py::test_compute_voltage_drop_uses_phase_voltage_reference`
-— Vincent's canonical unit test of the voltage-reference convention.
+— the canonical unit test of the voltage-reference convention.
 A festival planner reading either test should see the same fixture
 (26 m of 1 mm² carrying 10 A) and the same answer (220 V at the
 load, 4.35 % drop).

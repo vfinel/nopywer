@@ -47,8 +47,39 @@ Date of research: April 2026. Pandapower latest at time of writing: **3.4.0**
     asymmetric `runpp_3ph`. Covers what pandapower needs (per-load
     phase, zero-sequence cable params, source vector group), what
     the existing fixtures contain (the 2025 fixture has no phase
-    data; the small synthetic does), three strategies for
-    synthesising phase data, and a per-layer scope breakdown.
+    data; the small synthetic does), four strategies for
+    synthesising phase data (B round-robin and D greedy now
+    implemented in `pp_interop/phases`), and a per-layer scope
+    breakdown. Key finding: phase balancing and voltage-drop relief
+    are decoupled levers — greedy cuts leg imbalance 9.5 %→0.6 % but
+    the worst node's drop barely moves (13.74 %→13.70 %).
+    - [`10.1_three_phase_theory.md`](10.1_three_phase_theory.md) — the
+      physics behind doc 10: why a balanced solve collapses 3 phases
+      to 1, symmetrical components, why the zero sequence *is* the
+      neutral, and the worked puzzle of why a single-phase load
+      unbalances the two legs it doesn't touch (with a verification
+      experiment proving it is real physics, not a solver quirk).
+11. [`11_field_export_fixture_walkthrough.md`](11_field_export_fixture_walkthrough.md) —
+    how to plug the `2026-05-14_martin.geojson` field export into
+    the pandapower code. Two gaps: a trivial schema mismatch (export
+    keys `area_mm2`/`plugs_and_sockets_a` vs input keys
+    `area`/`plugs&sockets`, loads silently to defaults), and a real
+    one — at full load the grid is past voltage collapse and `runpp`
+    will not converge. The non-convergence is itself the finding.
+12. [`12_runpp_3ph_findings.md`](12_runpp_3ph_findings.md) — first run
+    of the asymmetric solver on the 2026 modified fixture.
+    Convergence sweep, worst-leg drop, neutral-current per cable, and
+    strategy comparison under the real AC solve. Headlines: balanced
+    `runpp` is optimistic (worst drop ~2.2× lower than `runpp_3ph` at
+    0.5× usage, and *converges* at full load where `runpp_3ph` does
+    not have an AC operating point at all); phase strategy buys
+    convergence margin but not cable-spec compliance; one cable goes
+    over rating on its *neutral* under a plausible phase plan.
+13. [`13_cable_costs.md`](13_cable_costs.md) — EU web research on finished
+    CEE extension-lead costs for nopywer's four cable tiers. Fits each tier
+    as `a + b * length_m` from complete H07RN-F leads rather than raw cable
+    plus separate connector parts, and compares the fitted slopes with the
+    current `tier_cost` heuristic.
 
 ## TL;DR
 
