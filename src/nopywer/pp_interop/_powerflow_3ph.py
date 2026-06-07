@@ -61,8 +61,9 @@ from typing import TYPE_CHECKING, Any
 from ..constants import PF, V0
 from ..models import PowerGrid
 from . import config
-from ._conversion import _build_net_skeleton, _import_pandapower
+from ._conversion import _build_net_skeleton
 
+import pandapower as pp
 if TYPE_CHECKING:
     from pandapower.auxiliary import pandapowerNet
 else:
@@ -207,7 +208,6 @@ def to_pandapower_3ph(
             grid has no cables or a cable references an unknown node.
         ImportError: if pandapower is not installed.
     """
-    pp, _ = _import_pandapower()
     net, bus_idx = _build_net_skeleton(grid, **skeleton_kwargs)  # type: ignore[arg-type]
 
     # zero-sequence line parameters
@@ -365,7 +365,6 @@ def compute_power_flow_3ph(pp_grid: Pandapower3phGrid) -> PowerFlow3phResults:
             failed balanced solve (see doc 11).
         ImportError: if pandapower is not installed.
     """
-    pp, _ = _import_pandapower()
     pp.runpp_3ph(pp_grid.net)
     net = pp_grid.net
 

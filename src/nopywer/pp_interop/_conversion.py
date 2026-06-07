@@ -19,16 +19,16 @@ import math
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
+from ..constants import PF, RHO_COPPER
+from ..models import PowerGrid
+from . import config
 
-import pandapower as pp
 if TYPE_CHECKING:
     from pandapower.auxiliary import pandapowerNet
 else:
     pandapowerNet = Any
 
-from ..constants import PF, RHO_COPPER
-from ..models import PowerGrid
-from . import config
+import pandapower as pp
 
 
 @dataclass
@@ -186,7 +186,7 @@ def to_pandapower(
     are needed for `runpp` (power flow) and are harmless for IEC 60909
     `calc_sc` max-case (which standardly ignores prefault load).
     """
-    pp, _ = _import_pandapower()
+
     net, bus_idx = _build_net_skeleton(
         grid,
         gen_sn_kva=gen_sn_kva,
