@@ -126,7 +126,8 @@ def load_geojson(source: str | Path | dict) -> tuple[dict[str, PowerNode], dict[
     nodes: list[PowerNode] = []
     cables: list[Cable] = []
     cable_counter = 0
-
+    cable_counter_per_type = {}
+    
     for feature in fc.get("features", []):
         geom = feature.get("geometry", {})
         raw_props = feature.get("properties", {})
@@ -176,6 +177,7 @@ def load_geojson(source: str | Path | dict) -> tuple[dict[str, PowerNode], dict[
                 logger.warning('Line as less than two points, discarding it.')
                 continue
 
+            # get cables properties with default values
             area = float(props.get("area", 2.5) or 2.5)
             ps = float(props.get("plugs&sockets", 16.0) or 16.0)
             length = float(props.get("length", 0) or 0)
@@ -184,9 +186,26 @@ def load_geojson(source: str | Path | dict) -> tuple[dict[str, PowerNode], dict[
                     coords[0][0], coords[0][1], coords[-1][0], coords[-1][1]
                 )
             length += EXTRA_CABLE_LENGTH_M
+            fid = int(props.get("fid", -1))  # if applicable, get feature id from QGIS
+            
+            # count cables for each type 
+            cable_counter_per_type_key = f"{ps:.0f}A"
+            if cable_counter_per_type_key not in cable_counter_per_type.keys():
+                cable_counter_per_type[cable_counter_per_type_key] = 1
 
+            else:
+                cable_counter_per_type[cable_counter_per_type_key] += 1
+
+            # define cable ID. If applicable, use fid from QGIS to ease debugging and comparison with source data. Otherwise, use a simple counter.
+            if fid==-1:
+                cable_id = f"cable_{cable_counter}"
+
+            else:
+                cable_id = f"cable_{cable_counter_per_type_key}_fid{fid}" 
+            
+            # create cable object
             cable = Cable(
-                id=f"cable_{cable_counter}",
+                id=cable_id,
                 length_m=length,
                 area_mm2=area,
                 plugs_and_sockets_a=ps,
