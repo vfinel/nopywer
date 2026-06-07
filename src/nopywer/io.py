@@ -281,10 +281,12 @@ def print_grid_info(
     # print loads without a phase assigned
     unphased = [n for n, nd in nodes.items() if nd.power_watts>0 and nd.phase is None]
     if len(unphased):
+        print(' ')
         logger.info(f" Loads without a phase assigned: ")
         logger.info(f"\t{unphased} \n ")
 
     # print distro requirements
+    print(' ')
     logger.info(" distro requirements:")
     for deep, names in enumerate(dlist):
         logger.info(f"\t deepness {deep}")

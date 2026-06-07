@@ -11,6 +11,7 @@ from .io import print_grid_info
 from .models import PowerGrid
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 app = typer.Typer()
 
