@@ -1,9 +1,9 @@
 """Tests for the diagnostic logging emitted by `nopywer.io.load_geojson`.
 
 The loader is the project's front door for fixture data and silently
-coerces a number of borderline inputs (unknown property keys, legacy
-string phase markers). This module pins the warnings/diagnostics that
-surface those coercions so they cannot regress to silent behaviour.
+coerces a number of borderline inputs (unknown property keys).
+This module pins the warnings/diagnostics that surface those
+coercions so they cannot regress to silent behaviour.
 """
 
 import logging
@@ -24,41 +24,11 @@ def _fc(*features: dict) -> dict:
     return {"type": "FeatureCollection", "features": list(features)}
 
 
-def test_legacy_string_phase_marker_logs_a_warning(caplog):
-    """A node whose `phase` is a string ("U"/"Y") triggers a WARNING.
-
-    What: loading a Point feature with `phase: "U"` produces a
-    `logging.WARNING` naming the node and the marker, and the load
-    still succeeds with the load spread evenly across L1/L2/L3.
-
-    Why it matters: `"U"` / `"Y"` are legacy sub-grid reporting
-    markers with no electrical meaning. They look phase-like in the
-    GeoJSON and slip through silently otherwise, which is misleading
-    when reading a `runpp_3ph` result. The warning is the operator's
-    only signal that the marker propagated as far as the loader.
-    """
-    caplog.set_level(logging.WARNING, logger="nopywer.io")
-    nodes, _ = load_geojson(_fc(_point_feature("stage_left", phase="U")))
-
-    # behaviour: still loads, treated as unphased
-    assert nodes["stage_left"].phase == "U"
-    assert nodes["stage_left"].power_per_phase.tolist() == [1000.0 / 3] * 3
-
-    # diagnostic: a single warning naming the node and the marker
-    warnings = [r for r in caplog.records if r.levelno == logging.WARNING]
-    assert len(warnings) == 1
-    assert "stage_left" in warnings[0].getMessage()
-    assert "'U'" in warnings[0].getMessage()
-
-
 def test_int_phase_emits_no_warning(caplog):
-    """A well-formed integer phase does not trigger the legacy-marker warning.
+    """A well-formed integer phase does not trigger any warnings.
 
     What: loading a Point feature with `phase: 2` produces no
     `WARNING`-level log records.
-
-    Why it matters: the warning would lose meaning if it fired for
-    normal data. This test pins it as legacy-marker-specific.
     """
     caplog.set_level(logging.WARNING, logger="nopywer.io")
     load_geojson(_fc(_point_feature("ok", phase=2)))

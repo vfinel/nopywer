@@ -114,7 +114,6 @@ class Pandapower3phGrid:
     balanced_load_idx: dict[str, int] = field(default_factory=dict)
     asymmetric_load_idx: dict[str, int] = field(default_factory=dict)
 
-
 def _phase_split(phase: object, power_watts: float) -> tuple[float, float, float]:
     """Split a load's power across (L1, L2, L3) from its `phase` field.
 
@@ -126,9 +125,9 @@ def _phase_split(phase: object, power_watts: float) -> tuple[float, float, float
       - `phase` is a list, e.g. `[1, 2]` — the load is split evenly
         across the listed legs (a 10 kW load on `[1, 2]` is 5 kW on
         L1, 5 kW on L2, nothing on L3).
-      - anything else (the `"U"` / `"Y"` sub-grid markers, an empty
-        or malformed list, or `None`) — balanced: an even third on
-        each leg.
+      - anything else (an empty or malformed list, or `None`) —
+        balanced: an even third on each leg.
+
 
     Note on `None`: `to_pandapower_3ph` routes `phase is None` loads
     straight to `pp.load` and never calls this function for them.
@@ -226,19 +225,7 @@ def to_pandapower_3ph(
     for name, node in grid.nodes.items():
         if node.is_generator or node.power_watts <= 0:
             continue
-        # Legacy "U" / "Y" string markers have no electrical meaning;
-        # treat them the same as `phase is None` (balanced). Logged so
-        # the operator knows the marker propagated through to a solve.
-        is_balanced = node.phase is None or isinstance(node.phase, str)
-        if isinstance(node.phase, str):
-            logger.warning(
-                "Node %r carries legacy string phase marker %r; routing to "
-                "balanced pp.load. Phase markers should be int (1/2/3) or "
-                "list ([1, 2]) for runpp_3ph to use them.",
-                name,
-                node.phase,
-            )
-        if is_balanced:
+        if node.phase is None:
             p_mw = node.power_watts / 1e6
             balanced_load_idx[name] = pp.create_load(
                 net,

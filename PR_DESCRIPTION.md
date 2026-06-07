@@ -20,9 +20,8 @@ it. Five user-facing pieces:
    the balanced converter — no shared state, no mutation.
 4. **`PowerNode.to_geojson` emits `phase`** when non-`None`, so phase
    plans round-trip through the loader.
-5. **Diagnostic logging** in `io` and `pp_interop` — legacy `"U"`/`"Y"`
-   string phase markers and unknown-property-key typos now surface
-   instead of being silently coerced.
+5. **Diagnostic logging** in `io` — unknown-property-key typos now
+   surface at DEBUG level instead of being silently ignored.
 
 ## Why
 

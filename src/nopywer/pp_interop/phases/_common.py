@@ -35,12 +35,10 @@ is deliberately polymorphic (see `nopywer.models`):
   - `[1, 2]`      — multi-phase: the load is split evenly across the
                     listed legs (a 10 kW load on `[1, 2]` is 5 kW on
                     L1, 5 kW on L2).
-  - `"U"` / `"Y"` — sub-grid reporting markers with no electrical
-                    meaning; treated here the same as `None`.
 
 A strategy only ever *creates* the single-int form, and only for
-loads that arrive as `None`. Loads that already carry a `1/2/3`,
-a list, or a string marker are left exactly as they are — the
+loads that arrive as `None`. Loads that already carry a `1/2/3`
+or a list are left exactly as they are — the
 planner (or a previous run) has spoken.
 """
 
@@ -115,8 +113,8 @@ def single_phase_candidates(grid: PowerGrid, *, usage_factor: float) -> list[tup
          (distros, junctions) have no leg to balance and are skipped.
       2. it is not the generator — the source is not a load.
       3. it has no explicit `phase` yet — `phase is None`. A load
-         already carrying `1/2/3`, a `[...]` list, or a `"U"/"Y"`
-         marker has been decided elsewhere and is left untouched.
+         already carrying `1/2/3` or a `[...]` list has been decided
+         elsewhere and is left untouched.
       4. it fits on one leg — its *effective* power
          (`power_watts * usage_factor`) is within
          `SINGLE_PHASE_CAPACITY_W`. A load bigger than a single 16 A
@@ -177,8 +175,6 @@ def _fixed_leg_seed(grid: PowerGrid, candidate_names: set[str], usage_factor: fl
 
     Generators, zero-power nodes, and anything in `candidate_names`
     are skipped — candidates are the strategy's job, not the seed's.
-    A `"U"` / `"Y"` string marker falls through to the balanced
-    branch (it has no electrical meaning).
 
     This is private: it is an implementation detail shared by the
     strategies and `build_assignment`, not part of the package API.
@@ -207,14 +203,7 @@ def _fixed_leg_seed(grid: PowerGrid, candidate_names: set[str], usage_factor: fl
             for leg in legs_used:
                 legs[leg - 1] += effective_w / len(legs_used)
         else:
-            # balanced / unphased / string marker — spread evenly
-            if isinstance(phase, str):
-                logger.warning(
-                    "Node %r carries legacy string phase marker %r; treating "
-                    "as unphased (balanced across L1/L2/L3) in the leg seed.",
-                    name,
-                    phase,
-                )
+            # balanced / unphased — spread evenly
             for i in range(3):
                 legs[i] += effective_w / 3
     return legs

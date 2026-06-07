@@ -87,7 +87,6 @@ def test_candidates_include_only_eligible_loads():
             ("zero", 0.0, None),  # excluded: no power
             ("phased_int", 2000.0, 2),  # excluded: already has a phase
             ("phased_list", 2000.0, [1, 3]),  # excluded: already multi-phase
-            ("marker", 2000.0, "U"),  # excluded: sub-grid marker counts as phased
             ("huge", 20000.0, None),  # excluded: too big for one leg even at 0.5x
         ],
         gen_power=1000.0,
@@ -158,33 +157,6 @@ def test_fixed_leg_seed_spreads_balanced_and_lands_phased():
     )
     legs = _fixed_leg_seed(grid, candidate_names={"a_candidate"}, usage_factor=1.0)
     assert legs == [1000.0 + 2000.0, 1000.0 + 1000.0, 1000.0 + 1000.0]
-
-
-def test_fixed_leg_seed_warns_on_string_phase_marker(caplog):
-    """A node with a legacy string `phase` marker triggers a WARNING.
-
-    What: a 3 kW load with `phase="Y"` is still spread evenly across
-    the three legs (`1 kW` each) by the seed, and a single
-    `WARNING`-level log record names the node and the marker.
-
-    Why it matters: the seed is the silent path — it handles loads
-    that aren't being distributed by the current strategy, so a
-    weird `phase` value would be folded into the leg totals with no
-    other signal. The warning gives the operator a single-call
-    paper trail equivalent to the one `to_pandapower_3ph` emits.
-    """
-    import logging
-
-    grid = make_grid([("stage_left", 3000.0, "Y")])
-    caplog.set_level(logging.WARNING, logger="nopywer.pp_interop.phases._common")
-
-    legs = _fixed_leg_seed(grid, candidate_names=set(), usage_factor=1.0)
-    assert legs == [1000.0, 1000.0, 1000.0]
-
-    warnings = [r for r in caplog.records if r.levelno == logging.WARNING]
-    assert len(warnings) == 1
-    assert "stage_left" in warnings[0].getMessage()
-    assert "'Y'" in warnings[0].getMessage()
 
 
 # --- build_assignment --------------------------------------------------------

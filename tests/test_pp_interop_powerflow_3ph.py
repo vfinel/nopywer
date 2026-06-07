@@ -55,7 +55,6 @@ def _grid(loads: list[tuple[str, float, object]]) -> PowerGrid:
         ([1, 2], (4500.0, 4500.0, 0.0)),
         ([1, 2, 3], (3000.0, 3000.0, 3000.0)),
         (None, (3000.0, 3000.0, 3000.0)),
-        ("U", (3000.0, 3000.0, 3000.0)),  # sub-grid marker -> balanced
         ([], (3000.0, 3000.0, 3000.0)),  # empty list -> balanced
         ([9], (3000.0, 3000.0, 3000.0)),  # no valid legs -> balanced
     ],
@@ -63,11 +62,11 @@ def _grid(loads: list[tuple[str, float, object]]) -> PowerGrid:
 def test_phase_split(phase, expected):
     """Every form of `PowerNode.phase` maps to the right per-leg power tuple.
 
-    What: `_phase_split` is exercised across all six cases — int legs
-    1/2/3, a two-leg list, a full three-leg list, `None`, the `"U"`
-    sub-grid marker, and two malformed lists (empty, no valid leg).
-    Each must produce the documented per-leg split, and every split
-    must conserve power (sum back to the 9 kW input).
+    What: `_phase_split` is exercised across its valid cases — int legs
+    1/2/3, a two-leg list, a full three-leg list, `None` — and two
+    malformed lists (empty, no valid leg). Each must produce the
+    documented per-leg split, and every split must conserve power
+    (sum back to the 9 kW input).
 
     Why it matters: this function is the bridge between nopywer's
     polymorphic `phase` field and pandapower's asymmetric loads. If it
@@ -173,40 +172,6 @@ def test_to_3ph_all_balanced_grid_has_no_asymmetric_loads():
     pp_grid = to_pandapower_3ph(grid)
     assert len(pp_grid.net.asymmetric_load) == 0
     assert len(pp_grid.net.load) == 2
-
-
-def test_to_3ph_routes_string_phase_marker_to_balanced_table_with_warning(caplog):
-    """A node whose `phase` is a legacy string marker is treated as balanced.
-
-    What: a load with `phase="U"` ends up in `net.load` (and
-    `balanced_load_idx`), not `net.asymmetric_load`, and a single
-    `WARNING`-level log record names the node and the marker.
-
-    Why it matters: `"U"` / `"Y"` are sub-grid reporting markers
-    with no electrical meaning. Routing them to `asymmetric_load`
-    would store a "no electrical meaning" marker as if it were a
-    deliberate per-leg split — functionally equivalent (three
-    equal P's behave like a balanced load) but semantically
-    misleading. Sending them to the balanced table is the honest
-    representation; the warning is the operator's signal that the
-    marker propagated this far.
-    """
-    import logging
-
-    grid = _grid([("stage_left", 3000.0, "U")])
-    caplog.set_level(logging.WARNING, logger="nopywer.pp_interop._powerflow_3ph")
-
-    pp_grid = to_pandapower_3ph(grid)
-
-    assert "stage_left" in pp_grid.balanced_load_idx
-    assert "stage_left" not in pp_grid.asymmetric_load_idx
-    assert len(pp_grid.net.load) == 1
-    assert len(pp_grid.net.asymmetric_load) == 0
-
-    warnings = [r for r in caplog.records if r.levelno == logging.WARNING]
-    assert len(warnings) == 1
-    assert "stage_left" in warnings[0].getMessage()
-    assert "'U'" in warnings[0].getMessage()
 
 
 # --- compute_power_flow_3ph --------------------------------------------------

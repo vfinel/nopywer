@@ -95,12 +95,11 @@ def test_power_node_to_geojson():
     assert "phase" not in props
 
 
-def test_power_node_to_geojson_emits_phase_when_set():
-    """Phase is emitted whenever it is non-None, in any form it can take.
+def test_node_to_geojson_emits_phase():
+    """`to_geojson` includes the `phase` property for any non-None form.
 
-    What: an int phase, a multi-phase list, and a legacy string marker
-    all appear in the exported properties; only `phase=None` is
-    omitted.
+    What: an int phase and a multi-phase list appear in the exported
+    properties; only `phase=None` is omitted.
 
     Why it matters: this is the round-trip contract for
     `pp_interop.phases`. A planner assigns `phase` on the grid via
@@ -110,11 +109,10 @@ def test_power_node_to_geojson_emits_phase_when_set():
     """
     int_phase = PowerNode(name="a", lon=0, lat=0, phase=2)
     list_phase = PowerNode(name="b", lon=0, lat=0, phase=[1, 2])
-    str_phase = PowerNode(name="c", lon=0, lat=0, phase="U")
 
     assert int_phase.to_geojson()["properties"]["phase"] == 2
     assert list_phase.to_geojson()["properties"]["phase"] == [1, 2]
-    assert str_phase.to_geojson()["properties"]["phase"] == "U"
+
 
 
 def test_generator_node_to_geojson():
