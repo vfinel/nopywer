@@ -1,6 +1,7 @@
 import json
 import logging
 from collections import defaultdict
+from pprint import pformat
 
 import numpy as np
 
@@ -9,7 +10,7 @@ from .geometry import geodesic_distance_m
 from .models import PowerGrid
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)  # or DEBUG
+logger.setLevel(logging.INFO)  # DEBUG, INFO, ...
 
 
 def snap_cables_to_nodes(grid: PowerGrid) -> None:
@@ -33,7 +34,8 @@ def snap_cables_to_nodes(grid: PowerGrid) -> None:
                 cables_not_snapped.append(cable)
         
     if len(cables_not_snapped)>1:
-        logger.warning(f" {len(cables_not_snapped)} could not be snapped !")
+        logger.warning(f" {len(cables_not_snapped)} cable(s) could not be snapped ! \n {pformat(cables_not_snapped)}")
+
 
 
 def _build_node_cables(grid: PowerGrid) -> dict[str, list[str]]:
@@ -102,7 +104,6 @@ def _compute_tree(grid: PowerGrid) -> list[list[str]]:
         if node.deepness is not None:
             dlist[node.deepness].append(node.name)
     return dlist
-
 
 
 def cumulate_current(grid: PowerGrid) -> None:
