@@ -211,5 +211,10 @@ def analyze(grid: PowerGrid, engine: str = "tree_walk") -> None:
 
         analyze_with_pp(grid)
 
+    elif engine == "asymmetric":
+        from .pp_interop import analyze_with_pp_3ph
+
+        analyze_with_pp_3ph(grid)
+
     else:
         raise ValueError(f"Unknown analysis engine: {engine}")

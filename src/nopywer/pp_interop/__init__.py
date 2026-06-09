@@ -6,6 +6,8 @@ Public API:
     compute_short_circuit(pp_grid) -> {name: i_sc_ka}
     compute_power_flow(pp_grid) -> PowerFlowResults
     compute_power_flow_3ph(pp_grid) -> PowerFlow3phResults
+    analyze_with_pp(grid, ...) -> None
+    analyze_with_pp_3ph(grid, ...) -> None
     compare_with_tree_walk(grid, ...) -> TreeWalkVsAcDiff
 
 The two converters return distinct dataclasses (`PandapowerGrid` vs
@@ -27,6 +29,7 @@ from ._powerflow import (
 from ._powerflow_3ph import (
     Pandapower3phGrid,
     PowerFlow3phResults,
+    analyze_with_pp_3ph,
     compute_power_flow_3ph,
     to_pandapower_3ph,
 )
@@ -39,6 +42,7 @@ __all__ = [
     "PowerFlowResults",
     "TreeWalkVsAcDiff",
     "analyze_with_pp",
+    "analyze_with_pp_3ph",
     "compare_with_tree_walk",
     "compute_power_flow",
     "compute_power_flow_3ph",

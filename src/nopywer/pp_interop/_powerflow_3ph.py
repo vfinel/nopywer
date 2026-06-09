@@ -394,3 +394,46 @@ def compute_power_flow_3ph(pp_grid: Pandapower3phGrid) -> PowerFlow3phResults:
         line_loading_percent=line_loading_percent,
         converged=converged,
     )
+
+
+def analyze_with_pp_3ph(grid: PowerGrid, **to_pp_kwargs) -> None:
+    """Equivalent to `analyze(grid)` but uses asymmetric AC power flow.
+
+    Mutates the `PowerGrid` object in-place, updating node voltages,
+    vdrop percentages, and cable currents using AC results.
+
+    For node voltages and drops, we store the *worst-case* leg (minimum
+    voltage, maximum drop) since the model only has scalar fields for these.
+    For cables, we store the 3-phase current tuple.
+
+    Assumes `prepare_grid(grid)` has already been run to populate
+    topology and tree metadata.
+    """
+    # 1. AC Power Flow (Asymmetric)
+    pp_grid = to_pandapower_3ph(grid, **to_pp_kwargs)
+    res = compute_power_flow_3ph(pp_grid)
+
+    if not res.converged:
+        logger.warning("pandapower (asymmetric) did not converge! Results may be invalid.")
+
+    # 2. Write-back AC results
+    for name, node in grid.nodes.items():
+        if name in res.bus_voltage_v:
+            # Store the worst-case leg
+            node.voltage = min(res.bus_voltage_v[name])
+            node.vdrop_percent = max(res.bus_vdrop_percent[name])
+
+    for cable_id, cable in grid.cables.items():
+        if cable_id in res.line_current_a:
+            # res.line_current_a[cable_id] is (i_a, i_b, i_c)
+            currents = res.line_current_a[cable_id]
+            cable.current_per_phase = list(currents)
+
+            # Worst-case voltage drop on the cable
+            cable.vdrop_volts = max(res.bus_vdrop_percent[cable.from_node][i] - res.bus_vdrop_percent[cable.to_node][i] for i in range(3)) / 100.0 * V0
+            # Wait, better to just use Ohm's law with the max current as a rough estimate
+            # or calculate it from absolute voltages if we had them per-leg.
+            # Actually, compute_power_flow_3ph gives bus_voltage_v as PN volts.
+            v_from = res.bus_voltage_v[cable.from_node]
+            v_to = res.bus_voltage_v[cable.to_node]
+            cable.vdrop_volts = max(v_from[i] - v_to[i] for i in range(3))

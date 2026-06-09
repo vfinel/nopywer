@@ -9,6 +9,7 @@ from . import inventory
 from .analyze import analyze
 from .io import print_grid_info
 from .models import PowerGrid
+from .pp_interop import config
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -28,8 +29,16 @@ def analyze_grid(
     ] = None,
     engine: Annotated[
         str,
-        typer.Option("--engine", "-e", help="Analysis engine to use (tree_walk, pandapower)"),
+        typer.Option("--engine", "-e", help="Analysis engine to use (tree_walk, pandapower, asymmetric)"),
     ] = "tree_walk",
+    load_factor: Annotated[
+        float,
+        typer.Option(
+            "--load-factor",
+            "-l",
+            help="Multiplier on nameplate power for AC solves (e.g. 0.5 for festival diversity)",
+        ),
+    ] = config.DEFAULT_USAGE_FACTOR,
     inventory_file: Annotated[
         str | None,
         typer.Option(
@@ -51,6 +60,14 @@ def analyze_grid(
         logging.basicConfig(level=logging.INFO)
 
     grid = PowerGrid.from_geojson(input)
+
+    # Scale loads in place if load_factor is provided and engine is AC-based
+    if engine in ("pandapower", "asymmetric") and load_factor != 1.0:
+        for node in grid.nodes.values():
+            if not node.is_generator:
+                node.power_watts *= load_factor
+        logger.info(f" Scaled loads by factor {load_factor}")
+
     analyze(grid, engine=engine)
 
     if verbose:
